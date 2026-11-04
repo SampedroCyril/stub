@@ -1,13 +1,14 @@
 import { lazy, Suspense, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
-import { LevelCard, Panel, useCountdown } from "../components/ui.jsx";
+import { LevelCard, Panel } from "../components/ui.jsx";
 import Figure from "../art/Figure.jsx";
 import Icon from "../art/Icon.jsx";
 import { EX, xpOf, fmtAmt, sides } from "../data/exercises.js";
-import { CRAV_XP } from "../data/rules.js";
 import { amount, pairAt, upcoming, randomPair, advanceRotation } from "../lib/circuit.js";
 import { cameraSupported } from "../pose/counters.js";
 import { clamp } from "../lib/util.js";
+import { DMG, hpAt } from "../game/battle.js";
+import { BOSSES } from "../game/bosses.js";
 
 const CameraCoach = lazy(() => import("../pose/CameraCoach.jsx"));
 
@@ -46,11 +47,10 @@ function Move({ e, kind, sportL, adj, result, onCamera, onDetails }) {
 }
 
 export default function Circuit() {
-  const { S, state, flow, setFlow, cravingEvent, resetFlow, commit, go } = useApp();
+  const { S, state, flow, setFlow, resetFlow, commit, go, battle, hitBattle } = useApp();
   const [coach, setCoach] = useState(null);
   const active = flow.mode === "circuit";
-  const fromCraving = active && !!flow.craving;
-  const countdown = useCountdown(fromCraving ? flow.craving.endsAt : null);
+  const fromCraving = active && !!flow.attack && !!battle;
   const sportL = S.sport.L, adj = state.adj;
   const pair = flow.override || pairAt(state, sportL);
   const results = flow.results || {};
@@ -62,11 +62,14 @@ export default function Circuit() {
     const items = pair.map((e) => ({ e, n: qty(e), ...(results[e] ? { cam: true } : {}) }));
     const xp = items.reduce((a, it) => a + xpOf(it.e, it.n), 0);
     const events = [], msg = [`Circuit : +${xp} XP sport`];
-    if (fromCraving) { events.push(cravingEvent("sport", flow.craving)); msg.push(`Envie tuée : +${CRAV_XP.sport} XP sevrage`); }
     events.push({ k: "circuit", t: new Date().toISOString(), f, items });
     const patch = { adj: clamp(adj + f, -3, 5), ...(flow.override ? {} : advanceRotation(state, sportL)) };
+    if (fromCraving) {
+      const dmg = hitBattle("circuit", items.some((it) => it.cam) ? DMG.circuitCam : DMG.circuit);
+      msg.push(`${BOSSES[battle.boss].n} prend ${dmg} dégâts !`);
+    }
     resetFlow();
-    go("accueil");
+    go(fromCraving ? "sevrage" : "accueil");
     commit(events, msg, patch);
   };
 
@@ -83,7 +86,7 @@ export default function Circuit() {
 
       {active && (
         <section className={`card${fromCraving ? " quit" : ""}`}>
-          {fromCraving && <div className="banner"><span>Envie en cours, ce circuit la tue.</span><b>{countdown}</b></div>}
+          {fromCraving && <div className="banner"><span>Attaque contre {BOSSES[battle.boss].n} : −{Math.round(DMG.circuit * 100)} % PV, −{Math.round(DMG.circuitCam * 100)} % si validé caméra.</span><b>{hpAt(battle, new Date())} PV</b></div>}
           <div className="card-head">
             <h2>{flow.override ? "Circuit au hasard" : "Ton circuit"}</h2>
             <span className="timer">+{totalXp} XP</span>
@@ -100,7 +103,7 @@ export default function Circuit() {
           <p className="tip">Enchaîne les deux, souffle 30 secondes, refais un tour si tu veux. Touche un exo pour voir comment le faire.</p>
           <div className="row2">
             <button className="btn" type="button" onClick={() => setFlow((f) => ({ ...f, override: randomPair(pair, sportL), results: {} }))}>Autre circuit au hasard</button>
-            <button className="btn" type="button" onClick={() => (fromCraving ? (setFlow((f) => ({ mode: "craving", craving: f.craving })), go("sevrage")) : resetFlow())}>Annuler</button>
+            <button className="btn" type="button" onClick={() => { resetFlow(); if (fromCraving) go("sevrage"); }}>Annuler</button>
           </div>
           <div className="done">
             <span className="label">Terminé. C'était…</span>

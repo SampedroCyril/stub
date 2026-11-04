@@ -2,6 +2,7 @@ import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import { EX, fmtAmt, circuitXp } from "../data/exercises.js";
 import { TRIG_NAME, METHOD_NAME, PATTERNS, DEFI_XP, methodOf } from "../data/rules.js";
+import { BOSSES } from "../game/bosses.js";
 import { DOW, DAY, dayKey, fTime, fmt1, mins, clamp, lastNDays, weekStart } from "../lib/util.js";
 
 function DayBars({ rows }) {
@@ -24,8 +25,8 @@ export default function Stats({ onRecap }) {
   const firstDay = Object.keys(days).sort()[0];
   const span = firstDay ? clamp(Math.floor((new Date(today) - new Date(firstDay)) / DAY) + 1, 1, 7) : 1;
   const byDay = (k) => crav.filter((e) => dayKey(new Date(e.t)) === k);
-  const cw = w.map((x) => { const l = byDay(x.k); return { ...x, s: l.filter((e) => methodOf(e) === "sport").length, b: l.filter((e) => methodOf(e) === "breath").length, h: l.filter((e) => methodOf(e) === "hold").length }; });
-  const sum7 = cw.reduce((a, x) => a + x.s + x.b + x.h, 0);
+  const cw = w.map((x) => { const l = byDay(x.k); const m = (k) => l.filter((e) => methodOf(e) === k).length; return { ...x, s: m("sport"), b: m("breath"), g: m("game") + m("crisis"), h: m("hold") }; });
+  const sum7 = cw.reduce((a, x) => a + x.s + x.b + x.g + x.h, 0);
   const withI = crav.filter((e) => e.i);
   const avgI = withI.length ? withI.reduce((a, e) => a + e.i, 0) / withI.length : null;
 
@@ -47,7 +48,7 @@ export default function Stats({ onRecap }) {
   const top = hours.map((n, h) => ({ n, h })).filter((x) => x.n).sort((a, b) => b.n - a.n).slice(0, 3);
   const ts = new Set(top.map((x) => x.h));
 
-  const maxC = Math.max(1, ...cw.map((x) => x.s + x.b + x.h));
+  const maxC = Math.max(1, ...cw.map((x) => x.s + x.b + x.g + x.h));
   const xw = w.map((x) => ({ ...x, xp: S.ev.filter((e) => e.k === "circuit" && dayKey(new Date(e.t)) === x.k).reduce((a, e) => a + circuitXp(e), 0) }));
   const maxX = Math.max(1, ...xw.map((x) => x.xp));
   const tops = Object.keys(S.tot).filter((e) => EX[e]).map((e) => ({ e, n: S.tot[e], xp: Math.round(EX[e].u === "s" ? (S.tot[e] * EX[e].d) / 3 : S.tot[e] * EX[e].d) })).sort((a, b) => b.xp - a.xp).slice(0, 6);
@@ -121,8 +122,8 @@ export default function Stats({ onRecap }) {
 
       <section className="box">
         <h3>Envies sur 7 jours</h3>
-        <div className="legend"><span>Au sport</span><span className="l2">En respirant</span><span className="l3">Tenues</span></div>
-        <DayBars rows={cw.map((x) => ({ key: x.k, label: `${DOW[x.d.getDay()]} ${x.d.getDate()}`, value: x.s + x.b + x.h, parts: [{ cls: "q", pct: (x.s / maxC) * 100 }, { cls: "q2", pct: (x.b / maxC) * 100 }, { cls: "q3", pct: (x.h / maxC) * 100 }] }))} />
+        <div className="legend"><span>Au sport</span><span className="l2">En respirant</span><span className="l4">En jouant</span><span className="l3">Tenues</span></div>
+        <DayBars rows={cw.map((x) => ({ key: x.k, label: `${DOW[x.d.getDay()]} ${x.d.getDate()}`, value: x.s + x.b + x.g + x.h, parts: [{ cls: "q", pct: (x.s / maxC) * 100 }, { cls: "q2", pct: (x.b / maxC) * 100 }, { cls: "q4", pct: (x.g / maxC) * 100 }, { cls: "q3", pct: (x.h / maxC) * 100 }] }))} />
       </section>
 
       <h2 className="sec-title sport">Sport</h2>
@@ -159,8 +160,10 @@ export default function Stats({ onRecap }) {
           {recent.length ? recent.map((e, i) => {
             const d = new Date(e.t);
             const when = <time>{DOW[d.getDay()]} {d.getDate()} · {fTime(d)}</time>;
-            if (e.k === "craving") return <div key={i}>{when}<span className="what"><span className="k-craving">Envie tenue</span> {METHOD_NAME[methodOf(e)]}{e.i ? ` · ${e.i}/5` : ""}{e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : ""}</span></div>;
+            if (e.k === "craving") return <div key={i}>{when}<span className="what"><span className="k-craving">{e.b ? `${BOSSES[e.b]?.n || "Boss"} vaincu` : "Envie tenue"}</span> {METHOD_NAME[methodOf(e)]}{e.kt ? ` en ${Math.floor(e.kt / 60)}:${String(e.kt % 60).padStart(2, "0")}` : ""}{e.i ? ` · ${e.i}/5` : ""}{e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : ""}</span></div>;
             if (e.k === "breath") return <div key={i}>{when}<span className="what"><span className="k-breath">Respiration</span> {PATTERNS[e.p] ? PATTERNS[e.p].n.toLowerCase() : ""} · {mins(e.sec || 0)}</span></div>;
+            if (e.k === "game") return <div key={i}>{when}<span className="what"><span className="k-game">Blocs</span> {e.s} points · {e.l} lignes</span></div>;
+            if (e.k === "challenge") return <div key={i}>{when}<span className="what"><span className="k-circuit">Défi caméra</span> {(e.items || []).filter((it) => EX[it.e]).map((it) => `${EX[it.e].n} ${fmtAmt(it.e, it.n)}`).join("")} · +{circuitXp(e)} XP</span></div>;
             if (e.k === "smoked") return <div key={i}>{when}<span className="what"><span className="k-smoked">Clope fumée</span>, sevrage remis à zéro</span></div>;
             return <div key={i}>{when}<span className="what"><span className="k-circuit">Circuit</span> {(e.items || []).filter((it) => EX[it.e]).map((it) => `${EX[it.e].n} ${fmtAmt(it.e, it.n)}${it.cam ? " ✓" : ""}`).join(" + ")} · +{circuitXp(e)} XP</span></div>;
           }) : <p className="empty">Rien pour l'instant.</p>}

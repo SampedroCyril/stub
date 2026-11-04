@@ -6,6 +6,8 @@ import { HEALTH } from "../data/rules.js";
 import { DEFIS, fmtDefi } from "../data/defis.js";
 import { BADGES, TIER_NAMES, badgeInfo } from "../data/badges.js";
 import { DOW, fDate, fTime, pl, durationText } from "../lib/util.js";
+import Cendrier, { stageOf } from "../game/Cendrier.jsx";
+import { bestiary } from "../game/battle.js";
 
 export default function Home() {
   const { S, go, startCraving } = useApp();
@@ -61,6 +63,16 @@ export default function Home() {
           <span className="chev" aria-hidden="true">›</span>
         </button>
       </section>
+
+      <button className="linkcard ash" type="button" onClick={() => go("bestiaire")}>
+        <Cendrier count={S.cravAll.length} />
+        <div>
+          <span className="label">Le cendrier · {stageOf(S.cravAll.length).n}</span>
+          <strong>{pl(S.cravAll.length, "clope")} écrasée{S.cravAll.length > 1 ? "s" : ""}</strong>
+          <span>{S.bossN ? `${S.bossN} boss vaincu${S.bossN > 1 ? "s" : ""} · ${Object.keys(bestiary(S.ev)).length} au bestiaire` : "Chaque envie tenue écrase une clope ici."}</span>
+        </div>
+        <span className="chev" aria-hidden="true">›</span>
+      </button>
 
       <section className="stack">
         <h2>En bref</h2>

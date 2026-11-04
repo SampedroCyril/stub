@@ -32,10 +32,15 @@ function cameraError(e) {
  * Coach caméra plein écran.
  * target : objectif en reps, ou en secondes pour les exos chronométrés (déjà multiplié par 2 si « par côté »).
  * onDone({count, sec}) : résultat mesuré.
+ * challenge : {kind: "reps", duration} = max de reps en un temps donné (fin automatique),
+ *             {kind: "hold"} = tenir le plus longtemps possible (fin dès que la position est perdue 2 s).
  */
-export default function CameraCoach({ exId, target, model = "lite", sound = true, onDone, onClose }) {
+export default function CameraCoach({ exId, target, model = "lite", sound = true, onDone, onClose, challenge = null, title = null }) {
   const x = EX[exId];
-  const timed = x.u === "s";
+  const timed = challenge ? challenge.kind === "hold" : x.u === "s";
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
+  const [clock, setClock] = useState(null);
   const videoRef = useRef(null), canvasRef = useRef(null), audioRef = useRef(null);
   const [facing, setFacing] = useState("user");
   const [phase, setPhase] = useState("loading"); // loading | wait | countdown | run | error
@@ -49,7 +54,8 @@ export default function CameraCoach({ exId, target, model = "lite", sound = true
 
   useEffect(() => {
     let stream, raf = 0, vfc = 0, stopped = false, wake = null;
-    let landmarker, counter = null, countdownEnd = 0, lastUi = 0;
+    let landmarker, counter = null, countdownEnd = 0, lastUi = 0, runStart = 0, lostSince = 0, ended = false;
+    const end = () => { if (ended) return; ended = true; if (sound) beep(audioRef, 523, 300); doneRef.current({ count: live.current.count, sec: Math.round(live.current.sec) }); };
     const video = videoRef.current, canvas = canvasRef.current, g = canvas.getContext("2d");
 
     const draw = (lms, ok) => {
@@ -91,7 +97,7 @@ export default function CameraCoach({ exId, target, model = "lite", sound = true
           if (countdownEnd) {
             const left = Math.ceil((countdownEnd - now) / 1000);
             setCd(left);
-            if (now >= countdownEnd) { counter = createCounter(exId); setPhase("run"); if (sound) beep(audioRef, 660, 140); }
+            if (now >= countdownEnd) { counter = createCounter(exId); runStart = now; setPhase("run"); if (sound) beep(audioRef, 660, 140); }
           }
           draw(lms, false);
         } else {
@@ -103,10 +109,21 @@ export default function CameraCoach({ exId, target, model = "lite", sound = true
           }
           live.current.count = s.count;
           live.current.sec = s.holdMs / 1000;
-          const reached = timed ? live.current.sec >= target : s.count >= target;
+          const v = timed ? live.current.sec : s.count;
+          const reached = challenge ? v > target : v >= target;
           if (reached && !live.current.goal) {
             live.current.goal = true;
             if (sound) { beep(audioRef, 988, 120); setTimeout(() => beep(audioRef, 1319, 180), 140); }
+          }
+          if (challenge?.kind === "reps") {
+            const leftS = challenge.duration - (now - runStart) / 1000;
+            if (now - lastUi > 100) setClock(Math.max(0, Math.ceil(leftS)));
+            if (leftS <= 0) { end(); return; }
+          }
+          if (challenge?.kind === "hold" && live.current.sec > 1) {
+            if (s.active) lostSince = 0;
+            else if (!lostSince) lostSince = now;
+            else if (now - lostSince > 2000) { end(); return; }
           }
           if (now - lastUi > 100) {
             lastUi = now;
@@ -153,10 +170,10 @@ export default function CameraCoach({ exId, target, model = "lite", sound = true
       stream?.getTracks().forEach((t) => t.stop());
       wake?.release?.().catch(() => {});
     };
-  }, [exId, facing, model, sound, target, timed]);
+  }, [exId, facing, model, sound, target, timed, challenge]);
 
-  const reached = timed ? sec >= target : count >= target;
   const value = timed ? sec : count;
+  const reached = challenge ? value > target : value >= target;
   const unit = timed ? "s" : "";
   const finish = () => onDone({ count: live.current.count, sec: Math.round(live.current.sec) });
 
@@ -170,7 +187,7 @@ export default function CameraCoach({ exId, target, model = "lite", sound = true
       <header className="coach-top">
         <div>
           <span className="label">Coach caméra</span>
-          <strong>{x.n}</strong>
+          <strong>{title || x.n}</strong>
         </div>
         <button className="coach-icon" type="button" onClick={() => { live.current = { count: 0, sec: 0, goal: false }; setCount(0); setSec(0); setPhase("loading"); setFacing((f) => (f === "user" ? "environment" : "user")); }} aria-label="Changer de caméra">⇄</button>
       </header>
@@ -185,10 +202,11 @@ export default function CameraCoach({ exId, target, model = "lite", sound = true
       {phase === "run" && (
         <div className="coach-hud">
           <div className={`coach-count${reached ? " goal" : ""}`}>
-            <b>{value}</b><span>/ {target}{unit}</span>
+            <b>{value}</b><span>{challenge ? `${unit} · record ${target}${unit}` : `/ ${target}${unit}`}</span>
           </div>
+          {challenge?.kind === "reps" && clock != null && <p className="coach-clock">{clock} s</p>}
           <p className={`coach-fb${!ready ? " warn" : feedback ? " tip" : ""}`} aria-live="polite">
-            {reached ? "Objectif atteint ! Tu peux valider ou continuer." : feedback || (timed ? (ready ? "Tiens la position" : "") : "C'est bon, continue")}
+            {reached ? (challenge ? "Nouveau record en vue, continue !" : "Objectif atteint ! Tu peux valider ou continuer.") : feedback || (timed ? (ready ? "Tiens la position" : "") : "C'est bon, continue")}
           </p>
           {timed && x.t === "cardio" && <p className="coach-sub">{count} mouvements · le chrono avance tant que tu bouges</p>}
         </div>

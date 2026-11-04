@@ -9,7 +9,7 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   define: {
-    // Version affichée dans Réglages : « 0.1.0 » s'affiche « 0.1 »
+    // Version affichée dans Réglages : « 0.11.0 » s'affiche « 0.11 »
     __APP_VERSION__: JSON.stringify(pkg.version.replace(/\.0$/, "")),
     __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
     __COMMIT__: JSON.stringify((process.env.GITHUB_SHA || "").slice(0, 7)),

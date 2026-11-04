@@ -76,6 +76,13 @@ export function compute(state, days, now = new Date()) {
   const xpDays = streak * XP_DAY, xpDefQ = quitWins.length * DEFI_XP, xpCrav = qx - xpDays - xpDefQ;
   const best = Math.max(state.best || 0, streak);
 
+  /* ---- jeu : boss et blocs ---- */
+  let bossN = 0, linesN = 0;
+  ser.boss = [];
+  ser.lines = [];
+  cravAll.forEach((e) => { if (e.b) { bossN++; ser.boss.push({ t: new Date(e.t), v: bossN }); } });
+  ev.filter((e) => e.k === "game").forEach((e) => { if (e.l) { linesN += e.l; ser.lines.push({ t: new Date(e.t), v: linesN }); } });
+
   /* ---- respiration ---- */
   ser.breath = breaths.map((e, i) => ({ t: new Date(e.t), v: i + 1 }));
   const breathSec = breaths.reduce((a, e) => a + (e.sec || 0), 0);
@@ -86,10 +93,9 @@ export function compute(state, days, now = new Date()) {
   ["circ", "pompes", "squats", "fentes", "gainage", "cardio", "burpees", "reps", "camreps"].forEach((k) => (ser[k] = []));
   const sportDays = new Map();
   const sPoints = [];
-  ev.filter((e) => e.k === "circuit").forEach((e) => {
+  ev.filter((e) => e.k === "circuit" || e.k === "challenge").forEach((e) => {
     const d = new Date(e.t);
-    c.circ++;
-    ser.circ.push({ t: d, v: c.circ });
+    if (e.k === "circuit") { c.circ++; ser.circ.push({ t: d, v: c.circ }); }
     const dk = dayKey(d);
     if (!sportDays.has(dk)) sportDays.set(dk, d);
     (e.items || []).forEach((it) => {
@@ -133,7 +139,7 @@ export function compute(state, days, now = new Date()) {
   return {
     now, q, startAt, ev, ser, qPoints, sPoints,
     elapsed, streak, res, resSport, resBreath, xpDays, xpCrav, xpDefQ,
-    quitXp: qx, quit: levelOf(qx, QUIT_K), best, cravAll, smokes, breaths, breathSec,
+    quitXp: qx, quit: levelOf(qx, QUIT_K), best, cravAll, smokes, breaths, breathSec, bossN, linesN,
     tot, c, sportXp: c.xp, sport: levelOf(c.xp, SPORT_K), sportDays, sStreak, bestRun,
     weeks, allWins, sportWinsN: sportWins.length,
   };
@@ -165,7 +171,7 @@ export function weekData(S, state, ws) {
   const withI = crav.filter((e) => e.i);
   const avgI = withI.length ? withI.reduce((a, e) => a + e.i, 0) / withI.length : null;
   const circ = ev.filter((e) => e.k === "circuit");
-  const reps = circ.reduce((a, e) => a + (e.items || []).reduce((b, it) => b + (EX[it.e] && EX[it.e].u === "reps" ? it.n * sides(it.e) : 0), 0), 0);
+  const reps = ev.filter((e) => e.k === "circuit" || e.k === "challenge").reduce((a, e) => a + (e.items || []).reduce((b, it) => b + (EX[it.e] && EX[it.e].u === "reps" ? it.n * sides(it.e) : 0), 0), 0);
   const breaths = ev.filter((e) => e.k === "breath");
   const tc = {};
   crav.forEach((e) => { if (e.tr) tc[e.tr] = (tc[e.tr] || 0) + 1; });

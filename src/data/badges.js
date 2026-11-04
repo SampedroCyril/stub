@@ -20,6 +20,8 @@ export const BADGES = [
   { id: "camreps", g: "sport", n: "Reps validées caméra", tiers: [10, 50, 150, 500, 1000, 2500, 5000], f: (v) => pl(v, "rep") },
   { id: "serie", g: "sport", n: "Régularité", tiers: [2, 3, 5, 7, 14, 30, 60, 100], f: (v) => `${pl(v, "jour")} d'affilée` },
   { id: "lvls", g: "sport", n: "Niveau sport", tiers: [2, 3, 5, 7, 10, 15, 20], f: (v) => `niveau ${v}`, lvl: true },
+  { id: "boss", g: "sport", n: "Boss vaincus", tiers: [1, 10, 25, 50, 100, 250, 500, 1000], f: (v) => pl(v, "boss").replace("bosss", "boss") },
+  { id: "lines", g: "sport", n: "Lignes aux blocs", tiers: [10, 50, 150, 400, 1000, 2500, 5000], f: (v) => pl(v, "ligne") },
   { id: "breath", g: "sport", n: "Respiration", tiers: [1, 5, 15, 30, 60, 120, 250], f: (v) => pl(v, "séance") },
   { id: "defis", g: "sport", n: "Défis relevés", tiers: [1, 3, 6, 12, 25, 50, 100, 150], f: (v) => pl(v, "défi") },
 ];

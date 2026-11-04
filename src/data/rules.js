@@ -7,7 +7,7 @@ export const QUIT_K = 75;
 export const SPORT_K = 60;
 export const XP_DAY = 100;
 export const DEFI_XP = 80;
-export const CRAV_XP = { hold: 15, breath: 20, sport: 25 };
+export const CRAV_XP = { hold: 15, breath: 20, game: 20, sport: 25, crisis: 30 };
 
 export const Q_TITLES = ["Premier pas", "Ça tient", "Poumons en chantier", "Souffle retrouvé", "Moins accro", "Ex-fumeur", "Libre", "Inarrêtable", "Non-fumeur", "Légende"];
 export const S_TITLES = ["Rouillé", "Échauffé", "Motivé", "Régulier", "Solide", "Costaud", "Athlète", "Machine", "Monstre", "Légende"];
@@ -28,7 +28,7 @@ export const TRIGGERS = [
 export const TRIG_NAME = Object.fromEntries(TRIGGERS);
 export const I_NAMES = ["", "Légère", "Ça va", "Forte", "Très forte", "Énorme"];
 export const methodOf = (e) => e.m || (e.sport ? "sport" : "hold");
-export const METHOD_NAME = { sport: "au sport", breath: "en respirant", hold: "sans rien" };
+export const METHOD_NAME = { sport: "au sport", breath: "en respirant", game: "en jouant", crisis: "en mode crise", hold: "sans rien" };
 
 /* ---------------- Santé (repères après la dernière nicotine) ---------------- */
 export const HEALTH = [

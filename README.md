@@ -1,12 +1,12 @@
 # Roulement anti-clope
 
-App web pour arrêter de fumer : chaque envie de fumer devient un circuit de sport, une séance de respiration ou simplement une envie tenue. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
+App web pour arrêter de fumer, gamifiée : chaque envie de fumer devient un boss en pixel art à abattre, au circuit de sport, en respirant ou au jeu de blocs. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
 
 Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne quitte jamais l'appareil.
 
 ## Fonctionnalités
 
-Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, santé), **Sport** (circuit, exercices), **Progrès** (défis, badges, stats) et **Réglages**.
+Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, arcade, santé), **Sport** (circuit, records, exos), **Progrès** (défis, boss, badges, stats) et **Réglages**.
 
 | Écran | Contenu |
 |---|---|
@@ -23,9 +23,21 @@ Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
 
+## Le jeu (0.11)
+
+- **Boss d'envie** : chaque envie notée fait apparaître un boss lié à son déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, et le Spectre de 2h du mat' la nuit). PV = 100 × intensité, +10 % par niveau du boss (un niveau toutes les 5 victoires, couronne dès le niveau 3).
+- **Il s'épuise tout seul en 5 minutes**, la durée réelle d'une envie. Les attaques l'abattent plus vite : tapes (1 %, critique 3 %), cycle de respiration (8 %), ligne aux blocs (10 %, 4 lignes 50 %), circuit (60 %, 80 % si validé caméra). On ne perd qu'en déclarant une rechute.
+- **Mode crise** (envie à 5) : boss enragé (+20 % PV), 3 minutes guidées en plein écran : respirer, jouer, bouger, puis le coup final.
+- **Arcade** : jeu de blocs tactile, parties libres avec record, ou 3 minutes en combat.
+- **Cendrier** : chaque victoire écrase une clope dans un bocal pixel art qui évolue (bocal, poubelle, benne, volcan éteint).
+- **Records caméra** : pompes en 1 min, squats en 30 s, jumping jacks en 1 min, dips en 45 s, planche et chaise le plus longtemps possible, comptés par le coach.
+- **Bestiaire** : victoires, niveau et meilleur temps par boss.
+
+Les sprites sont dessinés en texte (`src/game/sprites.js`, 16 × 16, une lettre par couleur) et rendus en SVG net.
+
 ## Barème
 
-- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet, +15 par envie tenue, +20 en respirant, +25 avec un circuit, +80 par défi sevrage.
+- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par boss vaincu +15 en tenant, +20 en respirant ou aux blocs, +25 avec un circuit, +30 en mode crise ; +80 par défi sevrage.
 - **Sport** (définitif) : reps × difficulté, ou secondes × difficulté ÷ 3, × 2 pour les exos « par côté », +80 par défi sport.
 - **Niveaux** : seuil cumulé `K × (L-1) × L`, K = 75 (sevrage) et 60 (sport).
 
@@ -86,6 +98,7 @@ src/
   components/ éléments communs, récap hebdo
   art/        personnage 2D, poses, icônes, médailles
   pose/       coach caméra : compteurs (purs), moteur MediaPipe, interface
+  game/       boss, sprites pixel art, combat (pur), jeu de blocs (pur), crise, cendrier, records
 tests/        tests node:test
 ```
 

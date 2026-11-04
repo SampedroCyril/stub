@@ -11,10 +11,10 @@ export const DEFIS = {
   clean7: { g: "quit", n: "Une semaine entière sans clope", target: 7, ic: "calendar", clean: true },
   circ5: { g: "sport", n: "Faire 5 circuits", target: 5, ic: "dumbbell", acc: (e) => (e.k === "circuit" ? 1 : 0) },
   days3: { g: "sport", n: "Du sport 3 jours différents", target: 3, ic: "calendar", days: true },
-  xp200: { g: "sport", n: "Gagner 200 XP sport", target: 200, ic: "star", acc: (e) => (e.k === "circuit" ? circuitXp(e) : 0) },
+  xp200: { g: "sport", n: "Gagner 200 XP sport", target: 200, ic: "star", acc: (e) => (e.k === "circuit" || e.k === "challenge" ? circuitXp(e) : 0) },
   reps150: {
     g: "sport", n: "Faire 150 reps", target: 150, ic: "bolt",
-    acc: (e) => (e.k === "circuit" ? (e.items || []).reduce((a, it) => a + (EX[it.e] && EX[it.e].u === "reps" ? it.n * sides(it.e) : 0), 0) : 0),
+    acc: (e) => (e.k === "circuit" || e.k === "challenge" ? (e.items || []).reduce((a, it) => a + (EX[it.e] && EX[it.e].u === "reps" ? it.n * sides(it.e) : 0), 0) : 0),
   },
 };
 
@@ -44,7 +44,7 @@ export function evalDefi(id, list, ws, we, now, smokes, startAt) {
   if (D.days) {
     const seen = new Set();
     list.forEach((e) => {
-      if (e.k !== "circuit") return;
+      if (e.k !== "circuit" && e.k !== "challenge") return;
       const k = dayKey(new Date(e.t));
       if (seen.has(k)) return;
       seen.add(k);

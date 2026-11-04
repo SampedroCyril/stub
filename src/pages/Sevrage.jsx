@@ -2,20 +2,17 @@ import { useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, useCountdown } from "../components/ui.jsx";
 import { CRAV_XP, TRIGGERS, I_NAMES } from "../data/rules.js";
+import Battle from "../game/Battle.jsx";
+import Pixel from "../game/Pixel.jsx";
+import { BOSSES, bossFor } from "../game/bosses.js";
 import { durationText, pl } from "../lib/util.js";
 
 export default function Sevrage() {
-  const { S, state, flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow, commit, go } = useApp();
+  const { S, state, flow, startCraving, setCravingField, resetFlow, commit, go, battle, startBattle } = useApp();
   const [confirm, setConfirm] = useState(false);
   const craving = flow.mode === "craving" ? flow.craving : null;
   const countdown = useCountdown(craving?.endsAt);
 
-  const hold = () => {
-    const ev = cravingEvent("hold");
-    resetFlow();
-    go("accueil");
-    commit([ev], [`Envie tenue : +${CRAV_XP.hold} XP sevrage`]);
-  };
   const smoked = () => {
     const t = new Date().toISOString();
     setConfirm(false);
@@ -28,7 +25,9 @@ export default function Sevrage() {
     <Panel id="sevrage">
       <LevelCard kind="quit" label="Niveau sevrage" />
 
-      {!craving && <button className="btn green big" type="button" onClick={startCraving}>J'ai envie de fumer</button>}
+      {battle && !battle.crisis && <Battle />}
+
+      {!craving && !battle && <button className="btn green big" type="button" onClick={startCraving}>J'ai envie de fumer</button>}
 
       {craving && (
         <section className="card quit">
@@ -51,19 +50,23 @@ export default function Sevrage() {
               ))}
             </div>
           </div>
-          <div className="stack">
-            <span className="label">Tu la tiens comment ?</span>
-            <button className="btn blue choice" type="button" onClick={() => { setFlow((f) => ({ ...f, mode: "circuit" })); go("circuit"); }}>
-              <span>Je la tue avec un circuit</span><b>+{CRAV_XP.sport} XP</b>
-            </button>
-            <button className="btn teal choice" type="button" onClick={() => { setFlow((f) => ({ ...f, mode: "breath", autostart: true })); go("respirer"); }}>
-              <span>Je respire 2 minutes</span><b>+{CRAV_XP.breath} XP</b>
-            </button>
-            <button className="btn green choice" type="button" onClick={hold}>
-              <span>Je tiens, c'est tout</span><b>+{CRAV_XP.hold} XP</b>
-            </button>
+          <div className="prefight">
+            <Pixel name={BOSSES[bossFor(craving.trigger, new Date(craving.at))].sprite} className="boss small" />
+            <div>
+              <span className="label">Ton adversaire</span>
+              <strong className="px-name">{BOSSES[bossFor(craving.trigger, new Date(craving.at))].n}</strong>
+              <small>{100 * (craving.intensity || 2)} PV · il s'épuise tout seul en 5 min</small>
+            </div>
           </div>
-          <p className="tip">Les deux questions sont facultatives, mais elles alimentent tes stats. L'envie retombe en 3 à 5 minutes.</p>
+          {craving.intensity === 5 ? (
+            <div className="stack">
+              <button className="btn danger-fill big" type="button" onClick={() => startBattle(true)}>Mode crise</button>
+              <button className="btn" type="button" onClick={() => startBattle(false)}>Combat normal</button>
+            </div>
+          ) : (
+            <button className="btn green big" type="button" onClick={() => startBattle(false)}>Affronter</button>
+          )}
+          <p className="tip">Les deux questions sont facultatives : le déclencheur choisit ton boss, l'intensité ses points de vie. À 5, le mode crise te prend en main.</p>
           <button className="linkbtn" type="button" style={{ alignSelf: "flex-start" }} onClick={resetFlow}>Fausse alerte, j'annule</button>
         </section>
       )}
@@ -84,9 +87,10 @@ export default function Sevrage() {
         <summary>Comment tu gagnes de l'XP sevrage</summary>
         <div className="rules">
           <div><span>Chaque jour complet sans clope</span><b className="g">+100</b></div>
-          <div><span>Envie tenue</span><b className="g">+{CRAV_XP.hold}</b></div>
-          <div><span>Envie tenue en respirant</span><b className="g">+{CRAV_XP.breath}</b></div>
-          <div><span>Envie tuée avec un circuit</span><b className="g">+{CRAV_XP.sport}</b></div>
+          <div><span>Boss vaincu en tenant (tapes ou épuisement)</span><b className="g">+{CRAV_XP.hold}</b></div>
+          <div><span>Boss vaincu en respirant ou aux blocs</span><b className="g">+{CRAV_XP.breath}</b></div>
+          <div><span>Boss vaincu avec un circuit</span><b className="g">+{CRAV_XP.sport}</b></div>
+          <div><span>Boss vaincu en mode crise</span><b className="g">+{CRAV_XP.crisis}</b></div>
           <div><span>Défi sevrage de la semaine réussi</span><b className="g">+80</b></div>
         </div>
         <p className="tip">Une envie tuée au sport rapporte aussi l'XP sport du circuit.</p>

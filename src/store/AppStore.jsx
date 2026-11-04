@@ -4,7 +4,9 @@ import { load, save, DEFAULT_STATE } from "../lib/storage.js";
 import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
 import { DEFIS } from "../data/defis.js";
-import { DEFI_XP, Q_TITLES, S_TITLES, titleOf } from "../data/rules.js";
+import { DEFI_XP, Q_TITLES, S_TITLES, CRAV_XP, titleOf } from "../data/rules.js";
+import { createBattle, hit, hpAt, victoryEvent, bestiary } from "../game/battle.js";
+import { BOSSES } from "../game/bosses.js";
 
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
@@ -12,12 +14,12 @@ export const useApp = () => useContext(Ctx);
 /** Navigation : 5 sections en bas de l'écran, chacune avec ses sous-onglets. */
 export const SECTIONS = [
   { id: "accueil", label: "Accueil", icon: "home", views: ["accueil"] },
-  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer", "sante"] },
-  { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "exos"] },
-  { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "badges", "stats"] },
+  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer", "arcade", "sante"] },
+  { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "records", "exos"] },
+  { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "bestiaire", "badges", "stats"] },
   { id: "reglages", label: "Réglages", icon: "gear", views: ["reglages"] },
 ];
-export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", sante: "Santé", circuit: "Circuit", exos: "Exercices", defis: "Défis", badges: "Badges", stats: "Stats" };
+export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", arcade: "Arcade", sante: "Santé", circuit: "Circuit", records: "Records", exos: "Exos", defis: "Défis", bestiaire: "Boss", badges: "Badges", stats: "Stats" };
 export const VIEWS = SECTIONS.flatMap((s) => s.views);
 export const sectionOf = (v) => SECTIONS.find((s) => s.views.includes(v)) || SECTIONS[0];
 const viewFromHash = () => {
@@ -26,6 +28,7 @@ const viewFromHash = () => {
 };
 
 const CRAVING_MS = 5 * 60 * 1000;
+const BATTLE_KEY = "anticlope:battle";
 
 export function AppProvider({ children }) {
   const [data, setData] = useState(load);
@@ -40,6 +43,11 @@ export function AppProvider({ children }) {
    * flow.override : paire d'exos tirée au hasard
    */
   const [flow, setFlow] = useState({ mode: "idle" });
+  /** Combat contre le boss d'une envie, gardé en mémoire pour survivre à une fermeture de l'app. */
+  const [battle, setBattleState] = useState(() => { try { return JSON.parse(localStorage.getItem(BATTLE_KEY)); } catch { return null; } });
+  const battleRef = useRef(battle);
+  battleRef.current = battle;
+  const [victory, setVictory] = useState(null);
 
   useEffect(() => { save(data); }, [data]);
   useEffect(() => {
@@ -121,9 +129,47 @@ export function AppProvider({ children }) {
   }, [flow.craving]);
   const resetFlow = useCallback(() => setFlow({ mode: "idle" }), []);
 
+  /* ---- combats ---- */
+  const setBattle = useCallback((b) => {
+    battleRef.current = b;
+    setBattleState(b);
+    try { b ? localStorage.setItem(BATTLE_KEY, JSON.stringify(b)) : localStorage.removeItem(BATTLE_KEY); } catch { /* sans effet */ }
+  }, []);
+  const startBattle = useCallback((crisis = false) => {
+    const c = flow.craving || { at: new Date(), intensity: null, trigger: null };
+    const victories = Object.fromEntries(Object.entries(bestiary(S.ev)).map(([k, v]) => [k, v.wins]));
+    setBattle(createBattle({ at: new Date(c.at), intensity: c.intensity, trigger: c.trigger, victories, crisis }));
+    setFlow({ mode: "idle" });
+    go("sevrage");
+  }, [flow.craving, S.ev, setBattle, go]);
+  /** Attaque le boss en cours ; renvoie les dégâts infligés. */
+  const hitBattle = useCallback((src, frac) => {
+    const b = battleRef.current;
+    if (!b) return 0;
+    const r = hit(b, src, frac, new Date());
+    setBattle(r.battle);
+    return r.dmg;
+  }, [setBattle]);
+  const winBattle = useCallback(() => {
+    const b = battleRef.current;
+    if (!b) return;
+    const t = new Date(), ev = victoryEvent(b, t);
+    setBattle(null);
+    setFlow({ mode: "idle" });
+    setVictory({ battle: b, ev });
+    commit([ev], [`${BOSSES[b.boss].n} vaincu : +${CRAV_XP[ev.m]} XP sevrage`]);
+  }, [commit, setBattle]);
+  const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
+
+  // Un boss s'épuise même app fermée : victoire automatique quand ses PV tombent à 0 (sauf attaque en cours).
+  useEffect(() => {
+    if (battle && !flow.attack && hpAt(battle, now) <= 0) winBattle();
+  }, [battle, now, flow.attack, winBattle]);
+
   const value = {
     data, state: data.state, days: data.days, S, now, view, go, toast, flash,
     flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow,
+    battle, startBattle, hitBattle, winBattle, fleeBattle, victory, setVictory,
     commit, patchState, replaceData, wipe,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

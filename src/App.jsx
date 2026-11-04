@@ -3,6 +3,14 @@ import { AppProvider, useApp } from "./store/AppStore.jsx";
 import { Toast } from "./components/ui.jsx";
 import { BottomNav, SectionHeader } from "./components/Nav.jsx";
 import Reglages from "./pages/Reglages.jsx";
+import Arcade from "./pages/Arcade.jsx";
+import Records from "./pages/Records.jsx";
+import Bestiaire from "./pages/Bestiaire.jsx";
+import Crisis from "./game/Crisis.jsx";
+import Victory from "./game/Victory.jsx";
+import Pixel from "./game/Pixel.jsx";
+import { BOSSES } from "./game/bosses.js";
+import { hpAt } from "./game/battle.js";
 import RecapModal from "./components/RecapModal.jsx";
 import Home from "./pages/Home.jsx";
 import Sevrage from "./pages/Sevrage.jsx";
@@ -18,15 +26,15 @@ import { RECAP_HOUR } from "./data/rules.js";
 import { dayKey } from "./lib/util.js";
 
 function Shell() {
-  const { S, state, now, flow, patchState } = useApp();
+  const { S, state, now, flow, patchState, battle, view, go } = useApp();
   const [recap, setRecap] = useState(null); // {ws, auto}
 
   // Récap du dimanche : s'ouvre seul à partir de 18h, ou à la prochaine ouverture si raté.
   useEffect(() => {
-    if (recap || flow.mode !== "idle") return;
+    if (recap || flow.mode !== "idle" || battle) return;
     const ws = recapDue(S, state, now, RECAP_HOUR);
     if (ws) setRecap({ ws, auto: true });
-  }, [S, state, now, flow.mode, recap]);
+  }, [S, state, now, flow.mode, recap, battle]);
 
   const close = useCallback(() => {
     setRecap((r) => {
@@ -47,12 +55,23 @@ function Shell() {
       <Sevrage />
       <Circuit />
       <Respirer />
+      <Arcade />
       <Sante />
       <Defis onRecap={open} />
+      <Bestiaire />
       <Badges />
       <Stats onRecap={open} />
+      <Records />
       <Exos />
       <Reglages />
+      {battle && !battle.crisis && view !== "sevrage" && !flow.attack && (
+        <button className="battle-pill" type="button" onClick={() => go("sevrage")}>
+          <Pixel name={BOSSES[battle.boss].sprite} />
+          <span>Combat en cours · {hpAt(battle, new Date())} PV</span>
+        </button>
+      )}
+      {battle?.crisis && <Crisis />}
+      <Victory />
       <BottomNav />
       {recap && <RecapModal ws={recap.ws} onClose={close} />}
     </div>
