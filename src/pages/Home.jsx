@@ -6,6 +6,7 @@ import { HEALTH } from "../data/rules.js";
 import { DEFIS, fmtDefi } from "../data/defis.js";
 import { BADGES, TIER_NAMES, badgeInfo } from "../data/badges.js";
 import { DOW, fDate, fTime, pl, durationText } from "../lib/util.js";
+import InstallCard from "../components/InstallCard.jsx";
 
 export default function Home() {
   const { S, go, startCraving, setFlow } = useApp();
@@ -25,6 +26,8 @@ export default function Home() {
           {S.best > S.streak ? ` · record ${pl(S.best, "jour")}` : ""}
         </span>
       </section>
+
+      <InstallCard dismissible />
 
       <section className="levels" aria-label="Niveaux">
         <LevelCard kind="quit" label="Sevrage" />

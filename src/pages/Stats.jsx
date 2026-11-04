@@ -4,6 +4,7 @@ import { Panel, Stat } from "../components/ui.jsx";
 import { EX, fmtAmt, circuitXp } from "../data/exercises.js";
 import { TRIG_NAME, METHOD_NAME, PATTERNS, DEFI_XP, methodOf } from "../data/rules.js";
 import { exportJson, parseImport, mergeDays } from "../lib/storage.js";
+import InstallCard from "../components/InstallCard.jsx";
 import { DOW, DAY, dayKey, fTime, fmt1, mins, clamp, lastNDays, weekStart } from "../lib/util.js";
 
 function DayBars({ rows }) {
@@ -228,6 +229,7 @@ export default function Stats({ onRecap }) {
         </div>
       </section>
 
+      <InstallCard />
       <Data />
     </Panel>
   );
