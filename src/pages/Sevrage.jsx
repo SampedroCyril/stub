@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useApp } from "../store/AppStore.jsx";
+import { useApp, sectionOn } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, useCountdown } from "../components/ui.jsx";
 import { CRAV_XP, TRIGGERS, I_NAMES } from "../data/rules.js";
 import Battle from "../game/Battle.jsx";
@@ -56,22 +56,22 @@ export default function Sevrage() {
           <div className="stack">
             <span className="label">Comment tu la fais passer ?</span>
             <div className="choices">
-              <button className="choice fight" type="button" onClick={startBattle}>
+              {sectionOn(state, "joueur") && <button className="choice c-fight" type="button" onClick={startBattle}>
                 <BossThumb id={bossFor(craving.trigger, new Date(craving.at))} />
                 <span><b>Combat</b><small>{BOSSES[bossFor(craving.trigger, new Date(craving.at))].n} · {Math.round(targetOf(craving.intensity) / 60 * 10) / 10} min environ</small></span>
-              </button>
-              <button className="choice breath" type="button" onClick={() => { setFlow({ mode: "breath", craving, autostart: true }); go("respirer"); }}>
+              </button>}
+              <button className="choice c-breath" type="button" onClick={() => { setFlow({ mode: "breath", craving, autostart: true }); go("respirer"); }}>
                 <span className="choice-ic" aria-hidden="true">◯</span>
                 <span><b>Respirer</b><small>Le cercle guidé, sans réfléchir</small></span>
               </button>
-              <button className="choice move" type="button" onClick={() => { setFlow({ mode: "circuit", craving }); go("circuit"); }}>
+              {sectionOn(state, "sport") && <button className="choice c-move" type="button" onClick={() => { setFlow({ mode: "circuit", craving }); go("circuit"); }}>
                 <span className="choice-ic" aria-hidden="true">↯</span>
                 <span><b>Bouger</b><small>Un circuit renfo + cardio</small></span>
-              </button>
+              </button>}
             </div>
-            <ModChips boss={bossFor(craving.trigger, new Date(craving.at))} known={(bestiary(S.ev)[bossFor(craving.trigger, new Date(craving.at))]?.wins || 0) > 0} />
+            {sectionOn(state, "joueur") && <ModChips boss={bossFor(craving.trigger, new Date(craving.at))} known={(bestiary(S.ev)[bossFor(craving.trigger, new Date(craving.at))]?.wins || 0) > 0} />}
           </div>
-          <p className="tip">Les deux questions sont facultatives : le déclencheur choisit ton boss, l'intensité la durée du combat. Les trois façons tiennent l'envie et rapportent de l'XP.</p>
+          <p className="tip">Les deux questions sont facultatives{sectionOn(state, "joueur") ? " : le déclencheur choisit ton boss, l'intensité la durée du combat" : ""}. Chaque façon tient l'envie et rapporte de l'XP.</p>
           <button className="linkbtn" type="button" style={{ alignSelf: "flex-start" }} onClick={resetFlow}>Fausse alerte, j'annule</button>
         </section>
       )}

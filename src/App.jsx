@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { AppProvider, useApp } from "./store/AppStore.jsx";
+import { AppProvider, useApp, sectionOf, sectionOn } from "./store/AppStore.jsx";
 import { Toast } from "./components/ui.jsx";
 import { BottomNav, SectionHeader } from "./components/Nav.jsx";
 import Reglages from "./pages/Reglages.jsx";
@@ -29,6 +29,8 @@ import { dayKey } from "./lib/util.js";
 function Shell() {
   const { S, state, now, flow, patchState, battle, view, go } = useApp();
   useEffect(() => { sound.on = state.gameSound !== false; }, [state.gameSound]);
+  // section masquée dans les réglages : retour à l'accueil
+  useEffect(() => { const sec = sectionOf(view); if (sec.optional && !sectionOn(state, sec.id)) go("accueil"); }, [view, state, go]);
   const [recap, setRecap] = useState(null); // {ws, auto}
 
   // Récap du dimanche : s'ouvre seul à partir de 18h, ou à la prochaine ouverture si raté.

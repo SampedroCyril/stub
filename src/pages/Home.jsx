@@ -1,4 +1,4 @@
-import { useApp } from "../store/AppStore.jsx";
+import { useApp, sectionOn } from "../store/AppStore.jsx";
 import { Stat, Bar, LevelCard, Panel } from "../components/ui.jsx";
 import Icon, { Medal } from "../art/Icon.jsx";
 import { healthState } from "../lib/compute.js";
@@ -10,7 +10,8 @@ import Cendrier, { stageOf } from "../game/Cendrier.jsx";
 import { bestiary } from "../game/battle.js";
 
 export default function Home() {
-  const { S, go, startCraving } = useApp();
+  const { S, go, startCraving, state } = useApp();
+  const sport = sectionOn(state, "sport"), joueur = sectionOn(state, "joueur"), progres = sectionOn(state, "progres");
   const hs = healthState(S);
   const cw = S.weeks[S.weeks.length - 1];
   const won = cw.defs.filter((d) => d.doneAt && d.doneAt <= S.now).length;
@@ -31,12 +32,12 @@ export default function Home() {
 
       <section className="levels" aria-label="Niveaux">
         <LevelCard kind="quit" label="Sevrage" />
-        <LevelCard kind="sport" label="Sport" />
+        {sport ? <LevelCard kind="sport" label="Sport" /> : joueur ? <LevelCard kind="player" label="Joueur" /> : null}
       </section>
 
       <section className="stack">
         <h2>Cette semaine</h2>
-        <button className="linkcard" type="button" onClick={() => go("defis")}>
+        {progres && <button className="linkcard" type="button" onClick={() => go("defis")}>
           <Icon name="star" col="gold" />
           <div>
             <span className="label">Défis · {won} / 3 réussis</span>
@@ -45,7 +46,7 @@ export default function Home() {
             <span>{open ? `${fmtDefi(open.id, open.v)} / ${fmtDefi(open.id, DEFIS[open.id].target)}` : "Nouveaux défis lundi."}</span>
           </div>
           <span className="chev" aria-hidden="true">›</span>
-        </button>
+        </button>}
         <button className="linkcard" type="button" onClick={() => go("sante")}>
           {hs.next ? (
             <>
@@ -64,12 +65,12 @@ export default function Home() {
         </button>
       </section>
 
-      <button className="linkcard ash" type="button" onClick={() => go("bestiaire")}>
+      <button className="linkcard ash" type="button" onClick={() => go(joueur ? "bestiaire" : "sevrage")}>
         <Cendrier count={S.cravAll.length} />
         <div>
           <span className="label">Le cendrier · {stageOf(S.cravAll.length).n}</span>
           <strong>{pl(S.cravAll.length, "clope")} écrasée{S.cravAll.length > 1 ? "s" : ""}</strong>
-          <span>{S.bossN ? `${S.bossN} boss vaincu${S.bossN > 1 ? "s" : ""} · ${Object.keys(bestiary(S.ev)).length} au bestiaire` : "Chaque envie tenue écrase une clope ici."}</span>
+          <span>{joueur && S.bossN ? `${S.bossN} boss vaincu${S.bossN > 1 ? "s" : ""} · ${Object.keys(bestiary(S.ev)).length} au bestiaire` : "Chaque envie tenue écrase une clope ici."}</span>
         </div>
         <span className="chev" aria-hidden="true">›</span>
       </button>
@@ -78,7 +79,7 @@ export default function Home() {
         <h2>En bref</h2>
         <div className="stats">
           <Stat label="Envies tenues" value={S.cravAll.length} />
-          <Stat label="Circuits" value={S.c.circ} />
+          {sport ? <Stat label="Circuits" value={S.c.circ} /> : <Stat label="Jours sans" value={S.streak} />}
           <Stat label="Respirations" value={S.breaths.length} />
         </div>
       </section>
@@ -86,7 +87,7 @@ export default function Home() {
       <section className="stack">
         <div className="topbar">
           <h2>Meilleurs badges</h2>
-          <button className="linkbtn" type="button" onClick={() => go("badges")}>Tout voir</button>
+          {progres && <button className="linkbtn" type="button" onClick={() => go("badges")}>Tout voir</button>}
         </div>
         <div className="mini-badges">
           {got.length ? got.slice(0, 4).map((x) => (

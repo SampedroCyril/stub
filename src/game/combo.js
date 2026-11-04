@@ -1,7 +1,9 @@
 /**
  * Combat clicker (module pur, testé dans tests/combo.test.js).
  *
- * - Chaque point faible touché fait monter le combo ; un raté ou un point qui s'échappe le remet à zéro.
+ * - Jauge de rythme : deux cercles partent des bords et se rejoignent au centre ; on touche l'écran quand ils y sont.
+ *   Parfait (dans la petite fenêtre) ou bon : le combo monte. Trop tôt, trop tard ou pas du tout : il retombe à zéro.
+ *   Les cercles vont de plus en plus vite avec le combo.
  * - Neuf paliers d'impact : les coups ordinaires sont des paliers 1 (« coup ») ou 2 (« coup sûr »),
  *   et certains combos précis déclenchent les paliers 3 à 9. Ces seuils sont calés sur la durée du combat :
  *   plus l'envie est forte, plus le combat est long, plus les seuils sont espacés.
@@ -36,8 +38,8 @@ export function tierFor(combo, ms) {
 }
 
 /** Dégâts d'un coup : base (rapide ou non) × multiplicateur de combo + bonus du palier. */
-export const HIT = { base: 10, fast: 14 };
-export const TIER_BONUS = [0, 0, 0, 15, 25, 40, 60, 100, 100, 140];
+export const HIT = { base: 100, fast: 140 };
+export const TIER_BONUS = [0, 0, 0, 150, 250, 400, 600, 1000, 1000, 1400];
 /** Multiplicateur de combo : ×1, ×1,25 dès le 2e seuil, ×1,5 dès le 4e, ×2 en transe. */
 export const COMBO_MULT = [1, 1.25, 1.5, 2];
 export function damageFor(tier, { fast = false, trance = false, combo = 0, ms, power = 1, crit = 1 } = {}) {
@@ -46,21 +48,28 @@ export function damageFor(tier, { fast = false, trance = false, combo = 0, ms, p
   return Math.round(((fast ? HIT.fast : HIT.base) * mult + bonus) * power);
 }
 
-/** Cadence : les points faibles restent moins longtemps et arrivent plus vite quand le combo monte. */
-export function cadence(combo, { show = 1, spot = 1 } = {}) {
-  const speed = Math.max(0.55, 1 - combo / 90);
-  return { showMs: Math.round(1150 * speed * show * spot), gapMin: 220 * speed, gapMax: 480 * speed };
+/** Durée de la course des cercles jusqu'au centre : de 1,15 s à 0,43 s quand le combo monte. slow > 1 ralentit. */
+export const approachMs = (combo, slow = 1) => Math.round(Math.max(430, 1150 * (1 - combo / 75)) * slow);
+/** Pause entre deux notes. */
+export const NOTE_GAP = 220;
+/** Fenêtres de jugement autour de l'arrivée au centre (ms). */
+export const WINDOW = { perfect: 75, good: 170 };
+export function judge(dt, { perfect = WINDOW.perfect, good = WINDOW.good } = {}) {
+  const a = Math.abs(dt);
+  return a <= perfect ? "perfect" : a <= good ? "good" : "miss";
 }
+/** Une note sur combien est une clope tendue (ne pas toucher : elle s'écrase et le boss encaisse). */
+export const CIG_EVERY = [12, 18];
 /** Pause après un gros palier, le temps de la mise en scène. */
 export const pauseAfter = (shownTier) => (shownTier >= 7 ? 1500 : shownTier === 6 ? 450 : 0);
 
 /**
- * PV d'un boss, calibrés par simulation : un bon joueur (94 % de points touchés, un peu plus de la moitié
- * en coup rapide, ~0,3 s de réaction) le tue en targetOf(intensité) secondes, épuisement compris.
- * Un expert (98,5 %) met environ deux tiers de ce temps ; un robot parfait, un bon tiers.
+ * PV d'un boss, calibrés par simulation au rythme de la jauge : un bon joueur (93 % de coups réussis, 45 % de parfaits,
+ * la plupart des clopes refusées) le tue en targetOf(intensité) secondes, épuisement compris.
+ * Un expert met environ les trois quarts de ce temps ; un robot parfait, un peu plus de la moitié (la jauge impose le rythme).
  */
-export const HP_BASE = { 1: 1900, 2: 2950, 3: 4100, 4: 5550, 5: 7700 };
-export const clickerHp = (intensity, lvl = 1) => Math.round((HP_BASE[intensity || 2] * (1 + 0.1 * (lvl - 1))) / 10) * 10;
+export const HP_BASE = { 1: 8500, 2: 14000, 3: 21000, 4: 32500, 5: 49500 };
+export const clickerHp = (intensity, lvl = 1) => Math.round((HP_BASE[intensity || 2] * (1 + 0.1 * (lvl - 1))) / 50) * 50;
 
 /** Rang : S rapide avec un beau combo, A dans les temps, B abattu avant l'épuisement, C épuisement. */
 export function rankFor({ kt, intensity, maxCombo = 0, exhausted = false }) {

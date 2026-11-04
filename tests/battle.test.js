@@ -19,7 +19,7 @@ test("PV selon l'intensité et le niveau du boss", () => {
   assert.equal(createBattle({ at, intensity: 3, trigger: "cafe" }).maxHp, HP_BASE[3]);
   assert.equal(createBattle({ at }).maxHp, HP_BASE[2]);
   assert.equal(bossLevel(12), 3);
-  assert.equal(createBattle({ at, intensity: 5, trigger: "cafe", victories: { cafe: 12 } }).maxHp, Math.round(HP_BASE[5] * 1.2 / 10) * 10);
+  assert.equal(createBattle({ at, intensity: 5, trigger: "cafe", victories: { cafe: 12 } }).maxHp, Math.round(HP_BASE[5] * 1.2 / 50) * 50);
 });
 
 test("épuisement lent puis rapide, mort assurée à 5 minutes", () => {
@@ -61,7 +61,7 @@ test("bestiaire : victoires, meilleur temps, meilleur combo", () => {
 });
 
 test("traits : une faiblesse et une résistance par boss, aucune pour Clopinette", () => {
-  assert.deepEqual(traitsOf("cafe"), { spot: 0.8, size: 1, crit: 1.5, tempt: 1 });
+  assert.deepEqual(traitsOf("cafe"), { spot: 0.85, size: 1, crit: 1.5, tempt: 1 });
   assert.equal(traitList("cafe").length, 2);
   assert.deepEqual(traitsOf("clope"), { spot: 1, size: 1, crit: 1, tempt: 1 });
 });

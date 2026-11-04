@@ -7,8 +7,10 @@ import { C, cigSpec, linePts, drawStick } from "./stick.js";
 import { grid } from "./sprite.js";
 import { SPRITES } from "../sprites.js";
 
-export const STAGE_W = 64, STAGE_H = 60;
-const FLOOR = STAGE_H - 4;
+export const STAGE_W = 64, STAGE_H = 76;
+const FLOOR = 56;
+const GAUGE_Y = 68;
+const JCOL = { perfect: "#ffcd75", good: "#ffffff", miss: "#e43b44", took: "#e43b44", refused: "#3ae0ff" };
 const STEP = 1000 / 60;
 const INK = "#0a0006", BLOOD = "#ff1f3d", PAPER = "#f4f4f4", AIR = "#3ae0ff";
 
@@ -112,7 +114,9 @@ export class BossStage {
   resize() {
     const box = this.cv.parentElement?.clientWidth || 320;
     const dpr = Math.min(3, window.devicePixelRatio || 1);
-    this.scale = Math.max(2, Math.floor(Math.min(box, 400) / STAGE_W));
+    // en plein écran, la scène tient aussi en hauteur (titre, bulle et boutons compris)
+    const hBox = this.cv.closest(".fight") ? ((window.innerHeight - 250) * STAGE_W) / STAGE_H : Infinity;
+    this.scale = Math.max(2, Math.floor(Math.min(box, 400, hBox) / STAGE_W));
     this.cv.style.width = `${STAGE_W * this.scale}px`;
     this.cv.style.height = `${STAGE_H * this.scale}px`;
     this.cv.width = STAGE_W * this.scale * dpr;
@@ -250,7 +254,7 @@ export class BossStage {
       return;
     }
     if (t === 6) { this.hit(dmg, { ...base, crit: true, title: "impact noir" }); return; }
-    this.hit(dmg, { ...base, sfx: TIER_SFX[t], sfxArg: o.combo, sc: t >= 2 ? 2 : 1, color: t >= 2 ? "#ffcd75" : undefined });
+    this.hit(dmg, { ...base, sfx: TIER_SFX[t], sfxArg: o.combo, sc: t >= 4 ? 2 : 1, color: t >= 2 ? "#ffcd75" : undefined });
     const ov = this.ovPos(), ix = ov.ox + x, iy = ov.oy + y;
     if (t >= 2) {
       this.shake = Math.max(this.shake, 2.2); this.sq = 0.2; this.chroma = Math.max(this.chroma, 4);
@@ -309,7 +313,6 @@ export class BossStage {
   miss(x, y) {
     if (this.dead) return;
     this.fx.burst(4, () => ({ x: x + rnd(-1, 1), y: y + rnd(-1, 1), vx: rnd(-0.5, 0.5), vy: rnd(-0.6, -0.1), drag: 0.9, life: 22, c: "#94b0c2", fade: true, size: 2, grow: 0.05 }));
-    this.float("raté", x, y - 3, { color: "#94b0c2", sc: 1 });
     this.talkT = 40;
     this.kbv += x < STAGE_W / 2 ? -0.6 : 0.6;
     play("miss");
@@ -343,7 +346,10 @@ export class BossStage {
     this.hit(dmg, { x, y, label: label ?? (fast ? `-${dmg}!` : `-${dmg}`), sfx: "weakhit", sfxArg: this.combo });
     if (fast) { this.front.burst(6, () => { const a = rnd(0, Math.PI * 2), v = rnd(1, 2.4); return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.85, life: 12, c: "#ffcd75" }; }); }
   }
-  breakCombo() { if (this.combo >= 3) this.float(`combo x${this.combo}`, STAGE_W / 2, 20, { color: "#94b0c2" }); this.combo = 0; }
+  breakCombo() { this.combo = 0; this.comboBreak = 12; }
+  /** Résultat d'une note de la jauge : parfait, bon, raté, clope prise ou refusée. */
+  judged(kind) { this.judgeFx = { kind, age: 0 }; }
+  forgiven(left) { this.judgeFx = { kind: "refused", age: 0 }; this.float(left ? `${left} joker` : "dernier joker", STAGE_W / 2, GAUGE_Y - 8, { color: "#73eff7", sc: 1 }); }
 
   /** K.O. : éclair noir, gel, puis le boss éclate au ralenti en pixels qui rebondissent. */
   ko(style) {
@@ -402,6 +408,8 @@ export class BossStage {
     if (this.talkT > 0) this.talkT--;
     if (this.flash > 0) this.flash--;
     if (this.healGlow > 0) this.healGlow--;
+    if (this.judgeFx) this.judgeFx.age++;
+    if (this.comboBreak > 0) this.comboBreak--;
     if (this.chroma > 0) this.chroma--;
     this.shake = this.shake > 0.3 ? this.shake * 0.87 : 0;
     this.kbv += -this.kb * 0.22; this.kbv *= 0.72; this.kb += this.kbv;
@@ -470,6 +478,7 @@ export class BossStage {
     for (const f of this.floats) this.drawFloat(b, f);
     b.restore();
     this.drawHp(b);
+    this.drawGauge(b);
     const c = this.ctx;
     c.imageSmoothingEnabled = false;
     c.clearRect(0, 0, this.cv.width, this.cv.height);
@@ -500,6 +509,45 @@ export class BossStage {
     if (this.crown) b.drawImage(this.crown.img, Math.round(x + w / 2 - this.crown.w / 2), y - this.crown.h + 5);
     if ((this.flash > 0 && this.flash % 2 === 1) || (this.dead && this.koT === 0)) b.drawImage(this.dead ? sp.black : sp.white, x, y, w, h);
     if (this.healGlow > 0 && (this.healGlow >> 2) % 2) { b.globalAlpha = 0.5; b.drawImage(sp.white, x, y, w, h); b.globalAlpha = 1; }
+  }
+
+  /** Jauge de rythme : rail, centre « || », fenêtres, deux cercles (ou deux clopes) qui convergent. */
+  drawGauge(b) {
+    const y = GAUGE_Y, L = 5, R = STAGE_W - 6, C = STAGE_W / 2, g = this.gauge, jf = this.judgeFx;
+    b.fillStyle = OUTLINE; b.fillRect(L - 2, y - 2, R - L + 5, 5);
+    b.fillStyle = this.comboBreak > 0 && (this.comboBreak >> 1) % 2 ? "#5d275d" : "#262b44"; b.fillRect(L - 1, y - 1, R - L + 3, 3);
+    if (g) {
+      const half = Math.round((g.good / g.dur) * (C - L)), hp = Math.max(1, Math.round((g.perfect / g.dur) * (C - L)));
+      b.fillStyle = g.kind === "cig" ? "#3d1726" : "#3a4466"; b.fillRect(C - half, y - 1, half * 2 + 1, 3);
+      if (g.kind !== "cig") { b.fillStyle = "#8a6a2a"; b.fillRect(C - hp, y - 1, hp * 2 + 1, 3); }
+    }
+    // centre ||
+    const flash = jf && jf.age < 10;
+    const cc = flash ? JCOL[jf.kind] : g && g.kind === "cig" ? "#e43b44" : "#f4f4f4";
+    b.fillStyle = OUTLINE; b.fillRect(C - 3, y - 6, 7, 13);
+    b.fillStyle = cc; b.fillRect(C - 2, y - 5, 1, 11); b.fillRect(C + 2, y - 5, 1, 11);
+    if (g) {
+      const k = (performance.now() - g.t0) / g.dur, near = Math.abs(performance.now() - g.t0 - g.dur) <= g.perfect;
+      const off = Math.round((C - L) * Math.min(k, 1.15));
+      for (const [x, dir] of [[L + off, 1], [R - off, -1]]) {
+        if (g.kind === "cig") {
+          // une clope qui glisse, braise devant
+          b.fillStyle = OUTLINE; b.fillRect(x - 4 * dir - (dir < 0 ? 0 : 0) - 1, y - 2, 10, 4);
+          for (let i = 0; i < 7; i++) { const px = x - i * dir; b.fillStyle = i === 0 ? ((this.t >> 2) % 2 ? "#ffcd75" : "#ef7d57") : i < 5 ? "#f4f4f4" : "#ef7d57"; b.fillRect(px, y - 1, 1, 2); }
+        } else {
+          b.fillStyle = OUTLINE; b.fillRect(x - 3, y - 2, 7, 5); b.fillRect(x - 2, y - 3, 5, 7);
+          b.fillStyle = near ? "#ffcd75" : "#ffffff"; b.fillRect(x - 2, y - 1, 5, 3); b.fillRect(x - 1, y - 2, 3, 5);
+        }
+      }
+    }
+    if (jf && jf.age < 16) {
+      const r = 3 + jf.age * 1.2, n = 16;
+      b.fillStyle = JCOL[jf.kind];
+      b.globalAlpha = jf.age < 8 ? 1 : 0.5;
+      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2; b.fillRect(Math.round(C + Math.cos(a) * r), Math.round(y + Math.sin(a) * r * 0.6), 1, 1); }
+      b.globalAlpha = 1;
+      if (jf.kind === "miss" || jf.kind === "took") { b.fillStyle = "#e43b44"; for (let i = -2; i <= 2; i++) { b.fillRect(C + i, y - 9 + i, 1, 1); b.fillRect(C + i, y - 9 - i, 1, 1); } }
+    }
   }
 
   drawWeak(b) {
@@ -565,10 +613,7 @@ export class BossStage {
       b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
       b.fillStyle = k < 0.25 && (this.t >> 2) % 2 ? "#ffffff" : "#ffcd75"; b.fillRect(x, y + h + 2, Math.round(w * k), 2);
     }
-    if (this.combo >= 2) {
-      const sc = this.comboPop > 3 ? 3 : 2;
-      drawText(b, `x${this.combo}`, STAGE_W - 12, y + h + 7, { color: this.combo >= 10 ? "#ffcd75" : "#ffffff", sc });
-    }
+    if (this.combo >= 2) drawText(b, `x${this.combo}`, STAGE_W - 4, y + h + 3, { color: this.trance ? "#ff6b70" : this.combo >= 10 ? "#ffcd75" : "#c2c3c7", sc: 1, align: "right" });
   }
 
   // ---------- calque plein écran ----------

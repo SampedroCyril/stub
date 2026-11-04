@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { milestonesFor, tierFor, damageFor, cadence, rankFor, targetOf, HIT, TIER_BONUS } from "../src/game/combo.js";
+import { milestonesFor, tierFor, damageFor, approachMs, judge, rankFor, targetOf, HIT, TIER_BONUS } from "../src/game/combo.js";
 
 test("seuils des paliers : croissants, plus espacés pour les grosses envies, plus tôt avec Élan", () => {
   for (const i of [1, 2, 3, 4, 5]) {
@@ -34,9 +34,14 @@ test("dégâts : rapide > normal, multiplicateur de combo, bonus des paliers, tr
   assert.ok(damageFor(7, { combo: ms[4], ms, crit: 1.5 }) > damageFor(7, { combo: ms[4], ms }));
 });
 
-test("cadence : plus le combo monte, plus c'est rapide, avec un plancher", () => {
-  assert.ok(cadence(30).showMs < cadence(0).showMs);
-  assert.equal(cadence(500).showMs, cadence(1000).showMs);
+test("jauge : les cercles accélèrent avec le combo, avec un plancher ; jugement parfait / bon / raté", () => {
+  assert.ok(approachMs(30) < approachMs(0));
+  assert.equal(approachMs(500), approachMs(1000));
+  assert.ok(approachMs(0, 1.15) > approachMs(0));
+  assert.equal(judge(40), "perfect");
+  assert.equal(judge(-120), "good");
+  assert.equal(judge(300), "miss");
+  assert.equal(judge(100, { perfect: 105 }), "perfect");
 });
 
 test("rang selon le temps visé de l'intensité", () => {
