@@ -3,7 +3,7 @@ import { useApp } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, useCountdown } from "../components/ui.jsx";
 import { CRAV_XP, TRIGGERS, I_NAMES } from "../data/rules.js";
 import Battle from "../game/Battle.jsx";
-import Pixel from "../game/Pixel.jsx";
+import BossThumb from "../game/BossThumb.jsx";
 import { BOSSES, bossFor } from "../game/bosses.js";
 import { ModChips } from "../game/Battle.jsx";
 import { bestiary } from "../game/battle.js";
@@ -53,7 +53,7 @@ export default function Sevrage() {
             </div>
           </div>
           <div className="prefight">
-            <Pixel name={BOSSES[bossFor(craving.trigger, new Date(craving.at))].sprite} className="boss small" />
+            <BossThumb id={bossFor(craving.trigger, new Date(craving.at))} />
             <div>
               <span className="label">Ton adversaire</span>
               <strong className="px-name">{BOSSES[bossFor(craving.trigger, new Date(craving.at))].n}</strong>
@@ -91,7 +91,7 @@ export default function Sevrage() {
         <div className="rules">
           <div><span>Chaque jour complet sans clope</span><b className="g">+100</b></div>
           <div><span>Boss vaincu en tenant (points faibles ou épuisement)</span><b className="g">+{CRAV_XP.hold}</b></div>
-          <div><span>Boss vaincu en respirant ou aux blocs</span><b className="g">+{CRAV_XP.breath}</b></div>
+          <div><span>Boss vaincu en respirant ou en Frénésie</span><b className="g">+{CRAV_XP.breath}</b></div>
           <div><span>Boss vaincu avec un circuit</span><b className="g">+{CRAV_XP.sport}</b></div>
           <div><span>Boss vaincu en mode crise</span><b className="g">+{CRAV_XP.crisis}</b></div>
           <div><span>Bonus de rang S / A</span><b className="g">+10 / +5</b></div>

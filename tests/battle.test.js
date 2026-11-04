@@ -38,8 +38,8 @@ test("attaques : circuit + respiration le tuent avant l'épuisement", () => {
 
 test("victoire : événement avec boss, niveau, temps et méthode", () => {
   let b = createBattle({ at, intensity: 3, trigger: "repas" });
-  b = hit(b, "game", DMG.quad, later(30e3)).battle;
-  b = hit(b, "game", DMG.quad, later(50e3)).battle;
+  for (let i = 0; i < 14; i++) b = hit(b, "game", DMG.frenzyFast * 1.5, later(20e3 + i * 1e3)).battle;
+  b = hit(b, "game", DMG.frenzyBurst, later(50e3)).battle;
   const ev = victoryEvent(b, later(52e3));
   assert.deepEqual(ev, { k: "craving", t: at.toISOString(), m: "game", i: 3, tr: "repas", b: "repas", bl: 1, kt: 52, rk: "A" });
 });
@@ -59,10 +59,10 @@ test("bestiaire : victoires et meilleur temps", () => {
   assert.deepEqual(bestiary(ev), { cafe: { wins: 2, best: 45, last: "b" } });
 });
 
-test("faiblesses et résistances : Café Maudit ×1,5 en respirant, ×0,5 aux blocs", () => {
+test("faiblesses et résistances : Café Maudit ×1,5 en respirant, ×0,5 en Frénésie", () => {
   const b = createBattle({ at, intensity: 2, trigger: "cafe" });
   assert.equal(hit(b, "breath", DMG.breathCycle, at).dmg, 21);
-  assert.equal(hit(b, "game", DMG.line, at).dmg, 8);
+  assert.equal(hit(b, "game", DMG.frenzyBurst, at).dmg, 3);
   assert.equal(hit(b, "weak", DMG.weak, at).dmg, 8);
 });
 

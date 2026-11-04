@@ -10,7 +10,7 @@ const CIRC = 703.7;
 const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
 
 export default function Respirer() {
-  const { state, flow, setFlow, patchState, resetFlow, commit, go, battle, hitBattle } = useApp();
+  const { state, flow, setFlow, patchState, resetFlow, commit, go, battle, hitBattle, queueFx } = useApp();
   const [run, setRun] = useState(null); // {p, total, t0, craving}
   const els = useRef({});
   const fromCraving = flow.mode === "breath" && !!flow.attack && !!battle;
@@ -33,7 +33,11 @@ export default function Respirer() {
     const cyc = PATTERNS[r.p].ph.reduce((a, x) => a + x[1], 0);
     const cycles = Math.floor(sec / cyc);
     const msg = [];
-    if (r.attack && battle && cycles) msg.push(`${BOSSES[battle.boss].n} prend ${hitBattle("breath", cycles * DMG.breathCycle)} dégâts !`);
+    if (r.attack && battle && cycles) {
+      const dmg = hitBattle("breath", cycles * DMG.breathCycle);
+      queueFx({ kind: "breath", dmg });
+      msg.push(`${BOSSES[battle.boss].n} prend ${dmg} dégâts !`);
+    }
     resetFlow();
     if (!complete && sec < 60) {
       if (r.attack) { go("sevrage"); if (msg.length) commit([], msg); }

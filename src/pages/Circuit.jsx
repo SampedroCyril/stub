@@ -47,7 +47,7 @@ function Move({ e, kind, sportL, adj, result, onCamera, onDetails }) {
 }
 
 export default function Circuit() {
-  const { S, state, flow, setFlow, resetFlow, commit, go, battle, hitBattle } = useApp();
+  const { S, state, flow, setFlow, resetFlow, commit, go, battle, hitBattle, queueFx } = useApp();
   const [coach, setCoach] = useState(null);
   const active = flow.mode === "circuit";
   const fromCraving = active && !!flow.attack && !!battle;
@@ -66,6 +66,7 @@ export default function Circuit() {
     const patch = { adj: clamp(adj + f, -3, 5), ...(flow.override ? {} : advanceRotation(state, sportL)) };
     if (fromCraving) {
       const dmg = hitBattle("circuit", items.some((it) => it.cam) ? DMG.circuitCam : DMG.circuit);
+      queueFx({ kind: "ultimate", dmg });
       msg.push(`${BOSSES[battle.boss].n} prend ${dmg} dégâts !`);
     }
     resetFlow();
