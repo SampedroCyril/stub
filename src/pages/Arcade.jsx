@@ -3,6 +3,7 @@ import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import BossView from "../game/BossView.jsx";
 import FightScreen from "../game/FightScreen.jsx";
+import GaugeView from "../game/GaugeView.jsx";
 import { useClicker } from "../game/useClicker.js";
 import { FRENZY } from "../game/battle.js";
 import { BOSSES, traitsOf } from "../game/bosses.js";
@@ -22,7 +23,7 @@ export default function Arcade() {
   const { S, state, commit, battle, go } = useApp();
   const [mode, setMode] = useState("frenzy");
   const [playing, setPlaying] = useState(false);
-  const stage = useRef(null);
+  const stage = useRef(null), gauge = useRef(null);
   const [last, setLast] = useState(null);
   const [idx, setIdx] = useState(0);
   const run = useRef({ hp: 0, t0: 0, idx: 0 });
@@ -39,6 +40,7 @@ export default function Arcade() {
   const clicker = useClicker(stage, {
     intensity: mode === "bossrun" ? 3 : 2,
     skills: state.skills,
+    gaugeRef: gauge,
     traits: mode === "bossrun" ? traitsOf(RUN[idx]) : undefined,
     duration: mode === "frenzy" ? FRENZY.dur : null,
     lives: mode === "endless" ? 3 : null,
@@ -140,6 +142,7 @@ export default function Arcade() {
           footer={<div className="fight-actions"><button className="linkbtn" type="button" onClick={() => clicker.stop(false)}>Arrêter</button></div>}
         >
           <BossView key={mode === "bossrun" ? `run-${idx}` : "train"} stageRef={stage} boss={boss} maxHp={mode === "bossrun" ? runHp(idx) : 100} hp={mode === "bossrun" ? (idx === run.current.idx ? run.current.hp : runHp(idx)) : 100} training={mode !== "bossrun"} />
+          <GaugeView gaugeRef={gauge} style={state.gaugeStyle || "fluid"} />
         </FightScreen>
       )}
     </Panel>

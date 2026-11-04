@@ -39,9 +39,11 @@ test("jauge : les cercles accélèrent avec le combo, avec un plancher ; jugemen
   assert.equal(approachMs(500), approachMs(1000));
   assert.ok(approachMs(0, 1.15) > approachMs(0));
   assert.equal(judge(40), "perfect");
+  assert.equal(judge(125), "perfect");
   assert.equal(judge(-120), "good");
+  assert.equal(judge(-95), "good");
   assert.equal(judge(300), "miss");
-  assert.equal(judge(100, { perfect: 105 }), "perfect");
+  assert.equal(judge(-100, { perfect: 105 }), "perfect");
 });
 
 test("rang selon le temps visé de l'intensité", () => {

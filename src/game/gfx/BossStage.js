@@ -7,7 +7,7 @@ import { C, cigSpec, linePts, drawStick } from "./stick.js";
 import { grid } from "./sprite.js";
 import { SPRITES } from "../sprites.js";
 
-export const STAGE_W = 64, STAGE_H = 76;
+export const STAGE_W = 64, STAGE_H = 60;
 const FLOOR = 56;
 const GAUGE_Y = 68;
 const JCOL = { perfect: "#ffcd75", good: "#ffffff", miss: "#e43b44", took: "#e43b44", refused: "#3ae0ff" };
@@ -115,7 +115,7 @@ export class BossStage {
     const box = this.cv.parentElement?.clientWidth || 320;
     const dpr = Math.min(3, window.devicePixelRatio || 1);
     // en plein écran, la scène tient aussi en hauteur (titre, bulle et boutons compris)
-    const hBox = this.cv.closest(".fight") ? ((window.innerHeight - 250) * STAGE_W) / STAGE_H : Infinity;
+    const hBox = this.cv.closest(".fight") ? ((window.innerHeight - 330) * STAGE_W) / STAGE_H : Infinity;
     this.scale = Math.max(2, Math.floor(Math.min(box, 400, hBox) / STAGE_W));
     this.cv.style.width = `${STAGE_W * this.scale}px`;
     this.cv.style.height = `${STAGE_H * this.scale}px`;
@@ -478,7 +478,6 @@ export class BossStage {
     for (const f of this.floats) this.drawFloat(b, f);
     b.restore();
     this.drawHp(b);
-    this.drawGauge(b);
     const c = this.ctx;
     c.imageSmoothingEnabled = false;
     c.clearRect(0, 0, this.cv.width, this.cv.height);

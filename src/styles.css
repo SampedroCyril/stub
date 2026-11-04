@@ -704,3 +704,11 @@ details.fold[open]>summary::after{content:"–"}
 .arcade-card{display:flex;flex-direction:column;gap:10px}
 .arcade-card h3,.arcade-card p{margin:0}
 .arcade-last{font-weight:600}
+
+/* 0.3.3 : jauge vectorielle à thèmes */
+.fight-stage{flex-direction:column;align-items:center;gap:4px}
+.gauge-view{width:100%;display:flex;justify-content:center}
+.gauge-view canvas{display:block;max-width:100%}
+.gauge-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
+.gauge-pick .pick{justify-content:center}
+.gauge-preview{width:100%;border-radius:12px;background:radial-gradient(120% 80% at 50% 40%,#221a3a,#0d0a18);padding:4px 0}

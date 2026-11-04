@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { milestonesFor, tierFor, damageFor, approachMs, judge, NOTE_GAP, WINDOW, CIG_EVERY, pauseAfter } from "./combo.js";
+import { milestonesFor, tierFor, damageFor, approachMs, judge, NOTE_GAP, WINDOW, CIG_EVERY, STREAK, STREAK_BONUS, pauseAfter } from "./combo.js";
 import { perksOf } from "../data/skills.js";
 
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -26,7 +26,7 @@ export function useClicker(stageRef, opts) {
   const traits = () => o.current.traits || NO_TRAITS;
   const windows = () => {
     const p = perks();
-    return { perfect: WINDOW.perfect + p.perfectMs, good: WINDOW.good * p.goodWin * traits().size };
+    return { perfect: WINDOW.perfect + p.perfectMs, good: WINDOW.good * p.goodWin * traits().size, late: WINDOW.late };
   };
 
   /** Lance la note suivante après une pause. */
@@ -47,16 +47,21 @@ export function useClicker(stageRef, opts) {
     const w = windows();
     const dur = approachMs(s.combo, perks().slow / traits().spot * ramp);
     s.note = { t0: performance.now(), dur, kind: cig ? "cig" : "hit", ...w };
-    stg.gauge = s.note;
+    const gg = o.current.gaugeRef?.current;
+    if (gg) gg.note = s.note;
     clearTimeout(s.timer);
-    s.timer = setTimeout(() => expire(), dur + w.good + 30);
+    s.timer = setTimeout(() => expire(), dur + w.good + w.late + 30);
   };
 
   const endNote = (kind) => {
     const s = st.current, stg = stageRef.current;
     if (!s) return;
     s.note = null;
-    if (stg) { stg.gauge = null; stg.judged(kind); }
+    const gg = o.current.gaugeRef?.current;
+    if (gg) { gg.note = null; gg.judge(kind); }
+    if (kind === "perfect") s.perfects++;
+    else if (kind !== "refused") s.perfects = 0;
+    void stg;
   };
 
   const stop = useCallback((silent = false) => {
@@ -66,7 +71,9 @@ export function useClicker(stageRef, opts) {
     st.current = null;
     setActive(false);
     const stg = stageRef.current;
-    if (stg) { stg.frenzy = null; stg.gauge = null; stg.exitTrance(); stg.combo = 0; }
+    if (stg) { stg.frenzy = null; stg.exitTrance(); stg.combo = 0; }
+    const gg = o.current.gaugeRef?.current;
+    if (gg) { gg.note = null; gg.streak = 0; }
     o.current.onEnd?.({ score: s.score, combo: s.maxCombo, hits: s.hits, sec: Math.round((performance.now() - s.start) / 1000), silent, lives: s.lives });
   }, [stageRef]);
 
@@ -112,6 +119,14 @@ export function useClicker(stageRef, opts) {
     s.score += d;
     stg.score = s.score; stg.combo = s.combo;
     stg.tier(shown, d, { combo: s.combo, label: `${o.current.unit || "-"}${d}` });
+    // série de parfaits : bonus
+    if (s.perfects >= STREAK) {
+      s.perfects = 0;
+      const bonus = Math.round(STREAK_BONUS * p.power);
+      const b = o.current.onHit?.({ dmg: bonus, tier: 3, shown: 3, fast: true, combo: s.combo, maxCombo: s.maxCombo }) ?? bonus;
+      s.score += b;
+      setTimeout(() => stageRef.current?.tier(3, b, { label: `${o.current.unit || "-"}${b}` }), 160);
+    }
     setView((v) => ({ ...v, combo: s.combo }));
     next(pauseAfter(shown));
     return true;
@@ -138,7 +153,7 @@ export function useClicker(stageRef, opts) {
     const p = perks(), d = o.current.duration;
     st.current = {
       start: performance.now(), combo: 0, maxCombo: 0, hits: 0, score: 0, trance: false, forgive: p.forgive,
-      lives: o.current.lives ?? null, paused: false, notes: 0, nextCig: Math.round(rnd(6, 10) * traits().tempt), note: null,
+      lives: o.current.lives ?? null, paused: false, notes: 0, nextCig: Math.round(rnd(6, 10) * traits().tempt), note: null, perfects: 0,
     };
     stg.combo = 0; stg.score = 0; stg.koStyle = p.ko;
     stg.frenzy = d ? { start: performance.now(), dur: d } : null;
@@ -154,7 +169,8 @@ export function useClicker(stageRef, opts) {
     if (!s) return;
     s.paused = true; s.note = null;
     clearTimeout(s.timer);
-    if (stageRef.current) stageRef.current.gauge = null;
+    const gg = o.current.gaugeRef?.current;
+    if (gg) gg.note = null;
   }, [stageRef]);
   const resume = useCallback((delay = 300) => {
     const s = st.current;

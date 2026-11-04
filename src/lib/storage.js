@@ -26,6 +26,7 @@ export const DEFAULT_STATE = {
   sound: true,
   gameSound: true,
   skills: [],
+  gaugeStyle: "fluid",
   sections: { sport: true, joueur: true, progres: true },
   intense: null,
   model: "lite",
