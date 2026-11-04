@@ -15,7 +15,7 @@ export const textWidth = (s, sc = 1) => clean(s).length * 4 * sc - sc;
 
 export function drawText(ctx, s, x, y, { color = "#fff", sc = 1, outline = "#140c1c", align = "center" } = {}) {
   s = clean(s);
-  const x0 = Math.round(align === "center" ? x - textWidth(s, sc) / 2 : x);
+  const x0 = Math.round(align === "center" ? x - textWidth(s, sc) / 2 : align === "right" ? x - textWidth(s, sc) : x);
   y = Math.round(y);
   const pass = (dx, dy, col) => {
     ctx.fillStyle = col;

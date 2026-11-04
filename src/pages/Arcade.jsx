@@ -2,27 +2,29 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import BossView from "../game/BossView.jsx";
+import FightScreen from "../game/FightScreen.jsx";
 import { useClicker } from "../game/useClicker.js";
 import { FRENZY } from "../game/battle.js";
 import { BOSSES, traitsOf } from "../game/bosses.js";
 import { DOW, fTime, pad } from "../lib/util.js";
 
 const MODES = [
-  { id: "frenzy", n: "Entraînement", d: `${FRENZY.dur / 1000} secondes pour le meilleur score. Parfait pour s'échauffer.` },
+  { id: "frenzy", n: "Entraînement", d: `${FRENZY.dur / 1000} secondes pour le meilleur score. Parfait pour trouver le rythme.` },
   { id: "endless", n: "Sans fin", d: "Trois vies. Chaque raté en coûte une, et ça accélère sans arrêt." },
   { id: "bossrun", n: "Boss Run", d: "Les 11 boss à la suite, de plus en plus coriaces. Le combo continue d'un boss à l'autre : bats ton meilleur temps." },
 ];
 const RUN = Object.keys(BOSSES).filter((id) => id !== "clope").concat("clope");
-const runHp = (i) => 300 + i * 120;
+const runHp = (i) => 3000 + i * 1200;
 const fmt = (s) => `${Math.floor(s / 60)}:${pad(s % 60)}`;
 
 /** Arcade : s'entraîner sans fausser ses envies. Trois modes, chacun avec son record. */
 export default function Arcade() {
   const { S, state, commit, battle, go } = useApp();
   const [mode, setMode] = useState("frenzy");
+  const [playing, setPlaying] = useState(false);
   const stage = useRef(null);
   const [last, setLast] = useState(null);
-  const [idx, setIdx] = useState(0); // boss en cours du Boss Run
+  const [idx, setIdx] = useState(0);
   const run = useRef({ hp: 0, t0: 0, idx: 0 });
   const [, setTick] = useState(0);
   const games = S.ev.filter((e) => e.k === "game" && e.g === mode);
@@ -44,18 +46,25 @@ export default function Arcade() {
     unit: mode === "bossrun" ? "-" : "+",
     onHit: ({ dmg }) => {
       if (mode !== "bossrun") return dmg;
-      const r = run.current;
-      const d = Math.min(dmg, Math.max(1, r.hp));
+      const r = run.current, d = Math.min(dmg, Math.max(1, r.hp));
       r.hp -= d;
       if (r.hp <= 0) nextBoss();
       return d;
     },
+    onCig: (took) => {
+      if (took) return null;
+      if (mode !== "bossrun") return 300;
+      const r = run.current, d = Math.min(Math.round(runHp(r.idx) * 0.03), Math.max(1, r.hp));
+      r.hp -= d;
+      if (r.hp <= 0) setTimeout(nextBoss, 400);
+      return d;
+    },
     onEnd: (res) => {
+      setPlaying(false);
       if (res.silent || !res.hits) return;
       const n = mode === "bossrun" ? run.current.idx + (run.current.hp <= 0 ? 1 : 0) : undefined;
-      const ev = { k: "game", t: new Date().toISOString(), g: mode, s: res.score, c: res.combo, h: res.hits, d: res.sec, ...(n != null ? { n } : {}) };
       setLast({ ...res, n, record: mode === "bossrun" ? n === RUN.length && (best == null || res.sec < best) : res.score > best });
-      commit([ev]);
+      commit([{ k: "game", t: new Date().toISOString(), g: mode, s: res.score, c: res.combo, h: res.hits, d: res.sec, ...(n != null ? { n } : {}) }]);
     },
   });
   const cl = useRef(clicker);
@@ -69,25 +78,30 @@ export default function Arcade() {
       r.idx++;
       r.hp = runHp(r.idx);
       setIdx(r.idx);
-      setTimeout(() => { if (stage.current) stage.current.combo = cl.current.state()?.combo || 0; cl.current.resume(600); }, 200);
+      setTimeout(() => cl.current.resume(600), 250);
     });
   }
+  // la scène existe une fois l'écran de jeu ouvert : on lance alors la partie
+  useEffect(() => {
+    if (!playing) return;
+    const id = setTimeout(() => cl.current.start(), 120);
+    return () => clearTimeout(id);
+  }, [playing]);
+  useEffect(() => { if (!clicker.active) return; const id = setInterval(() => setTick((x) => x + 1), 500); return () => clearInterval(id); }, [clicker.active]);
+  useEffect(() => () => cl.current.stop(true), []);
+
   const start = () => {
     setLast(null);
     if (mode === "bossrun") { run.current = { hp: runHp(0), t0: performance.now(), idx: 0 }; setIdx(0); }
-    setTimeout(() => cl.current.start(), mode === "bossrun" ? 150 : 0);
+    setPlaying(true);
   };
-  useEffect(() => { if (!clicker.active) return; const id = setInterval(() => setTick((x) => x + 1), 500); return () => clearInterval(id); }, [clicker.active]);
-  useEffect(() => () => cl.current.stop(true), [mode]);
-
-  const onTap = (e) => { if (!clicker.tap(e)) stage.current?.miss(e.x, e.y); };
   const M = MODES.find((m) => m.id === mode);
   const boss = mode === "bossrun" ? RUN[idx] : "clope";
-  const elapsed = clicker.active && mode === "bossrun" ? Math.round((performance.now() - run.current.t0) / 1000) : 0;
+  const elapsed = mode === "bossrun" && clicker.active ? Math.round((performance.now() - run.current.t0) / 1000) : 0;
 
   return (
     <Panel id="arcade">
-      <p className="sub">Ici tu t'entraînes sans toucher à tes envies. Ça rapporte de l'XP joueur pour l'arbre de compétences, plafonnée à la journée.</p>
+      <p className="sub">Ici tu t'entraînes sans toucher à tes envies. Ça rapporte de l'XP joueur pour tes talents, plafonnée à la journée.</p>
       {battle && (
         <button className="linkcard" type="button" onClick={() => go("sevrage")}>
           <span className="px-name" style={{ gridColumn: "1 / -1" }}>Un boss t'attend : retourne au combat de ton envie</span>
@@ -95,23 +109,14 @@ export default function Arcade() {
       )}
       <div className="chiprow modes" role="tablist" aria-label="Mode de jeu">
         {MODES.map((m) => (
-          <button key={m.id} className="pick" role="tab" type="button" aria-selected={mode === m.id} aria-pressed={mode === m.id} disabled={clicker.active} onClick={() => { setMode(m.id); setLast(null); }}>{m.n}</button>
+          <button key={m.id} className="pick" role="tab" type="button" aria-selected={mode === m.id} aria-pressed={mode === m.id} onClick={() => { setMode(m.id); setLast(null); }}>{m.n}</button>
         ))}
       </div>
-      <section className="arena">
-        <div className="arena-head">
-          <span className="px-name">{mode === "bossrun" ? `${idx + 1}/${RUN.length} · ${BOSSES[boss].n}` : "Mannequin d'entraînement"}</span>
-          <span className="px-lvl">{mode === "endless" && clicker.active ? "♥".repeat(Math.max(0, clicker.view.lives || 0)) : mode === "bossrun" ? (clicker.active ? fmt(elapsed) : best != null ? `Record ${fmt(best)}` : "") : `Record ${best}`}</span>
-        </div>
-        <BossView key={mode === "bossrun" ? `run-${idx}` : "train"} stageRef={stage} boss={boss} maxHp={mode === "bossrun" ? runHp(idx) : 100} hp={mode === "bossrun" ? runHp(idx) : 100} training={mode !== "bossrun"} onTap={onTap} onWeakExpire={clicker.expire} />
-        {!clicker.active
-          ? <button className="btn green big" type="button" onClick={start}>{last ? "Rejouer" : `Lancer : ${M.n}`}</button>
-          : <button className="linkbtn arena-flee" type="button" onClick={() => clicker.stop(false)}>Arrêter</button>}
-        <p className="arena-tip">
-          {last && !clicker.active
-            ? <>{last.record ? "Nouveau record ! " : ""}{mode === "bossrun" ? <><b>{last.n}/{RUN.length}</b> boss en {fmt(last.sec)}</> : <><b>{last.score}</b> points</>} · combo max {last.combo}</>
-            : M.d}
-        </p>
+      <section className="box arcade-card">
+        <h3>{M.n}</h3>
+        <p>{M.d}</p>
+        {last && <p className="arcade-last">{last.record ? "Nouveau record ! " : ""}{mode === "bossrun" ? <><b>{last.n}/{RUN.length}</b> boss en {fmt(last.sec)}</> : <><b>{last.score}</b> points</>} · combo max {last.combo}</p>}
+        <button className="btn green big" type="button" onClick={start}>{last ? "Rejouer" : "Jouer"}</button>
       </section>
       <div className="stats">
         <Stat label="Record" value={mode === "bossrun" ? (best != null ? fmt(best) : "–") : best} small={mode === "bossrun" ? "run complet" : "points"} />
@@ -125,6 +130,17 @@ export default function Arcade() {
             {top.map((e, i) => { const d = new Date(e.t); return <div key={i}><span>{DOW[d.getDay()]} {d.getDate()} · {fTime(d)}</span><b>combo {e.c}</b><em>{mode === "bossrun" ? `${e.n}/${RUN.length} · ${fmt(e.d)}` : e.s}</em></div>; })}
           </div>
         </section>
+      )}
+
+      {playing && (
+        <FightScreen
+          title={mode === "bossrun" ? `${idx + 1}/${RUN.length} · ${BOSSES[boss].n}` : M.n}
+          right={mode === "endless" ? "♥".repeat(Math.max(0, clicker.view.lives ?? 3)) : mode === "bossrun" ? fmt(elapsed) : best ? `Record ${best}` : ""}
+          onTap={() => clicker.tap()}
+          footer={<div className="fight-actions"><button className="linkbtn" type="button" onClick={() => clicker.stop(false)}>Arrêter</button></div>}
+        >
+          <BossView key={mode === "bossrun" ? `run-${idx}` : "train"} stageRef={stage} boss={boss} maxHp={mode === "bossrun" ? runHp(idx) : 100} hp={mode === "bossrun" ? (idx === run.current.idx ? run.current.hp : runHp(idx)) : 100} training={mode !== "bossrun"} />
+        </FightScreen>
       )}
     </Panel>
   );

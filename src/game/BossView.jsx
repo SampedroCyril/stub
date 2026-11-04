@@ -15,8 +15,8 @@ export default function BossView({ stageRef, boss, maxHp, hp, lvl = 1, training 
   useEffect(() => {
     const s = new BossStage(cv.current, {
       boss, maxHp, hp, lvl, training, intense,
-      shakeEl: cv.current.closest(".arena") || cv.current.parentElement,
-      fxRoot: document.getElementById("root"),
+      shakeEl: cv.current.closest(".fight-in, .arena") || cv.current.parentElement,
+      fxRoot: cv.current.closest(".fight") || document.getElementById("root"),
       onTap: (e) => cbs.current.onTap?.(e),
       onWeakExpire: () => cbs.current.onWeakExpire?.(),
     });
@@ -27,5 +27,5 @@ export default function BossView({ stageRef, boss, maxHp, hp, lvl = 1, training 
 
   useEffect(() => { if (stageRef.current) stageRef.current.intense = intense; }, [intense, stageRef]);
 
-  return <div className={`boss-view ${className}`}><canvas ref={cv} className="boss-canvas" aria-label="Le boss : touche le point faible quand il apparaît" /></div>;
+  return <div className={`boss-view ${className}`}><canvas ref={cv} className="boss-canvas" aria-label="Le boss et la jauge de rythme : touche l'écran quand les cercles arrivent au centre" /></div>;
 }

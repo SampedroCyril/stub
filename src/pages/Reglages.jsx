@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useApp } from "../store/AppStore.jsx";
+import { useApp, SECTIONS, sectionOn } from "../store/AppStore.jsx";
 import { Panel } from "../components/ui.jsx";
 import InstallCard from "../components/InstallCard.jsx";
 import { isStandalone } from "../lib/install.js";
@@ -115,6 +115,13 @@ export default function Reglages() {
             }}
           />
         </label>
+      </Group>
+
+      <Group title="Sections de l'app">
+        <p className="set-note">Garde seulement ce qui te parle. Tes données restent, même pour une section masquée.</p>
+        {SECTIONS.filter((s) => s.optional).map((s) => (
+          <Toggle key={s.id} id={`sec-${s.id}`} label={s.label} sub={s.d} checked={sectionOn(state, s.id)} onChange={(v) => patchState({ sections: { ...(state.sections || {}), [s.id]: v } })} />
+        ))}
       </Group>
 
       <Group title="Jeu">

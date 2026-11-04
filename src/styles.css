@@ -657,9 +657,9 @@ details.fold[open]>summary::after{content:"–"}
 .choice small{color:var(--muted);font-size:13px}
 .choice .boss-thumb{width:52px}
 .choice-ic{width:52px;height:52px;display:grid;place-items:center;font-size:26px;border-radius:12px;color:#fff}
-.choice.fight{border-color:var(--quit)}
-.choice.breath .choice-ic{background:var(--breath)}
-.choice.move .choice-ic{background:var(--accent)}
+.choice.c-fight{border-color:var(--quit)}
+.choice.c-breath .choice-ic{background:var(--breath)}
+.choice.c-move .choice-ic{background:var(--accent)}
 .choice:active{transform:translateY(1px)}
 .choice:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .lvl.player .lvl-num{color:#b13e53} .lvl.player .bar i{background:linear-gradient(90deg,#b13e53,#ffcd75)}
@@ -684,3 +684,23 @@ details.fold[open]>summary::after{content:"–"}
 .arena.trance{animation:trance 1.2s steps(6) infinite}
 @keyframes trance{0%,100%{background-color:#1a1c2c}33%{background-color:#2b0f1a}66%{background-color:#1d0f2b}}
 @media (prefers-reduced-motion:reduce){.tap-start,.arena.trance{animation:none}}
+
+/* 0.3.2 : combat plein écran */
+.fight{position:fixed;inset:0;z-index:70;background:var(--arena);color:#f4f4f4;display:flex;justify-content:center;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.fight-in{width:100%;max-width:440px;height:100%;display:flex;flex-direction:column;justify-content:center;gap:10px;padding:16px}
+.fight-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.fight-head .px-lvl{white-space:nowrap}
+.fight-stage{position:relative;display:flex;justify-content:center}
+.fight-stage .boss-view{flex:1}
+.fight-foot{min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center}
+.fight-hint{margin:0;font-size:14px;line-height:1.5;color:#c2c3c7}
+.fight-hint b{color:#fff}
+.fight-actions{display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:center;align-items:center;margin:0;color:#c2c3c7;font-size:14px}
+.fight .linkbtn{color:#94b0c2;font-size:15px}
+.fight .bubble{margin:0 auto;max-width:100%}
+.fight .mods{justify-content:center}
+.fight .tap-start{pointer-events:none;bottom:22%}
+.arcade-card{display:flex;flex-direction:column;gap:10px}
+.arcade-card h3,.arcade-card p{margin:0}
+.arcade-last{font-weight:600}

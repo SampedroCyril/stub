@@ -14,12 +14,16 @@ export const useApp = () => useContext(Ctx);
 /** Navigation : 5 sections en bas de l'écran, chacune avec ses sous-onglets. */
 export const SECTIONS = [
   { id: "accueil", label: "Accueil", icon: "home", views: ["accueil"] },
-  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer", "arcade", "sante"] },
-  { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "records", "exos"] },
-  { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "bestiaire", "talents", "badges", "stats"] },
+  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer", "sante"] },
+  { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "records", "exos"], optional: true, d: "Circuits, records caméra, exercices. Masquée : plus de « Bouger » quand tu notes une envie." },
+  { id: "joueur", label: "Joueur", icon: "gamepad", views: ["talents", "arcade", "bestiaire"], optional: true, d: "Combats de boss, talents, Arcade, bestiaire. Masquée : plus de « Combat » quand tu notes une envie." },
+  { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "badges", "stats"], optional: true, d: "Défis de la semaine, badges, statistiques." },
   { id: "reglages", label: "Réglages", icon: "gear", views: ["reglages"] },
 ];
-export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", arcade: "Arcade", sante: "Santé", circuit: "Circuit", records: "Records", exos: "Exos", defis: "Défis", bestiaire: "Boss", talents: "Talents", badges: "Badges", stats: "Stats" };
+export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", sante: "Santé", circuit: "Circuit", records: "Records", exos: "Exos", talents: "Talents", arcade: "Arcade", bestiaire: "Boss", defis: "Défis", badges: "Badges", stats: "Stats" };
+/** Sections affichées selon les réglages (Accueil, Sevrage et Réglages sont toujours là). */
+export const visibleSections = (state) => SECTIONS.filter((s) => !s.optional || state?.sections?.[s.id] !== false);
+export const sectionOn = (state, id) => state?.sections?.[id] !== false;
 export const VIEWS = SECTIONS.flatMap((s) => s.views);
 export const sectionOf = (v) => SECTIONS.find((s) => s.views.includes(v)) || SECTIONS[0];
 const viewFromHash = () => {

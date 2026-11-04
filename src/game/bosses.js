@@ -83,10 +83,10 @@ export function bossFor(trigger, at = new Date()) {
 
 /** Traits de combat : chaque boss a une faiblesse (weak) et une résistance (res). */
 export const TRAITS = {
-  spot: { v: { weak: 1.25, res: 0.8 }, weak: ["Lent", "Ses points faibles restent plus longtemps"], res: ["Vif", "Ses points faibles filent plus vite"] },
-  size: { v: { weak: 1.3, res: 0.75 }, weak: ["Large", "Ses points faibles sont plus faciles à toucher"], res: ["Fuyant", "Ses points faibles sont plus durs à toucher"] },
+  spot: { v: { weak: 1.2, res: 0.85 }, weak: ["Lent", "Ses cercles arrivent moins vite"], res: ["Vif", "Ses cercles arrivent plus vite"] },
+  size: { v: { weak: 1.25, res: 0.8 }, weak: ["Large", "La fenêtre pour le toucher est plus large"], res: ["Fuyant", "La fenêtre pour le toucher est plus étroite"] },
   crit: { v: { weak: 1.5, res: 0.6 }, weak: ["Fragile", "Les gros paliers lui font 50 % de dégâts en plus"], res: ["Blindé", "Les gros paliers lui font 40 % de dégâts en moins"] },
-  tempt: { v: { weak: 1.4, res: 0.7 }, weak: ["Patient", "Il te tend une clope moins souvent"], res: ["Insistant", "Il te tend une clope plus souvent"] },
+  tempt: { v: { weak: 1.4, res: 0.7 }, weak: ["Patient", "Il glisse moins de clopes dans la jauge"], res: ["Insistant", "Il glisse plus de clopes dans la jauge"] },
 };
 /** Multiplicateurs du boss : spot (durée des points), size (zone de toucher), crit (bonus des paliers), tempt (délai des tentations). */
 export function traitsOf(id) {

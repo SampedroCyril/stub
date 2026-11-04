@@ -6,7 +6,7 @@ Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne qui
 
 ## Fonctionnalités
 
-Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, arcade, santé), **Sport** (circuit, records, exos), **Progrès** (défis, boss, talents, badges, stats) et **Réglages**.
+Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, santé), **Sport** (circuit, records, exos), **Joueur** (talents, arcade, boss), **Progrès** (défis, badges, stats) et **Réglages**. Sport, Joueur et Progrès peuvent être masqués dans les réglages : l'app ne montre que ce qui te parle.
 
 | Écran | Contenu |
 |---|---|
@@ -23,16 +23,16 @@ Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
 
-## Le jeu (0.3.1)
+## Le jeu (0.3.2)
 
 - **Trois façons de tenir une envie** : **Combat** (le boss de l'envie, en clicker), **Respirer** (le cercle guidé, au moins une minute) ou **Bouger** (un circuit). Les trois écrasent la clope au cendrier et rapportent de l'XP sevrage.
 - **Boss d'envie** : un par déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, le Spectre de 2h du mat' la nuit, Clopinette sinon). Chacun a un trait faible et un trait fort (points faibles plus lents ou plus vifs, plus ou moins faciles à toucher, sensible ou blindé aux gros paliers, tentations plus ou moins fréquentes), révélés après la première victoire.
-- **Combat clicker** : des points faibles apparaissent sur le boss ; touche-les avant que les crochets se referment (plus vite = coup rapide). Le combo monte à chaque point, un raté ou un point qui s'échappe le remet à zéro. Les points arrivent de plus en plus vite.
+- **Combat en rythme, plein écran** : sous le boss, une jauge ; deux cercles partent des bords et se rejoignent au centre. Touche l'écran (n'importe où) quand ils y sont : parfait ou bon, le combo monte ; trop tôt, trop tard ou pas du tout, il retombe à zéro. Les cercles vont de plus en plus vite avec le combo.
 - **Neuf paliers d'impact** : coup, coup sûr, coup net, critique, critique noir, impact noir, fracture, supernova, transe. Les paliers 3 à 9 tombent à des combos précis, plus espacés pour les grosses envies ; la transe double les dégâts jusqu'au prochain raté. K.O. en *Tranche* ou en *Manga*.
 - **Durée** : PV calibrés par simulation pour qu'un bon joueur gagne en 1 min (envie à 1) à 3 min (envie à 5). Le boss s'épuise tout seul et meurt au bout de 5 minutes (épuisement lent puis rapide) : on ne perd qu'en déclarant une rechute.
-- **Tentation** : de temps en temps, le boss te tend une clope. Refuser lui retire 3 % de PV et garde ton combo ; laisser passer le soigne de 8 % et casse le combo.
+- **Tentation** : de temps en temps, ce sont deux clopes qui glissent dans la jauge. Ne touche pas : elles s'écrasent au centre et le boss perd 3 % de PV, combo intact. Toucher, c'est la prendre : il se soigne de 8 % et le combo casse.
 - **Rang** : S (dans le temps visé avec un beau combo), A (moins de 1,5 × le temps visé), B (abattu avant l'épuisement), C (épuisement).
-- **Niveau joueur et talents** : chaque combat rapporte de l'XP joueur (victoire, combo max, rang), l'Arcade aussi (plafonnée par jour). Un point par niveau dans un arbre à trois branches : *Puissance* (dégâts, paliers plus tôt, refus cinglant, coup de grâce), *Technique* (coup rapide plus long, points plus faciles, ratés pardonnés), *Spectacle* (débloque les paliers 6 à 9 et le K.O. Manga). Réinitialisable.
+- **Niveau joueur et talents** : chaque combat rapporte de l'XP joueur (victoire, combo max, rang), l'Arcade aussi (plafonnée par jour). Un point par niveau dans un arbre à trois branches : *Puissance* (dégâts, paliers plus tôt, refus cinglant, coup de grâce), *Technique* (fenêtres « parfait » et « bon » plus larges, cercles plus lents, ratés pardonnés), *Spectacle* (débloque les paliers 6 à 9 et le K.O. Manga). Réinitialisable.
 - **Arcade** : Entraînement (30 s), Sans fin (trois vies, ça accélère), Boss Run (les 11 boss à la suite, chrono), chacun avec son record. Rien n'y touche aux envies.
 - **Victoire** : la clope de l'envie s'écrase dans le cendrier, crache sa braise et s'éteint. Le bocal de l'accueil compte toutes les clopes écrasées.
 - **Records caméra** : pompes en 1 min, squats en 30 s, jumping jacks en 1 min, dips en 45 s, planche et chaise le plus longtemps possible, comptés par le coach.
