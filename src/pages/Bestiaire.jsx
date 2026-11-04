@@ -17,7 +17,7 @@ export default function Bestiaire() {
   return (
     <Panel id="bestiaire">
       <div className="topbar"><h2>Bestiaire</h2><span className="label">{seen} / {Object.keys(BOSSES).length} boss rencontrés · {total} victoires</span></div>
-      <p className="sub">Chaque déclencheur a son boss, avec ses faiblesses et ses résistances, révélées après ta première victoire. Toutes les 5 victoires contre le même, il monte d'un niveau (+10 % de PV). Dès le niveau 3, il porte une couronne.</p>
+      <p className="sub">Chaque déclencheur a son boss, avec un point faible et un point fort, révélés après ta première victoire. Toutes les 5 victoires contre le même, il monte d'un niveau (+10 % de PV). Dès le niveau 3, il porte une couronne.</p>
       <div className="bestiary">
         {Object.entries(BOSSES).map(([id, B]) => {
           const s = bz[id];
@@ -27,7 +27,7 @@ export default function Bestiaire() {
               <div className="beast-info">
                 <strong className="px-name">{s ? B.n : "???"}</strong>
                 <span>{s ? `${s.wins} victoire${s.wins > 1 ? "s" : ""} · niv. ${bossLevel(s.wins)}` : "Pas encore rencontré"}</span>
-                {s?.best != null && <span>Record : {Math.floor(s.best / 60)}:{pad(s.best % 60)}</span>}
+                {s?.best != null && <span>Record : {Math.floor(s.best / 60)}:{pad(s.best % 60)}{s.mc ? ` · combo ${s.mc}` : ""}</span>}
                 {s && <ModChips boss={id} known />}
                 <small>{B.trig ? `Apparaît avec : ${TRIG_NAME[B.trig]}` : id === "spectre" ? "Rôde entre 1h et 5h du matin" : "Sans déclencheur noté"}</small>
               </div>

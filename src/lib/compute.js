@@ -1,5 +1,5 @@
 import { EX, sides, circuitXp } from "../data/exercises.js";
-import { CRAV_XP, XP_DAY, DEFI_XP, QUIT_K, SPORT_K, levelOf, methodOf, HEALTH } from "../data/rules.js";
+import { CRAV_XP, XP_DAY, DEFI_XP, QUIT_K, SPORT_K, PLAYER_K, levelOf, methodOf, playerXpOf, HEALTH } from "../data/rules.js";
 import { DEFIS, pickDefis, evalDefi } from "../data/defis.js";
 import { BADGES, badgeInfo } from "../data/badges.js";
 import { RANK_XP } from "../game/battle.js";
@@ -137,8 +137,14 @@ export function compute(state, days, now = new Date()) {
     while (sportDays.has(dayKey(d))) { sStreak++; d.setDate(d.getDate() - 1); }
   }
 
+  /* ---- joueur : combats et Arcade ---- */
+  let px = 0;
+  const pDay = new Map();
+  ser.lvlp = [];
+  ev.forEach((e) => { const x = playerXpOf(e, pDay); if (x) { px += x; ser.lvlp.push({ t: new Date(e.t), v: levelOf(px, PLAYER_K).L }); } });
+
   return {
-    now, q, startAt, ev, ser, qPoints, sPoints,
+    now, q, startAt, ev, ser, qPoints, sPoints, playerXp: px, player: levelOf(px, PLAYER_K),
     elapsed, streak, res, resSport, resBreath, xpDays, xpCrav, xpDefQ,
     quitXp: qx, quit: levelOf(qx, QUIT_K), best, cravAll, smokes, breaths, breathSec, bossN, frenzyN,
     tot, c, sportXp: c.xp, sport: levelOf(c.xp, SPORT_K), sportDays, sStreak, bestRun,

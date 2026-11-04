@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
-import { Q_TITLES, S_TITLES, titleOf } from "../data/rules.js";
+import { Q_TITLES, P_TITLES, S_TITLES, titleOf } from "../data/rules.js";
 import { pad } from "../lib/util.js";
 
 export const Stat = ({ label, value, small }) => (
@@ -19,10 +19,10 @@ export const Bar = ({ pct, color, height }) => (
 
 export function LevelCard({ kind, label }) {
   const { S } = useApp();
-  const lv = kind === "quit" ? S.quit : S.sport;
-  const titles = kind === "quit" ? Q_TITLES : S_TITLES;
+  const lv = kind === "quit" ? S.quit : kind === "player" ? S.player : S.sport;
+  const titles = kind === "quit" ? Q_TITLES : kind === "player" ? P_TITLES : S_TITLES;
   return (
-    <div className={`lvl ${kind === "quit" ? "quit" : "sport"}`}>
+    <div className={`lvl ${kind}`}>
       <span className="label">{label}</span>
       <div className="lvl-top">
         <span className="lvl-num"><small>niv.</small>{lv.L}</span>

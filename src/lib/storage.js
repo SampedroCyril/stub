@@ -25,6 +25,7 @@ export const DEFAULT_STATE = {
   recapSeen: "",
   sound: true,
   gameSound: true,
+  skills: [],
   intense: null,
   model: "lite",
 };

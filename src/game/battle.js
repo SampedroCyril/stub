@@ -1,117 +1,68 @@
 /**
  * Moteur de combat (module pur, testé dans tests/battle.test.js).
  *
- * - PV = 100 × intensité de l'envie (2 si non notée) × (1 + 10 % par niveau du boss).
- * - Le boss s'épuise tout seul et meurt au bout de 5 minutes : c'est la durée réelle d'une envie.
- * - Les attaques le tuent plus vite : point faible (25 % des PV max au total), cycles de respiration, circuit, Frénésie,
- *   multipliées par les faiblesses / résistances du boss.
- * - Il contre-attaque (tentation) : refuser le blesse, laisser passer le soigne.
- * - On ne perd qu'en déclarant une rechute. Le rang S/A/B/C récompense un combat bien mené.
+ * - Le combat est un clicker : chaque point faible touché inflige des dégâts selon le combo (voir combo.js).
+ * - PV calibrés pour qu'un bon joueur tue le boss en 1 à 3 minutes selon l'intensité de l'envie, +10 % par niveau du boss.
+ * - Le boss s'épuise tout seul et meurt au bout de 5 minutes, la durée réelle d'une envie.
+ *   L'épuisement est lent au début et s'accélère à la fin : ce sont tes coups qui comptent.
+ * - Il contre-attaque (tentation) : refuser le blesse, laisser passer le soigne et casse le combo.
+ * - On ne perd qu'en déclarant une rechute.
  */
-import { bossFor, BOSSES } from "./bosses.js";
+import { bossFor } from "./bosses.js";
+import { clickerHp, rankFor } from "./combo.js";
 
 export const BATTLE_MS = 5 * 60 * 1000;
 
-/** Dégâts en fraction des PV max. */
-export const DMG = {
-  weak: 0.04, // point faible touché
-  weakFast: 0.08, // touché dans la première demi-seconde
-  tapCrit: 0.03, // coup final du mode crise
-  breathCycle: 0.07,
-  circuit: 0.5,
-  circuitCam: 0.75,
-  frenzy: 0.01, // point touché en Frénésie
-  frenzyFast: 0.016, // touché vite
-  frenzyBurst: 0.03, // bonus tous les 10 de combo
-  refuse: 0.05, // tentation refusée
-  heal: 0.15, // tentation ignorée : le boss se soigne
-  crisisPhase: 0.25,
-};
-
-/** Point faible : apparaît toutes les 6 à 12 s, visible 1,2 s. Tentation : toutes les 40 à 50 s, 4 s pour refuser. */
-export const WEAK = { min: 6000, max: 12000, show: 1200, fast: 500 };
+/** Tentation : refuser lui retire 3 % de ses PV max, la laisser passer le soigne de 8 %. */
+export const DMG = { refuse: 0.03, heal: 0.08 };
+/** Tentation : la première vers 20 s, puis toutes les 40 à 50 s ; 4 s pour refuser. */
 export const TEMPT = { first: 20000, min: 40000, max: 50000, window: 4000 };
-/**
- * Frénésie : 30 s de points faibles en chaîne, chacun visible 1 s (critique sous 0,4 s), 0,25 à 0,55 s entre deux. Combo ≥ 10 : ×1,5.
- * Une bonne partie retire ~35 % des PV : moins qu'un circuit (50 %), plus que 30 s de respiration.
- */
-export const FRENZY = { dur: 30000, show: 1000, fast: 400, gapMin: 250, gapMax: 550, comboBoost: 10, boost: 1.5 };
-
-/** Les points faibles ne peuvent pas faire plus de 25 % des PV sur un combat. */
-export const WEAK_CAP = 0.25;
-export const weakLeft = (b) => Math.max(0, Math.round(b.maxHp * WEAK_CAP) - b.hits.filter((h) => h.s === "weak").reduce((a, h) => a + h.d, 0));
+/** Frénésie de l'Arcade (mode Entraînement). */
+export const FRENZY = { dur: 30000 };
 
 export const RANKS = ["S", "A", "B", "C"];
 export const RANK_XP = { S: 10, A: 5, B: 0, C: 0 };
-const ATTACKS = ["circuit", "breath", "game", "weak"];
 
 export const bossLevel = (victories = 0) => Math.min(10, 1 + Math.floor(victories / 5));
-export const maxHpOf = (intensity, lvl) => Math.round(100 * (intensity || 2) * (1 + 0.1 * (lvl - 1)));
 
-export function createBattle({ at = new Date(), intensity = null, trigger = null, victories = {}, crisis = false }) {
+export function createBattle({ at = new Date(), intensity = null, trigger = null, victories = {} }) {
   const boss = bossFor(trigger, at);
   const lvl = bossLevel(victories[boss]);
-  return {
-    id: `${+at}`, at: at.toISOString(), boss, lvl, intensity, trigger, crisis,
-    maxHp: Math.round(maxHpOf(intensity, lvl) * (crisis ? 1.2 : 1)),
-    hits: [],
-  };
+  return { id: `${+at}`, at: at.toISOString(), boss, lvl, intensity, trigger, maxHp: clickerHp(intensity, lvl), hits: [], mc: 0 };
 }
 
 export const dealt = (b) => b.hits.reduce((a, h) => a + h.d, 0);
 export const elapsedMs = (b, now) => Math.max(0, now - new Date(b.at));
+/** Part des PV perdue par épuisement : (t / 5 min)². */
+export const decayOf = (b, now) => Math.min(1, elapsedMs(b, now) / BATTLE_MS) ** 2;
 
-/** PV restants. Plafonnés aux PV max (les soins ne dépassent pas), et à 0 au bout de 5 minutes quoi qu'il arrive. */
+/** PV restants, plafonnés aux PV max (les soins ne dépassent pas), et à 0 au bout de 5 minutes quoi qu'il arrive. */
 export function hpAt(b, now = new Date()) {
   if (elapsedMs(b, now) >= BATTLE_MS) return 0;
-  const decay = b.maxHp * (elapsedMs(b, now) / BATTLE_MS);
-  return Math.max(0, Math.min(b.maxHp, Math.round(b.maxHp - decay - dealt(b))));
+  return Math.max(0, Math.min(b.maxHp, Math.round(b.maxHp * (1 - decayOf(b, now)) - dealt(b))));
 }
 
-/** Multiplicateur de faiblesse / résistance du boss pour une attaque. */
-export const modFor = (b, src) => BOSSES[b.boss]?.mods?.[src] ?? 1;
-
-/**
- * Ajoute une attaque. frac = fraction des PV max (négative pour un soin du boss).
- * Les attaques circuit, breath et game sont multipliées par les faiblesses du boss. Renvoie {battle, dmg}.
- */
-export function hit(b, src, frac, now = new Date()) {
-  const raw = b.maxHp * frac * modFor(b, src);
-  let d = frac > 0 ? Math.max(1, Math.round(raw)) : Math.round(raw);
-  if (src === "weak") d = Math.min(d, weakLeft(b));
-  if (src === "weak" && d <= 0) return { battle: b, dmg: 0 };
+/** Ajoute des dégâts (d > 0) ou un soin du boss (d < 0). Renvoie {battle, dmg}. */
+export function hit(b, src, d, now = new Date()) {
+  d = Math.round(d);
+  if (!d) return { battle: b, dmg: 0 };
   return { battle: { ...b, hits: [...b.hits, { s: src, d, t: now.toISOString() }] }, dmg: d };
 }
 
-/** Rang de victoire : S rapide et varié, A rapide, B abattu, C tenu jusqu'à l'épuisement. */
+/** Rang de victoire (voir rankFor dans combo.js). */
 export function rankOf(b, now = new Date()) {
   const kt = elapsedMs(b, now) / 1000;
-  if (kt >= BATTLE_MS / 1000 - 1) return "C";
-  const types = new Set(b.hits.filter((h) => ATTACKS.includes(h.s) && h.d > 0).map((h) => h.s)).size;
-  if (kt < 120 && types >= 2) return "S";
-  if (kt < 180) return "A";
-  return "B";
+  return rankFor({ kt, intensity: b.intensity, maxCombo: b.mc || 0, exhausted: kt >= BATTLE_MS / 1000 - 1 });
 }
 
-/** Méthode retenue pour l'XP de l'envie : l'attaque la plus engagée l'emporte. */
-export function methodOfBattle(b) {
-  if (b.crisis) return "crisis";
-  const by = {};
-  b.hits.forEach((h) => (by[h.s] = (by[h.s] || 0) + h.d));
-  if (by.circuit) return "sport";
-  if (by.breath) return "breath";
-  if (by.game) return "game";
-  return "hold";
-}
-
-/** Événement « envie tenue » enregistré à la victoire. */
+/** Événement « envie tenue » enregistré à la victoire : boss, niveau, temps, rang, combo max. */
 export function victoryEvent(b, now = new Date()) {
   return {
-    k: "craving", t: b.at, m: methodOfBattle(b),
+    k: "craving", t: b.at, m: "game",
     ...(b.intensity ? { i: b.intensity } : {}),
     ...(b.trigger ? { tr: b.trigger } : {}),
     b: b.boss, bl: b.lvl, kt: Math.round(Math.min(elapsedMs(b, now), BATTLE_MS) / 1000),
-    ...(b.crisis ? {} : { rk: rankOf(b, now) }),
+    rk: rankOf(b, now), mc: b.mc || 0,
   };
 }
 
@@ -120,9 +71,10 @@ export function bestiary(events) {
   const out = {};
   events.forEach((e) => {
     if (e.k !== "craving" || !e.b) return;
-    const o = (out[e.b] ||= { wins: 0, best: null, last: null });
+    const o = (out[e.b] ||= { wins: 0, best: null, last: null, mc: 0 });
     o.wins++;
     if (e.kt != null && (o.best == null || e.kt < o.best)) o.best = e.kt;
+    o.mc = Math.max(o.mc, e.mc || 0);
     o.last = e.t;
   });
   return out;

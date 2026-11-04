@@ -158,6 +158,11 @@ const RECIPES = {
     [0, 0.133, 0.266].forEach((t, i) => { hiss(a, d, t, { type: "highpass", f0: 3500, peak: 0.7, decay: 0.03, dist: 15 }); vbass(a, d, t, 110 - i * 15, 60, 0.08, 0.6, 0.18); });
     bigBoom(a, d, 0.76, 1.2);
   }, "long"],
+  // --- paliers 2 à 5 : de plus en plus lourds ---
+  hit2: [0.45, 0.12, (a, d) => { impact(a, d, 0, { punch: 0.9, body: 0.1, snap: 2600 }); osc(a, d, 0.005, { type: "triangle", f0: 990, peak: 0.08, decay: 0.08 }); }],
+  hit3: [0.6, 0.2, (a, d) => { heavy(a, d, 0, 0.7); hiss(a, d, 0, { f0: 2200, f1: 600, q: 0.8, peak: 0.25, decay: 0.15 }); }],
+  crit4: [0.8, 0.25, (a, d) => { heavy(a, d, 0, 0.9); crackle(a, d, 0.02, 4, 0.02); vbass(a, d, 0, 80, 40, 0.15, 0.6, 0.35); }],
+  crit5: [1.2, 0.3, (a, d) => { hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.9, decay: 0.03, dist: 20 }); crackle(a, d, 0.01, 6, 0.016); vbass(a, d, 0.05, 78, 32, 0.25, 1, 0.7); hiss(a, d, 0.05, { type: "lowpass", f0: 1200, f1: 80, q: 0.5, peak: 0.5, decay: 0.45 }); }, "long"],
   charge: [0.65, 0, (a, d) => hiss(a, d, 0, { f0: 600, f1: 5000, q: 0.9, peak: 0.22, attack: 0.5, decay: 0.05 })],
   ultimate: [1.1, 0.35, (a, d) => { heavy(a, d, 0, 1.4); heavy(a, d, 0.05, 1); crackle(a, d, 0.02, 14, 0.02); }],
   ko: [1.1, 0.35, (a, d) => {
@@ -182,7 +187,7 @@ const RECIPES = {
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
-const LEVEL = { ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
+const LEVEL = { hit2: 0.6, hit3: 0.7, crit4: 0.8, crit5: 0.9, ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
 function impulse(a, dur, pow = 5) {
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(2, n, a.sampleRate);
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** pow; }
