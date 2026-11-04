@@ -10,6 +10,9 @@ const FLOOR = STAGE_H - 4;
 const STEP = 1000 / 60;
 const INK = "#0a0006", BLOOD = "#ff1f3d", PAPER = "#f4f4f4", AIR = "#3ae0ff";
 
+/** Style choisi, ou tiré au hasard parmi les variantes quand il vaut « random ». */
+const pick = (style, all) => (style === "random" || !style ? all[(Math.random() * all.length) | 0] : style);
+
 /** Trace une ligne de gros pixels (taille s) dans un buffer. */
 function pline(c, x0, y0, x1, y1, s = 1) {
   const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0 || 1;
@@ -44,7 +47,7 @@ function bolts(x, y, n, reach) {
  * Un second canvas plein écran porte les effets qui débordent : éclairs, flashs, lignes de vitesse, textes géants.
  */
 export class BossStage {
-  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, fxRoot = null, intense, ultStyle = "fracture", koStyle = "cut" } = {}) {
+  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, fxRoot = null, intense, ultStyle = "random", koStyle = "random" } = {}) {
     this.cv = canvas;
     this.art = BOSS_ART[boss];
     this.maxHp = maxHp; this.hp = hp; this.ghost = hp; this.ghostDelay = 0; this.healGlow = 0;
@@ -193,7 +196,7 @@ export class BossStage {
       this.ovFx.push({ k: "lines", age: 0, life: 22, x: ix, y: iy, delay: 0, col: AIR });
       for (let i = 0; i < 2; i++) this.ovFx.push({ k: "ring", age: 0, life: 34, delay: i * 5, x: ix, y: iy, col: AIR });
     } else if (crit || big) {
-      const style = opts.style ?? this.ultStyle;
+      const style = opts.style ?? pick(this.ultStyle, ["fracture", "nova"]);
       const D = big ? (style === "nova" ? 28 : 31) : 9;
       if (big) {
         if (style === "nova") this.ovFx.push({ k: "nova", age: 0, life: 52, x: ix, y: iy });
@@ -266,7 +269,7 @@ export class BossStage {
     this.dead = true; this.weak = null;
     this.hp = 0; this.hurtT = 999; this.flash = 16; this.shake = 3; this.koT = 0; this.chroma = 30;
     const p = this.pos, o = this.ovPos(), ix = o.ox + p.x + p.w / 2, iy = o.oy + p.y + p.h / 2;
-    if ((style ?? this.koStyle) === "manga") { this.stop = 46; this.ovFx.push({ k: "manga", age: 0, life: 52, x: ix, y: iy }); play("ko_manga"); }
+    if ((style ?? pick(this.koStyle, ["cut", "manga"])) === "manga") { this.stop = 46; this.ovFx.push({ k: "manga", age: 0, life: 52, x: ix, y: iy }); play("ko_manga"); }
     else { this.stop = 42; this.ovFx.push({ k: "cut", age: 0, life: 47, x: ix, y: iy }); play("ko_cut"); }
     return new Promise((res) => { this.koDone = res; });
   }
