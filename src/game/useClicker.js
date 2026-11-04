@@ -32,14 +32,14 @@ export function useClicker(stageRef, opts) {
   /** Lance la note suivante après une pause. */
   const next = useCallback((pause = 0) => {
     const s = st.current;
-    if (!s || s.paused) return;
+    if (!s || s.paused || s.hold) return;
     clearTimeout(s.timer);
     s.timer = setTimeout(() => launch(), pause + NOTE_GAP);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const launch = () => {
     const s = st.current, stg = stageRef.current;
-    if (!s || s.paused || !stg || stg.dead) return;
+    if (!s || s.paused || s.hold || !stg || stg.dead) return;
     s.notes++;
     const cig = o.current.cigs !== false && s.notes >= s.nextCig;
     if (cig) s.nextCig = s.notes + Math.round(rnd(CIG_EVERY[0], CIG_EVERY[1]) * traits().tempt);
@@ -94,7 +94,7 @@ export function useClicker(stageRef, opts) {
   /** Un appui n'importe où sur l'écran de combat. */
   const tap = useCallback(() => {
     const s = st.current, stg = stageRef.current;
-    if (!s || !stg || s.paused || !s.note) return false;
+    if (!s || !stg || s.paused || s.hold || !s.note) return false;
     const n = s.note;
     clearTimeout(s.timer);
     if (n.kind === "cig") {
@@ -157,7 +157,7 @@ export function useClicker(stageRef, opts) {
     };
     stg.combo = 0; stg.score = 0; stg.koStyle = p.ko;
     stg.frenzy = d ? { start: performance.now(), dur: d } : null;
-    if (d) st.current.end = setTimeout(() => stop(false), d);
+    if (d) { st.current.endAt = performance.now() + d; st.current.end = setTimeout(() => stop(false), d); }
     setActive(true);
     setView({ combo: 0, lives: st.current.lives });
     next(500);
@@ -180,8 +180,32 @@ export function useClicker(stageRef, opts) {
     if (stg) { stg.combo = s.combo; stg.koStyle = perks().ko; }
     next(delay);
   }, [stageRef, next]); // eslint-disable-line react-hooks/exhaustive-deps
+  /**
+   * Pause demandée par le joueur (bouton pause, flèche retour, appli en arrière-plan) : la note en vol est annulée
+   * sans pénalité, le chrono de la partie s'arrête. Renvoie la durée de la pause à la reprise.
+   */
+  const hold = useCallback((on) => {
+    const s = st.current;
+    if (!s) return 0;
+    const now = performance.now(), gg = o.current.gaugeRef?.current, stg = stageRef.current;
+    if (on) {
+      if (s.hold) return 0;
+      s.hold = now; s.note = null;
+      clearTimeout(s.timer);
+      if (gg) gg.note = null;
+      if (s.end) { clearTimeout(s.end); s.endLeft = s.endAt - now; }
+      return 0;
+    }
+    if (!s.hold) return 0;
+    const d = now - s.hold;
+    s.hold = 0; s.start += d;
+    if (stg?.frenzy) stg.frenzy.start += d;
+    if (s.endLeft != null) { s.endAt = now + s.endLeft; s.end = setTimeout(() => stop(false), s.endLeft); s.endLeft = null; }
+    next(500);
+    return d;
+  }, [stageRef, next, stop]);
   const state = useCallback(() => st.current, []);
 
   useEffect(() => () => { const s = st.current; if (s) { clearTimeout(s.timer); clearTimeout(s.end); } }, []);
-  return { active, view, start, stop, tap, pause, resume, state };
+  return { active, view, start, stop, tap, pause, resume, hold, state };
 }

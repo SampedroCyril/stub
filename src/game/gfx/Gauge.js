@@ -20,10 +20,12 @@ export class Gauge {
   destroy() { cancelAnimationFrame(this.raf); removeEventListener("resize", this.onResize); }
   resize() {
     const dpr = Math.min(3, devicePixelRatio || 1);
-    this.W = Math.min(440, this.cv.parentElement.clientWidth); this.H = 104;
-    this.cv.style.width = `${this.W}px`; this.cv.style.height = `${this.H}px`;
-    this.cv.width = this.W * dpr; this.cv.height = this.H * dpr;
-    this.c = this.cv.getContext("2d"); this.c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // sur grand écran, la jauge s'élargit et grossit (k), le dessin reste en coordonnées logiques
+    const w = Math.min(620, this.cv.parentElement.clientWidth || 320), k = Math.max(1, Math.min(1.4, w / 430));
+    this.W = w / k; this.H = 104;
+    this.cv.style.width = `${w}px`; this.cv.style.height = `${this.H * k}px`;
+    this.cv.width = w * dpr; this.cv.height = this.H * k * dpr;
+    this.c = this.cv.getContext("2d"); this.c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
   }
   judge(kind) {
     this.fx.push({ kind, age: 0 });

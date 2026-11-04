@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import BossView from "../game/BossView.jsx";
-import FightScreen from "../game/FightScreen.jsx";
+import FightScreen, { FightMenu } from "../game/FightScreen.jsx";
 import GaugeView from "../game/GaugeView.jsx";
 import { useClicker } from "../game/useClicker.js";
 import { FRENZY } from "../game/battle.js";
@@ -26,6 +26,7 @@ export default function Arcade() {
   const stage = useRef(null), gauge = useRef(null);
   const [last, setLast] = useState(null);
   const [idx, setIdx] = useState(0);
+  const [menu, setMenu] = useState(null); // null · pause · quit
   const run = useRef({ hp: 0, t0: 0, idx: 0 });
   const [, setTick] = useState(0);
   const games = S.ev.filter((e) => e.k === "game" && e.g === mode);
@@ -62,7 +63,7 @@ export default function Arcade() {
       return d;
     },
     onEnd: (res) => {
-      setPlaying(false);
+      setPlaying(false); setMenu(null);
       if (res.silent || !res.hits) return;
       const n = mode === "bossrun" ? run.current.idx + (run.current.hp <= 0 ? 1 : 0) : undefined;
       setLast({ ...res, n, record: mode === "bossrun" ? n === RUN.length && (best == null || res.sec < best) : res.score > best });
@@ -92,6 +93,13 @@ export default function Arcade() {
   useEffect(() => { if (!clicker.active) return; const id = setInterval(() => setTick((x) => x + 1), 500); return () => clearInterval(id); }, [clicker.active]);
   useEffect(() => () => cl.current.stop(true), []);
 
+  const open = (m) => { if (!cl.current.active || menu) return; cl.current.hold(true); setMenu(m); };
+  const close = () => {
+    setMenu(null);
+    const d = cl.current.hold(false);
+    run.current.t0 += d; // le chrono du Boss Run s'arrête aussi
+  };
+  const quit = () => cl.current.stop(false);
   const start = () => {
     setLast(null);
     if (mode === "bossrun") { run.current = { hp: runHp(0), t0: performance.now(), idx: 0 }; setIdx(0); }
@@ -139,7 +147,11 @@ export default function Arcade() {
           title={mode === "bossrun" ? `${idx + 1}/${RUN.length} · ${BOSSES[boss].n}` : M.n}
           right={mode === "endless" ? "♥".repeat(Math.max(0, clicker.view.lives ?? 3)) : mode === "bossrun" ? fmt(elapsed) : best ? `Record ${best}` : ""}
           onTap={() => clicker.tap()}
-          footer={<div className="fight-actions"><button className="linkbtn" type="button" onClick={() => clicker.stop(false)}>Arrêter</button></div>}
+          onBack={() => open("quit")}
+          onPause={() => open("pause")}
+          menu={menu === "pause"
+            ? <FightMenu title="Pause" actions={[["Reprendre", close], ["Quitter", quit]]} />
+            : menu === "quit" ? <FightMenu title="Quitter la partie ?" sub="Ton score est gardé." actions={[["Quitter", quit], ["Reprendre", close, " "]]} /> : null}
         >
           <BossView key={mode === "bossrun" ? `run-${idx}` : "train"} stageRef={stage} boss={boss} maxHp={mode === "bossrun" ? runHp(idx) : 100} hp={mode === "bossrun" ? (idx === run.current.idx ? run.current.hp : runHp(idx)) : 100} training={mode !== "bossrun"} />
           <GaugeView gaugeRef={gauge} style={state.gaugeStyle || "fluid"} />

@@ -112,11 +112,12 @@ export class BossStage {
   }
 
   resize() {
-    const box = this.cv.parentElement?.clientWidth || 320;
+    const par = this.cv.parentElement, box = par?.clientWidth || 320;
     const dpr = Math.min(3, window.devicePixelRatio || 1);
-    // en plein écran, la scène tient aussi en hauteur (titre, bulle et boutons compris)
-    const hBox = this.cv.closest(".fight") ? ((window.innerHeight - 330) * STAGE_W) / STAGE_H : Infinity;
-    this.scale = Math.max(2, Math.floor(Math.min(box, 400, hBox) / STAGE_W));
+    // en plein écran, la scène prend toute la place que lui laissent le titre et la jauge
+    const full = !!this.cv.closest(".fight");
+    const hBox = full ? (Math.max(120, par.clientHeight) * STAGE_W) / STAGE_H : Infinity;
+    this.scale = Math.max(2, Math.floor(Math.min(box, full ? 640 : 400, hBox) / STAGE_W));
     this.cv.style.width = `${STAGE_W * this.scale}px`;
     this.cv.style.height = `${STAGE_H * this.scale}px`;
     this.cv.width = STAGE_W * this.scale * dpr;

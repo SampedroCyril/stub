@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import BossView from "./BossView.jsx";
-import FightScreen from "./FightScreen.jsx";
+import FightScreen, { FightMenu } from "./FightScreen.jsx";
 import GaugeView from "./GaugeView.jsx";
 import { useClicker } from "./useClicker.js";
 import { BOSSES, traitsOf, traitList } from "./bosses.js";
@@ -28,7 +28,7 @@ export default function Battle() {
   const [, setTick] = useState(0);
   const [taunt, setTaunt] = useState(0);
   const [started, setStarted] = useState(false);
-  const [confirmFlee, setConfirmFlee] = useState(false);
+  const [menu, setMenu] = useState(null); // null · pause · quit · flee
   const ko = useRef(false);
   const latest = useRef({});
   latest.current = { battle, winBattle };
@@ -75,6 +75,7 @@ export default function Battle() {
       s.setHp(hp);
       if (hp <= 0 && !ko.current) {
         ko.current = true;
+        setMenu(null);
         clickerRef.current.stop(true);
         s.ko().then(() => latest.current.winBattle());
       }
@@ -89,9 +90,21 @@ export default function Battle() {
   const known = (bestiary(S.ev)[battle.boss]?.wins || 0) > 0;
 
   const onTap = () => {
-    if (ko.current) return;
+    if (ko.current || menu) return;
     if (!started) { setStarted(true); clicker.start(); return; }
     clicker.tap();
+  };
+  const open = (m) => {
+    if (!started) { if (m === "quit") go("accueil"); return; }
+    if (ko.current) return;
+    clicker.hold(true); setMenu(m);
+  };
+  const close = () => { setMenu(null); clicker.hold(false); };
+  const sub = "Le chrono de l'envie continue : elle baisse même en pause.";
+  const menus = {
+    pause: <FightMenu title="Pause" sub={sub} actions={[["Reprendre", close], ["Quitter", () => go("accueil")]]} links={[["Fausse alerte", () => setMenu("flee")]]}><ModChips boss={battle.boss} known={known} /></FightMenu>,
+    quit: <FightMenu title="Quitter le combat ?" sub="Le boss t'attendra : tu reprends quand tu veux." actions={[["Quitter", () => go("accueil"), "green"], ["Reprendre", close, " "]]} />,
+    flee: <FightMenu title="Fausse alerte ?" sub="Le combat s'arrête, sans XP." actions={[["Retour", () => setMenu("pause")], ["Arrêter", fleeBattle, "danger"]]} />,
   };
 
   return (
@@ -100,12 +113,11 @@ export default function Battle() {
       right={`Niv. ${battle.lvl} · ${Math.floor(left / 60)}:${pad(left % 60)}`}
       label={`Combat contre ${B.n}`}
       onTap={onTap}
-      top={<><ModChips boss={battle.boss} known={known} /><p className="bubble" key={taunt}>« {B.taunts[taunt % B.taunts.length]} »</p></>}
-      footer={!started
-        ? <p className="fight-hint"><b>Touche l'écran quand les notes arrivent au centre de la jauge.</b> Si ce sont des clopes, ne touche pas : laisse-les s'écraser.</p>
-        : !confirmFlee
-          ? <div className="fight-actions"><button className="linkbtn" type="button" onClick={() => go("accueil")}>Réduire</button><button className="linkbtn" type="button" onClick={() => setConfirmFlee(true)}>Fausse alerte</button></div>
-          : <p className="fight-actions">Le combat s'arrête sans XP. <button className="linkbtn" type="button" onClick={fleeBattle}>Arrêter</button> <button className="linkbtn" type="button" onClick={() => setConfirmFlee(false)}>Continuer</button></p>}
+      onBack={() => open("quit")}
+      onPause={started ? () => open("pause") : undefined}
+      menu={menu && menus[menu]}
+      top={<>{!started && <ModChips boss={battle.boss} known={known} />}<p className="bubble" key={taunt}>« {B.taunts[taunt % B.taunts.length]} »</p></>}
+      footer={!started && <p className="fight-hint"><b>Touche l'écran quand les notes arrivent au centre.</b> Si ce sont des clopes, ne touche pas : laisse-les s'écraser.</p>}
     >
       <BossView stageRef={stage} boss={battle.boss} maxHp={battle.maxHp} hp={startHp} lvl={battle.lvl} />
       <GaugeView gaugeRef={gauge} style={state.gaugeStyle || "fluid"} />
