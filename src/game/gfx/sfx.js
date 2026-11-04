@@ -86,6 +86,13 @@ function braam(a, d, t, root, decay, peak) {
   f.connect(g).connect(d);
   [1, 1.5, 2, 1.005, 2.01].forEach((m) => { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(root * m, t); o.frequency.exponentialRampToValueAtTime(root * m * 0.94, t + decay); o.connect(f); o.start(t); o.stop(t + decay + 0.05); });
 }
+/** L'explosion grave du son « Anime » (H), réutilisée pour l'ultime et le K.O. */
+function bigBoom(a, d, t, size = 1) {
+  hiss(a, d, t, { type: "highpass", f0: 2500, peak: 0.6, decay: 0.05, dist: 10 });
+  vbass(a, d, t, 75, 28, 0.4 * size, 1, 1.4 * size);
+  hiss(a, d, t, { type: "lowpass", f0: 1500, f1: 70, q: 0.5, peak: 0.7, decay: 0.9 * size });
+  braam(a, d, t + 0.01, 55, 0.8 * size, 0.35);
+}
 const crackle = (a, d, t, n, gap) => { for (let i = 0; i < n; i++) hiss(a, d, t + i * gap, { f0: 3000 + Math.random() * 5000, q: 4, peak: 0.35, decay: 0.02, dist: 15 }); };
 
 /** Recettes : durée totale, part de réverbération (salle courte), et le dessin du son. */
@@ -125,6 +132,32 @@ const RECIPES = {
     hiss(a, d, T, { type: "lowpass", f0: 1500, f1: 70, q: 0.5, peak: 0.7, decay: 0.9 });
     braam(a, d, T + 0.01, 55, 0.8, 0.35);
   }, "long"],
+  // --- ultime et K.O., calés sur les images (60 images/s) ---
+  ult_fracture: [3, 0.4, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.9, decay: 0.03, dist: 20 });
+    for (let i = 0; i < 14; i++) hiss(a, d, 0.02 + i * 0.03, { f0: 3500 + Math.random() * 4500, q: 5, peak: 0.12 + i * 0.012, decay: 0.015 });
+    const T = 0.5;
+    hiss(a, d, T, { type: "lowpass", f0: 7000, f1: 1500, q: 0.5, peak: 0.6, decay: 0.35 });
+    for (let i = 0; i < 24; i++) hiss(a, d, T + Math.random() * 0.45, { f0: 3000 + Math.random() * 6000, q: 6, peak: 0.2, decay: 0.03 });
+    bigBoom(a, d, T, 1.1);
+  }, "long"],
+  ult_nova: [3.4, 0.45, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.8, decay: 0.03, dist: 20 });
+    hiss(a, d, 0.05, { f0: 300, f1: 6000, q: 1, peak: 0.35, attack: 0.4, decay: 0.02 });
+    osc(a, d, 0.05, { type: "sine", f0: 120, f1: 480, glide: 0.42, peak: 0.25, attack: 0.4, decay: 0.02 });
+    bigBoom(a, d, 0.47, 1.3);
+    braam(a, d, 0.48, 46, 1.2, 0.5);
+  }, "long"],
+  ko_cut: [2.8, 0.4, (a, d) => {
+    osc(a, d, 0, { type: "sine", f0: 150, f1: 60, peak: 0.6, decay: 0.08 });
+    hiss(a, d, 0.2, { f0: 1500, f1: 9000, q: 1.2, peak: 0.6, decay: 0.12 });
+    osc(a, d, 0.2, { type: "sine", f0: 3200, f1: 2500, peak: 0.15, decay: 0.3 });
+    bigBoom(a, d, 0.7, 1.2);
+  }, "long"],
+  ko_manga: [2.8, 0.4, (a, d) => {
+    [0, 0.133, 0.266].forEach((t, i) => { hiss(a, d, t, { type: "highpass", f0: 3500, peak: 0.7, decay: 0.03, dist: 15 }); vbass(a, d, t, 110 - i * 15, 60, 0.08, 0.6, 0.18); });
+    bigBoom(a, d, 0.76, 1.2);
+  }, "long"],
   charge: [0.65, 0, (a, d) => hiss(a, d, 0, { f0: 600, f1: 5000, q: 0.9, peak: 0.22, attack: 0.5, decay: 0.05 })],
   ultimate: [1.1, 0.35, (a, d) => { heavy(a, d, 0, 1.4); heavy(a, d, 0.05, 1); crackle(a, d, 0.02, 14, 0.02); }],
   ko: [1.1, 0.35, (a, d) => {
@@ -149,7 +182,7 @@ const RECIPES = {
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
-const LEVEL = { crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
+const LEVEL = { ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
 function impulse(a, dur, pow = 5) {
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(2, n, a.sampleRate);
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** pow; }

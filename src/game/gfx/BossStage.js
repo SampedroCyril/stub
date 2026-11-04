@@ -44,11 +44,12 @@ function bolts(x, y, n, reach) {
  * Un second canvas plein écran porte les effets qui débordent : éclairs, flashs, lignes de vitesse, textes géants.
  */
 export class BossStage {
-  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, intense } = {}) {
+  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, fxRoot = null, intense, ultStyle = "fracture", koStyle = "cut" } = {}) {
     this.cv = canvas;
     this.art = BOSS_ART[boss];
     this.maxHp = maxHp; this.hp = hp; this.ghost = hp; this.ghostDelay = 0; this.healGlow = 0;
-    this.onTap = onTap; this.onWeakExpire = onWeakExpire; this.shakeEl = shakeEl;
+    this.onTap = onTap; this.onWeakExpire = onWeakExpire; this.shakeEl = shakeEl; this.fxRoot = fxRoot;
+    this.ultStyle = ultStyle; this.koStyle = koStyle; this._filt = "";
     this.intense = intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     this.combo = 0; this.comboPop = 0; this.frenzy = null;
     this.buf = document.createElement("canvas");
@@ -85,6 +86,7 @@ export class BossStage {
     this.cv.removeEventListener("pointerdown", this.down);
     this.ov.remove();
     if (this.shakeEl) this.shakeEl.style.transform = "";
+    if (this.fxRoot) this.fxRoot.style.filter = "";
   }
 
   resize() {
@@ -191,17 +193,19 @@ export class BossStage {
       this.ovFx.push({ k: "lines", age: 0, life: 22, x: ix, y: iy, delay: 0, col: AIR });
       for (let i = 0; i < 2; i++) this.ovFx.push({ k: "ring", age: 0, life: 34, delay: i * 5, x: ix, y: iy, col: AIR });
     } else if (crit || big) {
-      if (this.intense) this.ovFx.push({ k: "strobe", age: 0, life: big ? 12 : 9, x: ix, y: iy, reach: big ? 140 : 100, n: big ? 11 : 8 });
-      else this.ovFx.push({ k: "flash", age: 0, life: 12, delay: 0, col: BLOOD, a: 0.35 });
-      this.ovFx.push({ k: "lines", age: 0, life: big ? 34 : 24, x: ix, y: iy, delay: big ? 12 : 9, col: "#ffffff" });
-      this.ovFx.push({ k: "vignette", age: 0, life: big ? 50 : 34, delay: big ? 12 : 9 });
-      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: big ? 12 : 9, text: title ?? (big ? "ultime" : "critique"), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50) });
+      const style = opts.style ?? this.ultStyle;
+      const D = big ? (style === "nova" ? 28 : 31) : 9;
       if (big) {
-        this.ovFx.push({ k: "flash", age: 0, life: 22, delay: 12, col: "#ffffff" });
-        for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: 12 + i * 5, x: ix, y: iy });
-        this.slow = 60;
-      }
-      play(opts.sfx ?? (big ? "ultimate" : "black"));
+        if (style === "nova") this.ovFx.push({ k: "nova", age: 0, life: 52, x: ix, y: iy });
+        else this.ovFx.push({ k: "fracture", age: 0, life: 75, x: ix, y: iy, net: this.crackNet(ix, iy) });
+        this.slow = 70;
+      } else if (this.intense) this.ovFx.push({ k: "strobe", age: 0, life: 9, x: ix, y: iy, reach: 100, n: 8 });
+      else this.ovFx.push({ k: "flash", age: 0, life: 12, delay: 0, col: BLOOD, a: 0.35 });
+      this.ovFx.push({ k: "lines", age: 0, life: big ? 34 : 24, x: ix, y: iy, delay: D, col: "#ffffff" });
+      this.ovFx.push({ k: "vignette", age: 0, life: big ? 50 : 34, delay: D });
+      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: D, text: title ?? (big ? "ultime" : "critique"), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50) });
+      if (big) for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: D + i * 5, x: ix, y: iy });
+      play(opts.sfx ?? (big ? `ult_${style}` : "crit_h"));
     } else {
       this.ovFx.push({ k: "lines", age: 0, life: 8, x: ix, y: iy, delay: 0, col: "#ffffff", few: true });
       play(opts.sfx ?? "hit", opts.sfxArg);
@@ -257,13 +261,13 @@ export class BossStage {
   breakCombo() { if (this.combo >= 3) this.float(`combo x${this.combo}`, STAGE_W / 2, 20, { color: "#94b0c2" }); this.combo = 0; }
 
   /** K.O. : éclair noir, gel, puis le boss éclate au ralenti en pixels qui rebondissent. */
-  ko() {
+  ko(style) {
     if (this.dead) return Promise.resolve();
     this.dead = true; this.weak = null;
-    this.hp = 0; this.hurtT = 999; this.flash = 16; this.stop = 16; this.shake = 3; this.koT = 0; this.chroma = 30;
+    this.hp = 0; this.hurtT = 999; this.flash = 16; this.shake = 3; this.koT = 0; this.chroma = 30;
     const p = this.pos, o = this.ovPos(), ix = o.ox + p.x + p.w / 2, iy = o.oy + p.y + p.h / 2;
-    this.ovFx.push({ k: "strobe", age: 0, life: 16, x: ix, y: iy, reach: 160, n: 12 });
-    play("black");
+    if ((style ?? this.koStyle) === "manga") { this.stop = 46; this.ovFx.push({ k: "manga", age: 0, life: 52, x: ix, y: iy }); play("ko_manga"); }
+    else { this.stop = 42; this.ovFx.push({ k: "cut", age: 0, life: 47, x: ix, y: iy }); play("ko_cut"); }
     return new Promise((res) => { this.koDone = res; });
   }
   explode() {
@@ -280,7 +284,6 @@ export class BossStage {
     this.ovFx.push({ k: "lines", age: 0, life: 40, x: ix, y: iy, delay: 0, col: "#ffffff" });
     this.ovFx.push({ k: "vignette", age: 0, life: 90, delay: 0 });
     this.shake = 8; this.slow = 70;
-    play("ultimate");
   }
 
   float(text, x, y, { color = "#fff", sc = 1, alt = null } = {}) {
@@ -341,7 +344,17 @@ export class BossStage {
       e.age++;
       if (e.k === "strobe" && e.age % 2 === 1) e.b = bolts(e.x, e.y, e.n, e.reach);
       if (e.k === "snap" && e.age === 8) this.snapBurst(e);
+      if (e.k === "fracture" && e.age === 30) for (const sh of e.net.shards) { const dx = sh.cx - e.x, dy = sh.cy - e.y, n = Math.hypot(dx, dy) || 1, v = rnd(1.5, 4); Object.assign(sh, { vx: (dx / n) * v, vy: (dy / n) * v - rnd(0, 1.5), va: rnd(-0.15, 0.15), ang: 0, ox: 0, oy: 0 }); }
+      if (e.k === "fracture" && e.age > 30) for (const sh of e.net.shards) { sh.ox += sh.vx; sh.oy += sh.vy; sh.vy += 0.28; sh.ang += sh.va; }
     }
+    // images d'impact sur la vraie page : inversion, noir et blanc contrasté
+    let filt = "";
+    if (this.intense && this.fxRoot) for (const e of this.ovFx) {
+      if (e.delay > 0) continue;
+      if (e.k === "fracture") { if (e.age < 4) filt = "invert(1) contrast(1.8)"; else if (e.age >= 30 && e.age < 34) filt = "brightness(2) contrast(1.4)"; }
+      if (e.k === "nova") filt = e.age < 3 ? "invert(1) contrast(2)" : e.age < 30 ? "grayscale(1) contrast(1.7) brightness(.75)" : filt;
+    }
+    if (this.fxRoot && filt !== this._filt) { this.fxRoot.style.filter = filt; this._filt = filt; }
     this.ovParts.update();
     this.tickHalves();
     this.ovFx = this.ovFx.filter((e) => e.age < e.life);
@@ -464,7 +477,7 @@ export class BossStage {
     this.ov.style.display = "block";
     const o = this.ob, W = this.OW, H = this.OH;
     o.clearRect(0, 0, W, H);
-    const order = ["spot", "letterbox", "focus", "ring", "lines", "vignette", "flash", "strobe", "snap", "text"];
+    const order = ["spot", "letterbox", "focus", "ring", "lines", "vignette", "flash", "strobe", "fracture", "nova", "cut", "manga", "snap", "text"];
     live.sort((a, c) => order.indexOf(a.k) - order.indexOf(c.k));
     const top = live.filter((e) => e.k === "text"), rest = live.filter((e) => e.k !== "text");
     for (const e of rest) this[`ov_${e.k}`](o, e, W, H);
@@ -583,6 +596,149 @@ export class BossStage {
       pline(o, cx + Math.cos(a) * Math.max(18, r0), cy + Math.sin(a) * Math.max(18, r0), cx + Math.cos(a) * r1, cy + Math.sin(a) * r1, 1);
     }
     if (e.age > e.life - 6) drawText(o, "!", cx, q.y - 12, { color: BLOOD, sc: 3 });
+  }
+
+  // ---------- ultime : FRACTURE (l'écran se fissure puis vole en éclats) ----------
+  crackNet(x, y) {
+    const n = 13, rings = [12, 30, 56, 92], far = 420, rad = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + rnd(-0.18, 0.18), pts = [[x, y, 0]];
+      let d = 0;
+      while (d < far) { d += rnd(5, 9); const j = rnd(-2.5, 2.5); pts.push([x + Math.cos(a) * d - Math.sin(a) * j, y + Math.sin(a) * d + Math.cos(a) * j, d]); }
+      rad.push(pts);
+    }
+    const at = (r, dist) => r.find((p) => p[2] >= dist) || r[r.length - 1];
+    const ringSegs = rings.map((R) => rad.map((r, i) => [at(r, R * rnd(0.85, 1.15)), at(rad[(i + 1) % n], R * rnd(0.85, 1.15))]));
+    const bounds = [0, ...rings, far], shards = [];
+    for (let i = 0; i < n; i++) for (let k = 0; k < bounds.length - 1; k++) {
+      const r1 = rad[i], r2 = rad[(i + 1) % n];
+      const poly = [at(r1, bounds[k]), at(r1, bounds[k + 1]), at(r2, bounds[k + 1]), at(r2, bounds[k])].map((p) => [p[0], p[1]]);
+      shards.push({ poly, cx: poly.reduce((s, p) => s + p[0], 0) / 4, cy: poly.reduce((s, p) => s + p[1], 0) / 4 });
+    }
+    return { rad, ringSegs, shards, rings };
+  }
+  ov_fracture(o, e, W, H) {
+    const a = e.age, net = e.net;
+    const crackLine = (p, q) => { o.fillStyle = INK; pline(o, p[0] + 1, p[1] + 1, q[0] + 1, q[1] + 1, 1); o.fillStyle = PAPER; pline(o, p[0], p[1], q[0], q[1], 1); };
+    if (a < 3) { o.fillStyle = a % 2 ? PAPER : INK; o.fillRect(0, 0, W, H); }
+    if (a < 30) {
+      const L = Math.min(420, (a - 1) * 16);
+      o.globalAlpha = 0.14; o.fillStyle = PAPER; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
+      for (const r of net.rad) for (let i = 1; i < r.length && r[i][2] <= L; i++) crackLine(r[i - 1], r[i]);
+      net.ringSegs.forEach((segs, k) => { if (L >= net.rings[k] * 1.3) for (const [p, q] of segs) crackLine(p, q); });
+      o.fillStyle = BLOOD; o.fillRect(Math.round(e.x) - 2, Math.round(e.y) - 2, 5, 5);
+      o.fillStyle = PAPER; o.fillRect(Math.round(e.x) - 1, Math.round(e.y) - 1, 3, 3);
+      return;
+    }
+    const k = a - 30;
+    o.globalAlpha = Math.max(0, Math.round((1 - k / 14) * 6) / 6); o.fillStyle = PAPER; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
+    for (const sh of net.shards) {
+      const c = Math.cos(sh.ang), s = Math.sin(sh.ang);
+      o.beginPath();
+      sh.poly.forEach(([px, py], i) => { const dx = px - sh.cx, dy = py - sh.cy, X = sh.cx + sh.ox + dx * c - dy * s, Y = sh.cy + sh.oy + dx * s + dy * c; if (i) o.lineTo(X, Y); else o.moveTo(X, Y); });
+      o.closePath();
+      o.fillStyle = "rgba(30,0,14,.6)"; o.fill();
+      o.strokeStyle = PAPER; o.lineWidth = 1; o.stroke();
+    }
+  }
+
+  // ---------- ultime : SUPERNOVA (une lumière avale l'écran, le boss en ombre chinoise) ----------
+  ov_nova(o, e, W, H) {
+    const a = e.age;
+    if (a < 3) { o.fillStyle = a === 1 ? INK : PAPER; o.fillRect(0, 0, W, H); return; }
+    if (a < 28) {
+      const k = (a - 3) / 25, R = k ** 1.7 * Math.hypot(W, H);
+      o.fillStyle = PAPER;
+      for (let y = Math.max(0, Math.floor(e.y - R)); y < Math.min(H, e.y + R); y++) { const dx = Math.sqrt(Math.max(0, R * R - (y - e.y) ** 2)); o.fillRect(Math.round(e.x - dx), y, Math.round(dx * 2), 1); }
+      const n = Math.max(24, Math.round(R * 4));
+      for (let i = 0; i < n; i++) {
+        const t = (i / n) * Math.PI * 2;
+        o.fillStyle = BLOOD; o.fillRect(Math.round(e.x + Math.cos(t) * R), Math.round(e.y + Math.sin(t) * R), 2, 2);
+        o.fillStyle = INK; o.fillRect(Math.round(e.x + Math.cos(t) * (R + 2)), Math.round(e.y + Math.sin(t) * (R + 2)), 1, 1);
+      }
+      o.fillStyle = INK;
+      for (let i = 0; i < 18; i++) { const t = (i / 18) * Math.PI * 2 + a * 0.02; pline(o, e.x + Math.cos(t) * 10, e.y + Math.sin(t) * 10, e.x + Math.cos(t) * Math.min(R, 200), e.y + Math.sin(t) * Math.min(R, 200), 1); }
+      const sp = this.sprite(), q = this.ovPos();
+      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) o.drawImage(sp.red, q.x + dx, q.y + dy);
+      o.drawImage(sp.black, q.x, q.y);
+      return;
+    }
+    const k = (a - 28) / (e.life - 28);
+    o.globalAlpha = Math.round((1 - k) * 6) / 6; o.fillStyle = PAPER; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
+  }
+
+  // ---------- K.O. : TRANCHE (écran noir, un trait, le boss coupé en deux) ----------
+  ov_cut(o, e, W, H) {
+    const a = e.age, x = e.x, y = e.y, d = { x: Math.cos(0.65), y: Math.sin(0.65) }, n = { x: -d.y, y: d.x };
+    o.globalAlpha = a > e.life - 6 ? (e.life - a) / 6 : 1;
+    o.fillStyle = INK; o.fillRect(0, 0, W, H);
+    const sp = this.sprite(), q = this.ovPos();
+    if (a < 15) o.drawImage(sp.white, q.x, q.y);
+    else {
+      const gap = Math.min(8, (a - 15) * 0.35);
+      for (const side of [-1, 1]) {
+        o.save(); o.beginPath();
+        const L = 700;
+        o.moveTo(x - d.x * L, y - d.y * L); o.lineTo(x + d.x * L, y + d.y * L);
+        o.lineTo(x + d.x * L + n.x * side * L, y + d.y * L + n.y * side * L); o.lineTo(x - d.x * L + n.x * side * L, y - d.y * L + n.y * side * L);
+        o.closePath(); o.clip();
+        o.drawImage(sp.white, Math.round(q.x + n.x * side * gap + d.x * side * gap * 0.7), Math.round(q.y + n.y * side * gap + d.y * side * gap * 0.7));
+        o.restore();
+      }
+      o.fillStyle = BLOOD; pline(o, x - d.x * 26, y - d.y * 26, x + d.x * 26, y + d.y * 26, 1);
+      o.fillStyle = "#3a0010";
+      for (let i = 0; i < 14; i++) { const off = rnd(-60, 60), len = rnd(20, 80), sx = x + n.x * off + d.x * rnd(-120, 120), sy = y + n.y * off + d.y * rnd(-120, 120); pline(o, sx, sy, sx + d.x * len, sy + d.y * len, 1); }
+    }
+    if (a >= 12 && a < 24) {
+      const k = Math.min(1, (a - 12) / 3), S = { x: x - d.x * 320, y: y - d.y * 320 }, E = { x: S.x + d.x * 640 * k, y: S.y + d.y * 640 * k };
+      const w = a < 16 ? 5 : a < 20 ? 3 : 1;
+      o.fillStyle = BLOOD; pline(o, S.x, S.y, E.x, E.y, w + 2);
+      o.fillStyle = PAPER; pline(o, S.x, S.y, E.x, E.y, w);
+    }
+    if (a === 15 || a === 16) { o.globalAlpha = 0.7; o.fillStyle = PAPER; o.fillRect(0, 0, W, H); }
+    o.globalAlpha = 1;
+  }
+
+  // ---------- K.O. : MANGA (trois cases d'impact qui claquent l'une après l'autre) ----------
+  ov_manga(o, e, W, H) {
+    const a = e.age, sp = this.sprite();
+    o.globalAlpha = a > e.life - 7 ? (e.life - a) / 7 : 1;
+    o.fillStyle = INK; o.fillRect(0, 0, W, H);
+    const out = a > 38 ? a - 38 : 0;
+    const panels = [{ y0: 0.07, y1: 0.35, at: 0, dir: -1 }, { y0: 0.37, y1: 0.63, at: 8, dir: 1 }, { y0: 0.65, y1: 0.93, at: 16, dir: -1 }];
+    panels.forEach((p, i) => {
+      if (a < p.at) return;
+      const j = a - p.at < 4 ? Math.round(rnd(-2, 2)) : 0, dx = out * 10 * p.dir + j;
+      const y0 = Math.round(H * p.y0), y1 = Math.round(H * p.y1), sk = 6, cx = W / 2 + dx, cy = (y0 + y1) / 2;
+      const poly = [[3 + dx, y0 + sk], [W - 3 + dx, y0], [W - 3 + dx, y1 - sk], [3 + dx, y1]];
+      o.save(); o.beginPath(); poly.forEach(([px, py], k) => (k ? o.lineTo(px, py) : o.moveTo(px, py))); o.closePath();
+      o.fillStyle = a - p.at < 2 ? INK : PAPER; o.fill(); o.clip();
+      o.fillStyle = INK;
+      for (let k = 0; k < 28; k++) { const t = (k / 28) * Math.PI * 2 + i; pline(o, cx + Math.cos(t) * (i === 1 ? 7 : 22), cy + Math.sin(t) * (i === 1 ? 7 : 22), cx + Math.cos(t) * 90, cy + Math.sin(t) * 90, 1); }
+      if (i === 0) {
+        const s = Math.max(2, Math.min(Math.floor((W - 10) / 20), Math.floor((y1 - y0) / 15)));
+        o.drawImage(sp.img, 7, 10, 20, 14, Math.round(cx - 10 * s), Math.round(cy - 7 * s), 20 * s, 14 * s);
+        o.globalAlpha = 0.25; o.fillStyle = BLOOD; o.fillRect(0, y0, W, y1 - y0); o.globalAlpha = 1;
+      } else if (i === 1) {
+        o.fillStyle = INK;
+        o.beginPath();
+        for (let k = 0; k < 20; k++) { const t = (k / 20) * Math.PI * 2, r = k % 2 ? 6 : 16 + rnd(0, 6); const X = cx + Math.cos(t) * r * 1.4, Y = cy + Math.sin(t) * r * 0.8; if (k) o.lineTo(X, Y); else o.moveTo(X, Y); }
+        o.closePath(); o.fill();
+        o.fillStyle = BLOOD; o.fillRect(Math.round(cx) - 2, Math.round(cy) - 2, 5, 5);
+      } else {
+        o.drawImage(sp.black, Math.round(cx - sp.w), Math.round(cy - sp.h), sp.w * 2, sp.h * 2);
+        o.fillStyle = BLOOD;
+        for (const bl of bolts(cx, cy, 5, 30)) for (let k = 1; k < bl.pts.length; k++) pline(o, bl.pts[k - 1][0], bl.pts[k - 1][1], bl.pts[k][0], bl.pts[k][1], 1);
+      }
+      // trame de points façon manga
+      o.fillStyle = INK; o.globalAlpha = 0.3;
+      for (let yy = y0; yy < y1; yy += 3) for (let xx = W * 0.62 + ((yy / 3) % 2) * 1.5; xx < W; xx += 3) o.fillRect(Math.round(xx + dx), yy, 1, 1);
+      o.globalAlpha = 1;
+      o.restore();
+      o.fillStyle = PAPER;
+      for (let k = 0; k < 4; k++) { const [x1, y1b] = poly[k], [x2, y2] = poly[(k + 1) % 4]; pline(o, x1, y1b, x2, y2, 1); }
+    });
+    o.globalAlpha = 1;
   }
 
   /** La clope tendue : elle tremble au-dessus du boss avant de casser. */
