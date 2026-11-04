@@ -70,6 +70,22 @@ function heavy(a, d, t, size = 1) {
   osc(a, d, t, { type: "sine", f0: 170, f1: 48, glide: 0.12 * size, peak: 1, decay: 0.2 * size, dist: 8 });
   osc(a, d, t, { type: "triangle", f0: 320, f1: 84, glide: 0.1 * size, peak: 0.4, decay: 0.12 * size });
 }
+/**
+ * Basse virtuelle : la note grave + ses harmoniques 2, 3 et 4 qui suivent la même chute.
+ * Un haut-parleur de téléphone ne produit pas le grave lui-même, mais l'oreille le reconstitue à partir des harmoniques.
+ */
+function vbass(a, d, t, f0, f1, glide, peak, decay) {
+  [[1, 1], [2, 0.6], [3, 0.38], [4, 0.22], [5, 0.12]].forEach(([h, p]) => osc(a, d, t, { type: "sine", f0: f0 * h, f1: f1 * h, glide, peak: peak * p, decay: decay * (1 - h * 0.08) }));
+}
+/** Accord grave façon cuivres de film : dents de scie filtrées qui s'ouvrent puis se referment, sans tenir. */
+function braam(a, d, t, root, decay, peak) {
+  const f = a.createBiquadFilter(), g = a.createGain();
+  f.type = "lowpass"; f.Q.value = 2;
+  f.frequency.setValueAtTime(150, t); f.frequency.exponentialRampToValueAtTime(1400, t + 0.06); f.frequency.exponentialRampToValueAtTime(120, t + decay);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+  f.connect(g).connect(d);
+  [1, 1.5, 2, 1.005, 2.01].forEach((m) => { const o = a.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(root * m, t); o.frequency.exponentialRampToValueAtTime(root * m * 0.94, t + decay); o.connect(f); o.start(t); o.stop(t + decay + 0.05); });
+}
 const crackle = (a, d, t, n, gap) => { for (let i = 0; i < n; i++) hiss(a, d, t + i * gap, { f0: 3000 + Math.random() * 5000, q: 4, peak: 0.35, decay: 0.02, dist: 15 }); };
 
 /** Recettes : durée totale, part de réverbération (salle courte), et le dessin du son. */
@@ -77,35 +93,37 @@ const RECIPES = {
   hit: [0.4, 0.12, (a, d) => impact(a, d, 0, { punch: 0.8, body: 0.09 })],
   weakhit: [0.4, 0.12, (a, d) => { impact(a, d, 0, { punch: 0.7, body: 0.08, snap: 2800 }); osc(a, d, 0, { type: "triangle", f0: 880, peak: 0.08, decay: 0.06 }); }],
   black: [0.9, 0.3, (a, d) => { heavy(a, d, 0, 1); crackle(a, d, 0.02, 9, 0.016); }],
-  // --- comparateur : quatre caractères de coup critique ---
-  // A Cinéma : basse très profonde et propre qui retombe lentement, dans une grande salle
-  crit_a: [2.2, 0.35, (a, d) => {
-    osc(a, d, 0, { type: "sine", f0: 58, f1: 34, glide: 0.25, peak: 1, decay: 1.1 });
-    osc(a, d, 0, { type: "triangle", f0: 110, f1: 60, glide: 0.15, peak: 0.45, decay: 0.35 });
-    osc(a, d, 0, { type: "sine", f0: 180, f1: 70, glide: 0.06, peak: 0.7, decay: 0.12, dist: 6 });
-    hiss(a, d, 0, { type: "highpass", f0: 4500, peak: 0.8, decay: 0.04, dist: 15 });
+  // --- comparateur, deuxième série ---
+  // E Bande-annonce : souffle qui monte, impact, chute de basse et accord de cuivres grave, grande salle
+  crit_e: [2.6, 0.4, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 4000, peak: 0.8, decay: 0.04, dist: 12 });
+    vbass(a, d, 0, 72, 30, 0.35, 1, 1.2);
+    braam(a, d, 0.01, 55, 0.9, 0.55);
+    hiss(a, d, 0, { type: "lowpass", f0: 1200, f1: 90, q: 0.5, peak: 0.5, decay: 0.6 });
   }, "long"],
-  // B Coup de poing : grave sec et lourd, court
-  crit_b: [0.9, 0.15, (a, d) => {
-    osc(a, d, 0, { type: "sine", f0: 140, f1: 48, glide: 0.09, peak: 1, decay: 0.38 });
-    osc(a, d, 0, { type: "triangle", f0: 95, f1: 55, glide: 0.1, peak: 0.4, decay: 0.25 });
-    hiss(a, d, 0, { f0: 2500, q: 1, peak: 0.6, decay: 0.02 });
-    hiss(a, d, 0, { f0: 900, f1: 250, q: 0.8, peak: 0.6, decay: 0.1, dist: 10 });
+  // F 808 : chute de basse longue et ronde, claquement net (style rap)
+  crit_f: [2.0, 0.15, (a, d) => {
+    hiss(a, d, 0, { f0: 1800, q: 0.9, peak: 0.9, decay: 0.03, dist: 10 });
+    hiss(a, d, 0.008, { f0: 1200, q: 1.5, peak: 0.5, decay: 0.05 });
+    vbass(a, d, 0, 95, 38, 0.18, 1, 1.3);
   }],
-  // C Explosion : souffle grave qui gronde, comme une détonation
-  crit_c: [2.2, 0.3, (a, d) => {
-    hiss(a, d, 0, { type: "highpass", f0: 3500, peak: 0.8, decay: 0.05, dist: 15 });
-    hiss(a, d, 0, { type: "lowpass", f0: 1800, f1: 80, q: 0.5, peak: 0.9, attack: 0.004, decay: 0.9, dist: 4 });
-    osc(a, d, 0, { type: "sine", f0: 50, f1: 30, glide: 0.4, peak: 0.8, decay: 0.8 });
-    osc(a, d, 0, { type: "triangle", f0: 100, f1: 55, glide: 0.2, peak: 0.3, decay: 0.3 });
+  // G Enclume : métal frappé géant, double coup grave, débris
+  crit_g: [2.4, 0.35, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 3500, peak: 0.8, decay: 0.05, dist: 12 });
+    [[220, 0.5], [563, 0.35], [891, 0.25], [1342, 0.18], [1995, 0.1]].forEach(([f, p]) => osc(a, d, 0, { type: "sine", f0: f, f1: f * 0.98, peak: p * 0.5, decay: 0.5 }));
+    vbass(a, d, 0, 80, 34, 0.25, 1, 0.9);
+    vbass(a, d, 0.035, 60, 30, 0.3, 0.6, 0.8);
+    for (let i = 0; i < 10; i++) hiss(a, d, 0.05 + Math.random() * 0.35, { f0: 2000 + Math.random() * 4000, q: 3, peak: 0.12, decay: 0.03 });
   }, "long"],
-  // D Tonnerre : claquement électrique puis grondement qui roule
-  crit_d: [2.4, 0.4, (a, d) => {
+  // H Anime : claquement et grésillement figé pendant les images d'impact, puis l'explosion grave quand l'image repart
+  crit_h: [2.6, 0.4, (a, d) => {
     hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.9, decay: 0.03, dist: 20 });
-    for (let i = 0; i < 8; i++) hiss(a, d, 0.01 + i * 0.018, { f0: 3000 + Math.random() * 5000, q: 4, peak: 0.3, decay: 0.02, dist: 15 });
-    [[0, 0.8], [0.12, 0.6], [0.3, 0.45], [0.5, 0.3]].forEach(([t, p]) => hiss(a, d, t, { type: "lowpass", f0: 500, f1: 80, q: 0.6, peak: p, decay: 0.3 }));
-    osc(a, d, 0, { type: "sine", f0: 55, f1: 32, glide: 0.3, peak: 0.8, decay: 0.9 });
-    osc(a, d, 0, { type: "triangle", f0: 105, f1: 60, glide: 0.2, peak: 0.3, decay: 0.3 });
+    for (let i = 0; i < 9; i++) hiss(a, d, 0.01 + i * 0.016, { f0: 2500 + (i % 3) * 1500, q: 2, peak: 0.35, decay: 0.012, dist: 15 });
+    const T = 0.15;
+    hiss(a, d, T, { type: "highpass", f0: 2500, peak: 0.6, decay: 0.05, dist: 10 });
+    vbass(a, d, T, 75, 28, 0.4, 1, 1.4);
+    hiss(a, d, T, { type: "lowpass", f0: 1500, f1: 70, q: 0.5, peak: 0.7, decay: 0.9 });
+    braam(a, d, T + 0.01, 55, 0.8, 0.35);
   }, "long"],
   charge: [0.65, 0, (a, d) => hiss(a, d, 0, { f0: 600, f1: 5000, q: 0.9, peak: 0.22, attack: 0.5, decay: 0.05 })],
   ultimate: [1.1, 0.35, (a, d) => { heavy(a, d, 0, 1.4); heavy(a, d, 0.05, 1); crackle(a, d, 0.02, 14, 0.02); }],
@@ -131,7 +149,7 @@ const RECIPES = {
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
-const LEVEL = { crit_a: 0.95, crit_b: 0.95, crit_c: 0.95, crit_d: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
+const LEVEL = { crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
 function impulse(a, dur, pow = 5) {
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(2, n, a.sampleRate);
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** pow; }
