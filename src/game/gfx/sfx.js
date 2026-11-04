@@ -48,52 +48,50 @@ const chime = (a, d, t, f, peak = 0.1, decay = 0.6) => { osc(a, d, t, { type: "t
 const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
 const note = (base, step) => base * 2 ** (PENTA[Math.min(step, PENTA.length - 1)] / 12);
 
+/**
+ * Impact = claquement (bruit filtré très court) + corps (bruit grave court) + coup sec (sinus qui plonge vite).
+ * Aucune note tenue ni queue grave : rien qui bourdonne.
+ */
+function impact(a, d, t, { punch = 1, body = 0.12, snap = 2200 } = {}) {
+  hiss(a, d, t, { f0: snap, q: 1.1, peak: 0.5, decay: 0.025 });
+  hiss(a, d, t, { type: "lowpass", f0: 900, f1: 200, q: 0.7, peak: 0.6 * punch, decay: body });
+  kick(a, d, t, 150, 55, 0.09 + body * 0.4, 0.7 * punch);
+}
+
 /** Recettes : durée totale, part de réverbération, et le dessin du son. */
 const RECIPES = {
-  hit: [0.3, 0.08, (a, d) => { kick(a, d, 0, 180, 60, 0.14, 0.6); click(a, d, 0, 0.18); }],
-  weakhit: [0.35, 0.12, (a, d) => { kick(a, d, 0, 190, 70, 0.12, 0.5); click(a, d, 0, 0.15, 3000); chime(a, d, 0.005, 660, 0.09, 0.22); }],
-  black: [2.2, 0.35, (a, d) => {
-    hiss(a, d, 0, { f0: 5000, f1: 1200, q: 0.6, peak: 0.45, decay: 0.09 });
-    kick(a, d, 0, 140, 38, 0.7, 0.95);
-    kick(a, d, 0.01, 70, 30, 1.1, 0.5);
-    hiss(a, d, 0.02, { type: "lowpass", f0: 1200, f1: 90, q: 0.5, peak: 0.28, decay: 1.0 });
-    for (let i = 0; i < 5; i++) hiss(a, d, 0.03 + i * 0.03, { f0: 3500 + i * 600, q: 3, peak: 0.12, decay: 0.03 });
-    chime(a, d, 0.03, 1760, 0.05, 1.0);
+  hit: [0.25, 0, (a, d) => impact(a, d, 0, { punch: 0.7, body: 0.08 })],
+  weakhit: [0.25, 0, (a, d) => { impact(a, d, 0, { punch: 0.6, body: 0.07, snap: 2800 }); osc(a, d, 0, { type: "triangle", f0: 880, peak: 0.08, decay: 0.06 }); }],
+  black: [0.5, 0, (a, d) => {
+    impact(a, d, 0, { punch: 1, body: 0.2, snap: 3000 });
+    hiss(a, d, 0.012, { f0: 600, q: 1.5, peak: 0.45, decay: 0.08 });
+    for (let i = 0; i < 4; i++) hiss(a, d, 0.02 + i * 0.022, { f0: 3000 + i * 700, q: 3, peak: 0.18, decay: 0.012 });
   }],
-  charge: [0.75, 0.15, (a, d) => {
-    osc(a, d, 0, { type: "triangle", f0: 180, f1: 900, glide: 0.55, peak: 0.16, attack: 0.5, decay: 0.08 });
-    hiss(a, d, 0, { f0: 500, f1: 6000, q: 0.8, peak: 0.16, attack: 0.52, decay: 0.06 });
+  charge: [0.65, 0, (a, d) => hiss(a, d, 0, { f0: 600, f1: 5000, q: 0.9, peak: 0.22, attack: 0.5, decay: 0.05 })],
+  ultimate: [0.6, 0, (a, d) => {
+    impact(a, d, 0, { punch: 1, body: 0.28, snap: 2600 });
+    impact(a, d, 0.06, { punch: 0.7, body: 0.18, snap: 1800 });
+    hiss(a, d, 0.01, { f0: 500, q: 1.2, peak: 0.5, decay: 0.12 });
   }],
-  ultimate: [3, 0.45, (a, d) => {
-    hiss(a, d, 0, { f0: 4500, f1: 900, q: 0.6, peak: 0.5, decay: 0.12 });
-    kick(a, d, 0, 110, 28, 1.3, 1.0);
-    kick(a, d, 0.04, 55, 25, 1.6, 0.6);
-    hiss(a, d, 0.02, { type: "lowpass", f0: 900, f1: 50, q: 0.5, peak: 0.35, decay: 1.8 });
-    chime(a, d, 0.05, 880, 0.06, 1.6); chime(a, d, 0.05, 1318, 0.04, 1.4);
+  ko: [0.7, 0, (a, d) => {
+    impact(a, d, 0, { punch: 1, body: 0.25, snap: 2400 });
+    for (let i = 0; i < 10; i++) hiss(a, d, 0.03 + Math.random() * 0.2, { f0: 3000 + Math.random() * 4000, q: 4, peak: 0.16, decay: 0.02 });
   }],
-  ko: [2.6, 0.4, (a, d) => {
-    kick(a, d, 0, 120, 30, 1.1, 0.9);
-    hiss(a, d, 0, { f0: 3000, f1: 800, q: 0.6, peak: 0.3, decay: 0.25 });
-    [0, 4, 7, 9, 12, 16].forEach((s, i) => chime(a, d, 0.05 + i * 0.045, 1046 * 2 ** (s / 12), 0.05, 0.5));
-    osc(a, d, 0.15, { type: "triangle", f0: 392, f1: 98, glide: 1.2, peak: 0.08, decay: 1.3 });
+  slam: [0.3, 0, (a, d) => impact(a, d, 0, { punch: 0.8, body: 0.12, snap: 1500 })],
+  refuse: [0.3, 0, (a, d) => {
+    hiss(a, d, 0, { f0: 3200, q: 4, peak: 0.7, decay: 0.015 });
+    hiss(a, d, 0.004, { f0: 1100, q: 2, peak: 0.35, decay: 0.04 });
+    impact(a, d, 0.01, { punch: 0.6, body: 0.08, snap: 4000 });
   }],
-  slam: [1, 0.3, (a, d) => { kick(a, d, 0, 110, 40, 0.4, 0.8); click(a, d, 0, 0.2, 1500); }],
-  refuse: [1.8, 0.3, (a, d) => {
-    hiss(a, d, 0, { f0: 3200, q: 4, peak: 0.6, decay: 0.018 });
-    hiss(a, d, 0.004, { f0: 1100, q: 2, peak: 0.3, decay: 0.05 });
-    kick(a, d, 0.01, 200, 80, 0.16, 0.45);
-    [523, 659, 784, 1046].forEach((f, i) => chime(a, d, 0.1 + i * 0.07, f, 0.08, 0.35 + i * 0.1));
-    chime(a, d, 0.38, 1568, 0.05, 1.0);
-  }],
-  miss: [0.3, 0.05, (a, d) => hiss(a, d, 0, { f0: 1600, f1: 500, q: 1, peak: 0.12, attack: 0.03, decay: 0.15 })],
-  weak: [0.2, 0.1, (a, d) => osc(a, d, 0, { type: "sine", f0: 880, f1: 1320, peak: 0.12, decay: 0.08 })],
-  combo: [1, 0.3, (a, d) => [0, 2, 4, 5].forEach((s, i) => chime(a, d, i * 0.06, note(784, s), 0.07, 0.3))],
-  heal: [1, 0.25, (a, d) => { osc(a, d, 0, { type: "triangle", f0: 330, f1: 247, glide: 0.25, peak: 0.12, decay: 0.3 }); osc(a, d, 0.18, { type: "triangle", f0: 247, f1: 165, glide: 0.4, peak: 0.12, decay: 0.45 }); }],
-  tap: [0.3, 0.05, (a, d) => { kick(a, d, 0, 140, 60, 0.08, 0.4); click(a, d, 0, 0.12); }],
-  touch: [0.6, 0.05, (a, d) => { hiss(a, d, 0, { type: "highpass", f0: 4000, peak: 0.12, attack: 0.01, decay: 0.35 }); click(a, d, 0, 0.12, 3500); }],
-  crush: [0.4, 0.03, (a, d) => { kick(a, d, 0, 120, 60, 0.06, 0.25); for (let i = 0; i < 5; i++) hiss(a, d, i * 0.025 + Math.random() * 0.01, { f0: 2500 + Math.random() * 2500, q: 2.5, peak: 0.12, decay: 0.015 }); }],
-  psch: [1.6, 0.1, (a, d) => hiss(a, d, 0, { f0: 6000, f1: 2500, q: 0.7, peak: 0.13, attack: 0.04, decay: 1.2 })],
-  coin: [0.8, 0.25, (a, d) => { chime(a, d, 0, 988, 0.08, 0.12); chime(a, d, 0.08, 1319, 0.08, 0.4); }],
+  miss: [0.2, 0, (a, d) => hiss(a, d, 0, { f0: 1600, f1: 600, q: 1, peak: 0.12, attack: 0.02, decay: 0.1 })],
+  weak: [0.1, 0, (a, d) => osc(a, d, 0, { type: "triangle", f0: 1100, peak: 0.12, decay: 0.05 })],
+  combo: [0.25, 0, (a, d) => [0, 4, 7].forEach((s, i) => osc(a, d, i * 0.05, { type: "triangle", f0: 880 * 2 ** (s / 12), peak: 0.1, decay: 0.06 }))],
+  heal: [0.25, 0, (a, d) => { osc(a, d, 0, { type: "triangle", f0: 330, peak: 0.12, decay: 0.07 }); osc(a, d, 0.09, { type: "triangle", f0: 247, peak: 0.12, decay: 0.09 }); }],
+  tap: [0.2, 0, (a, d) => impact(a, d, 0, { punch: 0.5, body: 0.06 })],
+  touch: [0.4, 0, (a, d) => { hiss(a, d, 0, { type: "highpass", f0: 4000, peak: 0.12, attack: 0.01, decay: 0.25 }); hiss(a, d, 0, { f0: 3500, q: 1.2, peak: 0.12, decay: 0.03 }); }],
+  crush: [0.2, 0, (a, d) => { for (let i = 0; i < 5; i++) hiss(a, d, i * 0.025 + Math.random() * 0.01, { f0: 2500 + Math.random() * 2500, q: 2.5, peak: 0.12, decay: 0.015 }); hiss(a, d, 0, { type: "lowpass", f0: 600, peak: 0.15, decay: 0.05 }); }],
+  psch: [0.8, 0, (a, d) => hiss(a, d, 0, { f0: 6000, f1: 3000, q: 0.7, peak: 0.13, attack: 0.03, decay: 0.6 })],
+  coin: [0.25, 0, (a, d) => { osc(a, d, 0, { type: "triangle", f0: 988, peak: 0.08, decay: 0.05 }); osc(a, d, 0.07, { type: "triangle", f0: 1319, peak: 0.08, decay: 0.1 }); }],
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
