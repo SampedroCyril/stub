@@ -21,6 +21,9 @@ function crownSprite() {
   return (crownCache = compile(g, sp.pal));
 }
 
+/** Son de chaque petit palier (les gros paliers ont le leur). */
+const TIER_SFX = { 1: "hit", 2: "hit2", 3: "hit3", 4: "crit4", 5: "crit5" };
+
 /** Style choisi, ou tiré au hasard parmi les variantes quand il vaut « random ». */
 const pick = (style, all) => (style === "random" || !style ? all[(Math.random() * all.length) | 0] : style);
 
@@ -102,7 +105,7 @@ export class BossStage {
     window.removeEventListener("resize", this.onWin);
     this.cv.removeEventListener("pointerdown", this.down);
     this.ov.remove();
-    if (this.shakeEl) this.shakeEl.style.transform = "";
+    if (this.shakeEl) { this.shakeEl.style.transform = ""; this.shakeEl.classList.remove("trance"); }
     if (this.fxRoot) this.fxRoot.style.filter = "";
   }
 
@@ -170,9 +173,10 @@ export class BossStage {
   hit(dmg, opts = {}) {
     if (this.dead) return;
     if (opts.big && !opts.now) {
-      this.pending = { dmg, opts: { ...opts, now: true }, t: 34 };
+      const ch = opts.charge ?? 34;
+      this.pending = { dmg, opts: { ...opts, now: true }, t: ch };
       this.weak = null;
-      this.ovFx.push({ k: "letterbox", age: 0, life: 150 }, { k: "spot", age: 0, life: 40 }, { k: "focus", age: 0, life: 34 });
+      this.ovFx.push({ k: "letterbox", age: 0, life: 116 + ch }, { k: "spot", age: 0, life: ch + 6 }, { k: "focus", age: 0, life: ch });
       this.chargeFx();
       play("charge");
       return;
@@ -203,7 +207,7 @@ export class BossStage {
       return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.86, life: rnd(10, 20) | 0, c: refuse ? (Math.random() < 0.5 ? AIR : "#ffffff") : crit || big ? (Math.random() < 0.5 ? BLOOD : INK) : SPARK, size: crit || big || refuse ? 2 : 1 };
     });
     this.rings.push({ x, y, r: 2, max: big ? 22 : crit ? 15 : refuse ? 14 : 7, c: refuse ? AIR : crit || big ? BLOOD : "#ffffff" });
-    this.float(label ?? `-${dmg}`, x, y - 4, { color: "#ffffff", sc: big ? 3 : crit || refuse ? 2 : 1, alt: refuse ? AIR : crit || big ? BLOOD : null });
+    this.float(label ?? `-${dmg}`, x, y - 4, { color: opts.color ?? "#ffffff", sc: opts.sc ?? (big ? 3 : crit || refuse ? 2 : 1), alt: refuse ? AIR : crit || big ? BLOOD : null });
     const o = this.ovPos(), ix = o.ox + x, iy = o.oy + y;
     if (refuse) {
       this.ovFx.push({ k: "flash", age: 0, life: 16, delay: 0, col: AIR, a: 0.3 });
@@ -228,6 +232,70 @@ export class BossStage {
       play(opts.sfx ?? "hit", opts.sfxArg);
     }
     if (navigator.vibrate) navigator.vibrate(big ? [30, 30, 80] : crit ? [20, 20, 50] : 10);
+  }
+
+  /**
+   * Les 9 paliers d'impact, du petit choc à la transe :
+   * 1 coup · 2 coup sûr · 3 coup net · 4 critique · 5 critique noir · 6 impact noir · 7 fracture · 8 supernova · 9 transe
+   */
+  tier(t, dmg, o = {}) {
+    if (this.dead) return;
+    const p = this.pos;
+    const x = o.x ?? p.x + p.w / 2 + rnd(-6, 6), y = o.y ?? p.y + p.h / 2 + rnd(-4, 4);
+    const base = { x, y, label: o.label };
+    if (t >= 9) this.enterTrance();
+    if (t >= 7) {
+      const style = t === 7 ? "fracture" : t === 8 ? "nova" : this.trance && this.trance.n++ % 2 ? "nova" : "fracture";
+      this.hit(dmg, { ...base, big: true, style, charge: 16, title: t >= 9 ? "transe" : "super critique" });
+      return;
+    }
+    if (t === 6) { this.hit(dmg, { ...base, crit: true, title: "impact noir" }); return; }
+    this.hit(dmg, { ...base, sfx: TIER_SFX[t], sfxArg: o.combo, sc: t >= 2 ? 2 : 1, color: t >= 2 ? "#ffcd75" : undefined });
+    const ov = this.ovPos(), ix = ov.ox + x, iy = ov.oy + y;
+    if (t >= 2) {
+      this.shake = Math.max(this.shake, 2.2); this.sq = 0.2; this.chroma = Math.max(this.chroma, 4);
+      this.front.burst(8, () => { const a = rnd(0, Math.PI * 2), v = rnd(1.2, 2.8); return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.86, life: rnd(10, 18) | 0, c: SPARK }; });
+    }
+    if (t >= 3) {
+      this.stop = Math.max(this.stop, 4);
+      this.rings.push({ x, y, r: 2, max: 13, c: "#ffffff" });
+      this.ovFx.push({ k: "lines", age: 0, life: 14, x: ix, y: iy, delay: 0, col: "#ffffff", n: 16 });
+    }
+    if (t >= 4) {
+      this.shake = Math.max(this.shake, 3.2); this.chroma = Math.max(this.chroma, 8); this.kbv += x < p.x + p.w / 2 ? 1.2 : -1.2;
+      this.ovFx.push({ k: "vignette", age: 0, life: 22, delay: 0 });
+      this.ovFx.push({ k: "text", age: 0, life: t >= 5 ? 40 : 32, delay: 0, text: t >= 5 ? "critique noir" : "critique", fx: t >= 5 ? [1, 2] : [1, 1], y: Math.max(12, iy - 42) });
+    }
+    if (t >= 5) {
+      this.stop = Math.max(this.stop, 6);
+      if (this.intense) this.ovFx.push({ k: "strobe", age: 0, life: 2, x: ix, y: iy, reach: 55, n: 4 });
+      this.rings.push({ x, y, r: 2, max: 16, c: BLOOD });
+    }
+  }
+
+  /** Transe : l'arène pulse, le boss brûle d'une aura rouge. Un raté la fait retomber. */
+  enterTrance() {
+    if (this.trance) return;
+    this.trance = { t0: this.t, n: 0 };
+    this.shakeEl?.classList.add("trance");
+  }
+  exitTrance() {
+    if (!this.trance) return;
+    this.trance = null;
+    this.shakeEl?.classList.remove("trance");
+  }
+  drawTrance(b) {
+    const t = this.t - this.trance.t0, cx = STAGE_W / 2, cy = FLOOR - 16;
+    for (let i = 0; i < 6; i++) {
+      const r = (t * 0.7 + i * 12) % 72, a = Math.round((1 - r / 72) * 0.5 * 4) / 4;
+      if (a <= 0) continue;
+      b.globalAlpha = a; b.fillStyle = i % 2 ? "#5d275d" : "#b13e53";
+      const R = Math.round(r);
+      b.fillRect(cx - R, cy - R, R * 2, 1); b.fillRect(cx - R, cy + R, R * 2, 1); b.fillRect(cx - R, cy - R, 1, R * 2); b.fillRect(cx + R, cy - R, 1, R * 2);
+    }
+    b.globalAlpha = 0.25; b.fillStyle = BLOOD;
+    for (let i = 0; i < 8; i++) { const a = t * 0.03 + (i * Math.PI) / 4; pline(b, cx + Math.cos(a) * 12, cy + Math.sin(a) * 12, cx + Math.cos(a) * 60, cy + Math.sin(a) * 60, 1); }
+    b.globalAlpha = 1;
   }
 
   chargeFx() {
@@ -393,6 +461,7 @@ export class BossStage {
       b.fillRect(Math.round(STAGE_W / 2 - sw / 2), p.y + p.h - 2, sw, 2);
       b.fillRect(Math.round(STAGE_W / 2 - sw / 2) + 3, p.y + p.h, sw - 6, 1);
     }
+    if (this.trance) this.drawTrance(b);
     this.fx.draw(b);
     if (this.koT <= 0) this.drawBoss(b, p);
     this.drawWeak(b);
@@ -419,6 +488,12 @@ export class BossStage {
       b.globalAlpha = 0.75;
       b.drawImage(sp.red, x - d, y, w, h);
       b.drawImage(sp.cyan, x + d, y, w, h);
+      b.globalAlpha = 1;
+    }
+    if (this.trance) {
+      const d = 1 + ((this.t >> 3) % 2);
+      b.globalAlpha = 0.7;
+      for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d]]) b.drawImage(sp.red, x + dx, y + dy, w, h);
       b.globalAlpha = 1;
     }
     b.drawImage(sp.img, x, y, w, h);
@@ -547,7 +622,7 @@ export class BossStage {
     const k = 1 - e.age / e.life;
     o.globalAlpha = Math.round(k * 4) / 4 * (e.few ? 0.6 : 0.8);
     o.fillStyle = e.col;
-    const n = e.few ? 10 : 30;
+    const n = e.n ?? (e.few ? 10 : 30);
     for (let i = 0; i < n; i++) {
       const a = rnd(0, Math.PI * 2), r0 = e.few ? rnd(10, 16) : rnd(20, 40) + e.age * 2;
       const len = e.few ? rnd(6, 14) : rnd(30, 120);
