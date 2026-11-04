@@ -7,10 +7,11 @@ import BossThumb from "../game/BossThumb.jsx";
 import { BOSSES, bossFor } from "../game/bosses.js";
 import { ModChips } from "../game/Battle.jsx";
 import { bestiary } from "../game/battle.js";
+import { targetOf } from "../game/combo.js";
 import { durationText, pl } from "../lib/util.js";
 
 export default function Sevrage() {
-  const { S, state, flow, startCraving, setCravingField, resetFlow, commit, go, battle, startBattle } = useApp();
+  const { S, state, flow, setFlow, startCraving, setCravingField, resetFlow, commit, go, battle, startBattle } = useApp();
   const [confirm, setConfirm] = useState(false);
   const craving = flow.mode === "craving" ? flow.craving : null;
   const countdown = useCountdown(craving?.endsAt);
@@ -27,7 +28,7 @@ export default function Sevrage() {
     <Panel id="sevrage">
       <LevelCard kind="quit" label="Niveau sevrage" />
 
-      {battle && !battle.crisis && <Battle />}
+      {battle && <Battle />}
 
       {!craving && !battle && <button className="btn green big" type="button" onClick={startCraving}>J'ai envie de fumer</button>}
 
@@ -52,24 +53,25 @@ export default function Sevrage() {
               ))}
             </div>
           </div>
-          <div className="prefight">
-            <BossThumb id={bossFor(craving.trigger, new Date(craving.at))} />
-            <div>
-              <span className="label">Ton adversaire</span>
-              <strong className="px-name">{BOSSES[bossFor(craving.trigger, new Date(craving.at))].n}</strong>
-              <small>{100 * (craving.intensity || 2)} PV · il s'épuise tout seul en 5 min</small>
-              <ModChips boss={bossFor(craving.trigger, new Date(craving.at))} known={(bestiary(S.ev)[bossFor(craving.trigger, new Date(craving.at))]?.wins || 0) > 0} />
+          <div className="stack">
+            <span className="label">Comment tu la fais passer ?</span>
+            <div className="choices">
+              <button className="choice fight" type="button" onClick={startBattle}>
+                <BossThumb id={bossFor(craving.trigger, new Date(craving.at))} />
+                <span><b>Combat</b><small>{BOSSES[bossFor(craving.trigger, new Date(craving.at))].n} · {Math.round(targetOf(craving.intensity) / 60 * 10) / 10} min environ</small></span>
+              </button>
+              <button className="choice breath" type="button" onClick={() => { setFlow({ mode: "breath", craving, autostart: true }); go("respirer"); }}>
+                <span className="choice-ic" aria-hidden="true">◯</span>
+                <span><b>Respirer</b><small>Le cercle guidé, sans réfléchir</small></span>
+              </button>
+              <button className="choice move" type="button" onClick={() => { setFlow({ mode: "circuit", craving }); go("circuit"); }}>
+                <span className="choice-ic" aria-hidden="true">↯</span>
+                <span><b>Bouger</b><small>Un circuit renfo + cardio</small></span>
+              </button>
             </div>
+            <ModChips boss={bossFor(craving.trigger, new Date(craving.at))} known={(bestiary(S.ev)[bossFor(craving.trigger, new Date(craving.at))]?.wins || 0) > 0} />
           </div>
-          {craving.intensity === 5 ? (
-            <div className="stack">
-              <button className="btn danger-fill big" type="button" onClick={() => startBattle(true)}>Mode crise</button>
-              <button className="btn" type="button" onClick={() => startBattle(false)}>Combat normal</button>
-            </div>
-          ) : (
-            <button className="btn green big" type="button" onClick={() => startBattle(false)}>Affronter</button>
-          )}
-          <p className="tip">Les deux questions sont facultatives : le déclencheur choisit ton boss, l'intensité ses points de vie. À 5, le mode crise te prend en main.</p>
+          <p className="tip">Les deux questions sont facultatives : le déclencheur choisit ton boss, l'intensité la durée du combat. Les trois façons tiennent l'envie et rapportent de l'XP.</p>
           <button className="linkbtn" type="button" style={{ alignSelf: "flex-start" }} onClick={resetFlow}>Fausse alerte, j'annule</button>
         </section>
       )}
@@ -90,14 +92,13 @@ export default function Sevrage() {
         <summary>Comment tu gagnes de l'XP sevrage</summary>
         <div className="rules">
           <div><span>Chaque jour complet sans clope</span><b className="g">+100</b></div>
-          <div><span>Boss vaincu en tenant (points faibles ou épuisement)</span><b className="g">+{CRAV_XP.hold}</b></div>
-          <div><span>Boss vaincu en respirant ou en Frénésie</span><b className="g">+{CRAV_XP.breath}</b></div>
-          <div><span>Boss vaincu avec un circuit</span><b className="g">+{CRAV_XP.sport}</b></div>
-          <div><span>Boss vaincu en mode crise</span><b className="g">+{CRAV_XP.crisis}</b></div>
-          <div><span>Bonus de rang S / A</span><b className="g">+10 / +5</b></div>
+          <div><span>Envie tenue en combat (boss vaincu)</span><b className="g">+{CRAV_XP.game}</b></div>
+          <div><span>Bonus de rang S / A au combat</span><b className="g">+10 / +5</b></div>
+          <div><span>Envie tenue en respirant</span><b className="g">+{CRAV_XP.breath}</b></div>
+          <div><span>Envie tenue au sport</span><b className="g">+{CRAV_XP.sport}</b></div>
           <div><span>Défi sevrage de la semaine réussi</span><b className="g">+80</b></div>
         </div>
-        <p className="tip">Une envie tuée au sport rapporte aussi l'XP sport du circuit.</p>
+        <p className="tip">Une envie tenue au sport rapporte aussi l'XP sport du circuit, et un combat de l'XP joueur pour l'arbre de compétences.</p>
       </details>
 
       <section className="stack">

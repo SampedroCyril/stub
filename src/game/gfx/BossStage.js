@@ -156,7 +156,7 @@ export class BossStage {
     if (this.dead || this.pending) return;
     const p = this.toStage(e);
     const w = this.weak;
-    const onWeak = w && Math.hypot(p.x - w.x, p.y - w.y) <= 8;
+    const onWeak = w && Math.hypot(p.x - w.x, p.y - w.y) <= (this.hitR || 8);
     this.onTap?.({ ...p, weak: onWeak ? { age: performance.now() - w.born } : null });
   }
 

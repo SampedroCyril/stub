@@ -3,25 +3,23 @@ import { useApp } from "../store/AppStore.jsx";
 import { Panel } from "../components/ui.jsx";
 import { PATTERNS, BREATH_DURS } from "../data/rules.js";
 import { mins, pad } from "../lib/util.js";
-import { DMG, hpAt } from "../game/battle.js";
-import { BOSSES } from "../game/bosses.js";
 
 const CIRC = 703.7;
 const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * x);
 
 export default function Respirer() {
-  const { state, flow, setFlow, patchState, resetFlow, commit, go, battle, hitBattle, queueFx } = useApp();
+  const { state, flow, setFlow, patchState, resetFlow, commit, go, holdCraving } = useApp();
   const [run, setRun] = useState(null); // {p, total, t0, craving}
   const els = useRef({});
-  const fromCraving = flow.mode === "breath" && !!flow.attack && !!battle;
+  const fromCraving = flow.mode === "breath" && !!flow.craving;
 
-  const start = () => setRun({ p: state.bp, total: state.bd, t0: performance.now(), attack: fromCraving });
+  const start = () => setRun({ p: state.bp, total: state.bd, t0: performance.now(), craving: fromCraving ? flow.craving : null });
 
   // lancement automatique depuis « Je respire 2 minutes »
   useEffect(() => {
     if (flow.mode === "breath" && flow.autostart) {
       setFlow((f) => ({ ...f, autostart: false }));
-      setRun({ p: state.bp, total: state.bd, t0: performance.now(), attack: !!flow.attack });
+      setRun({ p: state.bp, total: state.bd, t0: performance.now(), craving: flow.craving || null });
     }
   }, [flow, setFlow, state.bp, state.bd]);
 
@@ -30,21 +28,12 @@ export default function Respirer() {
     const sec = Math.round(Math.min(run.total, (performance.now() - run.t0) / 1000));
     const r = run;
     setRun(null);
-    const cyc = PATTERNS[r.p].ph.reduce((a, x) => a + x[1], 0);
-    const cycles = Math.floor(sec / cyc);
-    const msg = [];
-    if (r.attack && battle && cycles) {
-      const dmg = hitBattle("breath", cycles * DMG.breathCycle);
-      queueFx({ kind: "breath", dmg });
-      msg.push(`${BOSSES[battle.boss].n} prend ${dmg} dégâts !`);
-    }
     resetFlow();
-    if (!complete && sec < 60) {
-      if (r.attack) { go("sevrage"); if (msg.length) commit([], msg); }
-      return;
-    }
-    go(r.attack ? "sevrage" : "accueil");
-    commit([{ k: "breath", t: new Date().toISOString(), sec, p: r.p }], [`Respiration : ${mins(sec)}`, ...msg]);
+    if (!complete && sec < 60) { if (r.craving) go("sevrage"); return; }
+    const ev = { k: "breath", t: new Date().toISOString(), sec, p: r.p };
+    if (r.craving) { go("sevrage"); holdCraving("breath", r.craving, [ev], [`Respiration : ${mins(sec)}`]); return; }
+    go("accueil");
+    commit([ev], [`Respiration : ${mins(sec)}`]);
   };
   const finishRef = useRef(finish);
   finishRef.current = finish;
@@ -79,7 +68,7 @@ export default function Respirer() {
 
   return (
     <Panel id="respirer">
-      {fromCraving && <div className="banner teal"><span>Attaque contre {BOSSES[battle.boss].n} : −{Math.round(DMG.breathCycle * 100)} % PV par cycle respiré.</span><b>{hpAt(battle, new Date())} PV</b></div>}
+      {fromCraving && <div className="banner teal"><span>Respire au moins une minute : l'envie est tenue et sa clope finit au cendrier.</span></div>}
       <section className="breath-stage">
         <svg viewBox="0 0 240 240" aria-hidden="true">
           <defs>

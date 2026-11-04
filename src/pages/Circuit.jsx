@@ -7,8 +7,6 @@ import { EX, xpOf, fmtAmt, sides } from "../data/exercises.js";
 import { amount, pairAt, upcoming, randomPair, advanceRotation } from "../lib/circuit.js";
 import { cameraSupported } from "../pose/counters.js";
 import { clamp } from "../lib/util.js";
-import { DMG, hpAt } from "../game/battle.js";
-import { BOSSES } from "../game/bosses.js";
 
 const CameraCoach = lazy(() => import("../pose/CameraCoach.jsx"));
 
@@ -47,10 +45,10 @@ function Move({ e, kind, sportL, adj, result, onCamera, onDetails }) {
 }
 
 export default function Circuit() {
-  const { S, state, flow, setFlow, resetFlow, commit, go, battle, hitBattle, queueFx } = useApp();
+  const { S, state, flow, setFlow, resetFlow, commit, go, holdCraving } = useApp();
   const [coach, setCoach] = useState(null);
   const active = flow.mode === "circuit";
-  const fromCraving = active && !!flow.attack && !!battle;
+  const fromCraving = active && !!flow.craving;
   const sportL = S.sport.L, adj = state.adj;
   const pair = flow.override || pairAt(state, sportL);
   const results = flow.results || {};
@@ -64,13 +62,9 @@ export default function Circuit() {
     const events = [], msg = [`Circuit : +${xp} XP sport`];
     events.push({ k: "circuit", t: new Date().toISOString(), f, items });
     const patch = { adj: clamp(adj + f, -3, 5), ...(flow.override ? {} : advanceRotation(state, sportL)) };
-    if (fromCraving) {
-      const dmg = hitBattle("circuit", items.some((it) => it.cam) ? DMG.circuitCam : DMG.circuit);
-      queueFx({ kind: "ultimate", dmg });
-      msg.push(`${BOSSES[battle.boss].n} prend ${dmg} dégâts !`);
-    }
+    if (fromCraving) { const c = flow.craving; go("sevrage"); holdCraving("sport", c, events, msg, patch); return; }
     resetFlow();
-    go(fromCraving ? "sevrage" : "accueil");
+    go("accueil");
     commit(events, msg, patch);
   };
 
@@ -87,7 +81,7 @@ export default function Circuit() {
 
       {active && (
         <section className={`card${fromCraving ? " quit" : ""}`}>
-          {fromCraving && <div className="banner"><span>Attaque contre {BOSSES[battle.boss].n} : −{Math.round(DMG.circuit * 100)} % PV, −{Math.round(DMG.circuitCam * 100)} % si validé caméra.</span><b>{hpAt(battle, new Date())} PV</b></div>}
+          {fromCraving && <div className="banner"><span>Fais le circuit : l'envie est tenue et sa clope finit au cendrier.</span></div>}
           <div className="card-head">
             <h2>{flow.override ? "Circuit au hasard" : "Ton circuit"}</h2>
             <span className="timer">+{totalXp} XP</span>

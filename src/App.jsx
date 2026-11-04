@@ -6,7 +6,7 @@ import Reglages from "./pages/Reglages.jsx";
 import Arcade from "./pages/Arcade.jsx";
 import Records from "./pages/Records.jsx";
 import Bestiaire from "./pages/Bestiaire.jsx";
-import Crisis from "./game/Crisis.jsx";
+import Talents from "./pages/Talents.jsx";
 import Victory from "./game/Victory.jsx";
 import BossThumb from "./game/BossThumb.jsx";
 import { BOSSES } from "./game/bosses.js";
@@ -61,18 +61,18 @@ function Shell() {
       <Sante />
       <Defis onRecap={open} />
       <Bestiaire />
+      <Talents />
       <Badges />
       <Stats onRecap={open} />
       <Records />
       <Exos />
       <Reglages />
-      {battle && !battle.crisis && view !== "sevrage" && !flow.attack && (
+      {battle && view !== "sevrage" && (
         <button className="battle-pill" type="button" onClick={() => go("sevrage")}>
           <BossThumb id={battle.boss} />
           <span>Combat en cours · {hpAt(battle, new Date())} PV</span>
         </button>
       )}
-      {battle?.crisis && <Crisis />}
       <Victory />
       <BottomNav />
       {recap && <RecapModal ws={recap.ws} onClose={close} />}

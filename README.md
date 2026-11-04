@@ -1,12 +1,12 @@
 # Roulement anti-clope
 
-App web pour arrêter de fumer, gamifiée : chaque envie de fumer devient un boss en pixel art à abattre, au circuit de sport, en respirant ou en Frénésie. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
+App web pour arrêter de fumer, gamifiée : chaque envie de fumer se tient au combat (un boss en pixel art à abattre au clicker), en respirant ou en bougeant. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
 
 Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne quitte jamais l'appareil.
 
 ## Fonctionnalités
 
-Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, arcade, santé), **Sport** (circuit, records, exos), **Progrès** (défis, boss, badges, stats) et **Réglages**.
+Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, arcade, santé), **Sport** (circuit, records, exos), **Progrès** (défis, boss, talents, badges, stats) et **Réglages**.
 
 | Écran | Contenu |
 |---|---|
@@ -23,28 +23,28 @@ Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
 
-## Le jeu (0.3)
+## Le jeu (0.3.1)
 
-- **Boss d'envie** : chaque envie notée fait apparaître un boss lié à son déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, et le Spectre de 2h du mat' la nuit). PV = 100 × intensité, +10 % par niveau du boss (un niveau toutes les 5 victoires, couronne dès le niveau 3).
-- **Il s'épuise tout seul en 5 minutes**, la durée réelle d'une envie. Les attaques l'abattent plus vite : circuit (50 %, 75 % si validé caméra), cycle de respiration complet (7 %), Frénésie (~35 % pour une bonne partie). On ne perd qu'en déclarant une rechute.
-- **Point faible** : taper le boss ne fait rien (« Raté ! »). Toutes les 6 à 12 s, un point faible apparaît 1,2 s : 4 %, 8 % si touché en moins de 0,5 s, plafonné à 25 % des PV par combat.
-- **Tentation** : vers 20 s puis toutes les 40 à 50 s, le boss te tend une clope. 4 s pour « Refuser » (−5 % pour lui) ; sinon il récupère 15 %.
-- **Faiblesses** : chaque boss prend ×1,5 d'une attaque et ×0,5 d'une autre (sauf Clopinette), affichées après la première victoire.
-- **Rang** : S (< 2 min avec au moins 2 types d'attaque, +10 XP), A (< 3 min, +5 XP), B (abattu avant l'épuisement), C (épuisement).
-- **Mode crise** (envie à 5) : boss enragé (+20 % PV), 3 minutes guidées en plein écran : respirer, Frénésie, bouger, puis le coup final.
-- **Frénésie** (le mode clicker) : 30 s de points faibles en chaîne, 1 % par coup, 1,6 % si touché vite, ×1,5 dès 10 de combo, +3 % et un critique tous les 10. En combat c'est l'attaque « jeu » ; dans l'Arcade, une partie libre contre un mannequin, pour le score et le combo.
-- **Impacts** : critique en éclair noir et rouge plein écran ; refus de clope en cyan (la clope casse en deux) ; circuit en attaque ultime, tirée au hasard entre *Fracture* (l'écran se fissure puis vole en éclats) et *Supernova* (une lumière avale l'écran) ; K.O. au hasard entre *Tranche* (écran noir, un trait, le boss coupé en deux) et *Manga* (trois cases d'impact). Option « Effets intenses » dans les réglages pour couper flashs et inversions.
-- **Victoire** : la clope de l'envie s'écrase dans le cendrier, crache sa braise et s'éteint. Le bocal de l'accueil compte toutes les clopes écrasées (bocal, poubelle, benne, volcan éteint).
+- **Trois façons de tenir une envie** : **Combat** (le boss de l'envie, en clicker), **Respirer** (le cercle guidé, au moins une minute) ou **Bouger** (un circuit). Les trois écrasent la clope au cendrier et rapportent de l'XP sevrage.
+- **Boss d'envie** : un par déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, le Spectre de 2h du mat' la nuit, Clopinette sinon). Chacun a un trait faible et un trait fort (points faibles plus lents ou plus vifs, plus ou moins faciles à toucher, sensible ou blindé aux gros paliers, tentations plus ou moins fréquentes), révélés après la première victoire.
+- **Combat clicker** : des points faibles apparaissent sur le boss ; touche-les avant que les crochets se referment (plus vite = coup rapide). Le combo monte à chaque point, un raté ou un point qui s'échappe le remet à zéro. Les points arrivent de plus en plus vite.
+- **Neuf paliers d'impact** : coup, coup sûr, coup net, critique, critique noir, impact noir, fracture, supernova, transe. Les paliers 3 à 9 tombent à des combos précis, plus espacés pour les grosses envies ; la transe double les dégâts jusqu'au prochain raté. K.O. en *Tranche* ou en *Manga*.
+- **Durée** : PV calibrés par simulation pour qu'un bon joueur gagne en 1 min (envie à 1) à 3 min (envie à 5). Le boss s'épuise tout seul et meurt au bout de 5 minutes (épuisement lent puis rapide) : on ne perd qu'en déclarant une rechute.
+- **Tentation** : de temps en temps, le boss te tend une clope. Refuser lui retire 3 % de PV et garde ton combo ; laisser passer le soigne de 8 % et casse le combo.
+- **Rang** : S (dans le temps visé avec un beau combo), A (moins de 1,5 × le temps visé), B (abattu avant l'épuisement), C (épuisement).
+- **Niveau joueur et talents** : chaque combat rapporte de l'XP joueur (victoire, combo max, rang), l'Arcade aussi (plafonnée par jour). Un point par niveau dans un arbre à trois branches : *Puissance* (dégâts, paliers plus tôt, refus cinglant, coup de grâce), *Technique* (coup rapide plus long, points plus faciles, ratés pardonnés), *Spectacle* (débloque les paliers 6 à 9 et le K.O. Manga). Réinitialisable.
+- **Arcade** : Entraînement (30 s), Sans fin (trois vies, ça accélère), Boss Run (les 11 boss à la suite, chrono), chacun avec son record. Rien n'y touche aux envies.
+- **Victoire** : la clope de l'envie s'écrase dans le cendrier, crache sa braise et s'éteint. Le bocal de l'accueil compte toutes les clopes écrasées.
 - **Records caméra** : pompes en 1 min, squats en 30 s, jumping jacks en 1 min, dips en 45 s, planche et chaise le plus longtemps possible, comptés par le coach.
-- **Bestiaire** : victoires, niveau, meilleur temps, faiblesses et résistances par boss.
 
-Rendu en canvas (`src/game/gfx/`) : les boss sont dessinés par code (`bossArt.js`, ~32 × 32, formes + visage partagé), ombrés et contourés automatiquement, avec leurs états (respiration, clignement, parole, grimace, fissures selon les PV, colère). La scène de combat (`BossStage.js`) gère gel d'image, flash, recul, écrasement, éclats, ondes de choc et un calque plein écran pour les impacts. Les bruitages sont synthétisés puis précalculés une fois (`sfx.js`), sans aucun fichier son.
+Rendu en canvas (`src/game/gfx/`) : boss dessinés par code (`bossArt.js`), ombrés et contourés automatiquement, avec leurs états (respiration, clignement, parole, grimace, fissures selon les PV, colère). La scène (`BossStage.js`) gère les neuf paliers, la transe et un calque plein écran pour les impacts. Bruitages synthétisés et précalculés (`sfx.js`), sans fichier son. Option « Effets intenses » dans les réglages pour couper flashs et inversions.
 
 ## Barème
 
-- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par boss vaincu +15 en tenant, +20 en respirant ou en Frénésie, +25 avec un circuit, +30 en mode crise, +10 / +5 au rang S / A ; +80 par défi sevrage.
+- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par envie tenue +20 au combat (+10 / +5 au rang S / A), +20 en respirant, +25 au sport ; +80 par défi sevrage.
 - **Sport** (définitif) : reps × difficulté, ou secondes × difficulté ÷ 3, × 2 pour les exos « par côté », +80 par défi sport.
-- **Niveaux** : seuil cumulé `K × (L-1) × L`, K = 75 (sevrage) et 60 (sport).
+- **Joueur** (définitif) : +20 par boss vaincu, +1 par point de combo max (60 au plus), +30 / +15 / +5 au rang S / A / B ; Arcade : 1 XP pour 50 points, 120 par jour au plus.
+- **Niveaux** : seuil cumulé `K × (L-1) × L`, K = 75 (sevrage), 60 (sport) et 50 (joueur).
 
 ## Coach caméra
 
@@ -103,7 +103,7 @@ src/
   components/ éléments communs, récap hebdo
   art/        personnage 2D, poses, icônes, médailles
   pose/       coach caméra : compteurs (purs), moteur MediaPipe, interface
-  game/       boss, combat (pur), Frénésie, crise, victoire, records ; gfx/ : rendu canvas, sprites, sons
+  game/       boss, combat et combo (purs), clicker, victoire, records ; gfx/ : rendu canvas, sprites, sons
 tests/        tests node:test
 ```
 

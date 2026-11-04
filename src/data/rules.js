@@ -1,4 +1,4 @@
-import { DAY } from "../lib/util.js";
+import { DAY, dayKey } from "../lib/util.js";
 
 /* ---------------- Progression ----------------
  * Seuil cumulé pour atteindre le niveau L : K × (L-1) × L
@@ -8,6 +8,24 @@ export const SPORT_K = 60;
 export const XP_DAY = 100;
 export const DEFI_XP = 80;
 export const CRAV_XP = { hold: 15, breath: 20, game: 20, sport: 25, crisis: 30 };
+
+/* ---------------- Niveau joueur (combats et Arcade, jamais remis à zéro) ---------------- */
+export const PLAYER_K = 50;
+export const P_TITLES = ["Débutant", "Apprenti", "Cogneur", "Bagarreur", "Enchaîneur", "Briseur", "Fléau", "Cauchemar", "Boss final", "Légende"];
+export const RANK_PXP = { S: 30, A: 15, B: 5, C: 0 };
+export const ARCADE_DAY_CAP = 120;
+export const ARCADE_MODES = ["frenzy", "endless", "bossrun"];
+/** XP joueur d'un événement. dayMap cumule l'XP d'Arcade par jour (plafonnée). */
+export function playerXpOf(e, dayMap = new Map()) {
+  if (e.k === "craving" && e.b) return 20 + Math.min(60, e.mc || 0) + (RANK_PXP[e.rk] || 0);
+  if (e.k === "game" && ARCADE_MODES.includes(e.g)) {
+    const k = dayKey(new Date(e.t)), got = dayMap.get(k) || 0;
+    const x = Math.max(0, Math.min(ARCADE_DAY_CAP - got, Math.floor((e.s || 0) / 50)));
+    dayMap.set(k, got + x);
+    return x;
+  }
+  return 0;
+}
 
 export const Q_TITLES = ["Premier pas", "Ça tient", "Poumons en chantier", "Souffle retrouvé", "Moins accro", "Ex-fumeur", "Libre", "Inarrêtable", "Non-fumeur", "Légende"];
 export const S_TITLES = ["Rouillé", "Échauffé", "Motivé", "Régulier", "Solide", "Costaud", "Athlète", "Machine", "Monstre", "Légende"];
@@ -28,7 +46,7 @@ export const TRIGGERS = [
 export const TRIG_NAME = Object.fromEntries(TRIGGERS);
 export const I_NAMES = ["", "Légère", "Ça va", "Forte", "Très forte", "Énorme"];
 export const methodOf = (e) => e.m || (e.sport ? "sport" : "hold");
-export const METHOD_NAME = { sport: "au sport", breath: "en respirant", game: "en Frénésie", crisis: "en mode crise", hold: "sans rien" };
+export const METHOD_NAME = { sport: "au sport", breath: "en respirant", game: "au combat", crisis: "en mode crise", hold: "sans rien" };
 
 /* ---------------- Santé (repères après la dernière nicotine) ---------------- */
 export const HEALTH = [
