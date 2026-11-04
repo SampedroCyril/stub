@@ -712,3 +712,30 @@ details.fold[open]>summary::after{content:"–"}
 .gauge-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
 .gauge-pick .pick{justify-content:center}
 .gauge-preview{width:100%;border-radius:12px;background:radial-gradient(120% 80% at 50% 40%,#221a3a,#0d0a18);padding:4px 0}
+
+/* 0.3.4 : écran de combat aéré, flèche retour et pause */
+.fight-in{max-width:560px;gap:8px;padding:10px 16px 14px;justify-content:flex-start}
+.fight-head{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px}
+.fight-title{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;text-align:center}
+.fight-title .px-name{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fight-title .px-lvl{color:#94b0c2}
+.fight-ico{appearance:none;width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;background:none;color:#94b0c2;cursor:pointer;border-radius:10px}
+.fight-ico svg{width:22px;height:22px}
+.fight-ico:active{background:rgba(255,255,255,.08);color:#fff}
+.fight-ico:focus-visible{outline:2px solid #ffcd75;outline-offset:2px}
+.fight-stage{flex:1;justify-content:center;min-height:0;gap:10px}
+.fight-foot{min-height:0}
+.fight-foot:empty{display:none}
+.fight-menu{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:24px;background:rgba(13,14,23,.82);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:fmenu .14s ease-out}
+.fight-menu-in{width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.fight-menu-t{margin:0;font:400 16px/1.5 var(--f-pixel);color:#ffcd75}
+.fight-menu-s{margin:0;font-size:14px;line-height:1.45;color:#c2c3c7}
+.fight-menu-b{display:flex;flex-direction:column;gap:8px;width:100%}
+.fight-menu-b .btn{flex:none;padding:14px}
+.fight-menu-b .btn:not(.green):not(.danger){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#f4f4f4}
+.fight-menu-l{margin:0}
+.fight-menu .mods{justify-content:center}
+@keyframes fmenu{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.fight-menu{animation:none}}
+.fight-stage .boss-view{flex:1 1 0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.fight-stage .gauge-view{flex:none}
