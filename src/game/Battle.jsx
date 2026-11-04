@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import BossView from "./BossView.jsx";
 import FightScreen from "./FightScreen.jsx";
+import GaugeView from "./GaugeView.jsx";
 import { useClicker } from "./useClicker.js";
 import { BOSSES, traitsOf, traitList } from "./bosses.js";
 import { hpAt, elapsedMs, bestiary, BATTLE_MS, DMG } from "./battle.js";
@@ -23,7 +24,7 @@ export function ModChips({ boss, known }) {
 /** Combat contre le boss d'une envie, en plein écran : jauge de rythme, combo, paliers, jusqu'au K.O. */
 export default function Battle() {
   const { battle, state, hitBattle, patchBattle, winBattle, fleeBattle, go, S, battleView } = useApp();
-  const stage = useRef(null);
+  const stage = useRef(null), gauge = useRef(null);
   const [, setTick] = useState(0);
   const [taunt, setTaunt] = useState(0);
   const [started, setStarted] = useState(false);
@@ -36,7 +37,7 @@ export default function Battle() {
   const perks = perksOf(state.skills);
 
   const clicker = useClicker(stage, {
-    intensity: battle?.intensity, skills: state.skills, traits,
+    intensity: battle?.intensity, skills: state.skills, traits, gaugeRef: gauge,
     onHit: ({ dmg, maxCombo }) => {
       const b = latest.current.battle;
       if (!b) return dmg;
@@ -101,12 +102,13 @@ export default function Battle() {
       onTap={onTap}
       top={<><ModChips boss={battle.boss} known={known} /><p className="bubble" key={taunt}>« {B.taunts[taunt % B.taunts.length]} »</p></>}
       footer={!started
-        ? <p className="fight-hint"><b>Touche l'écran quand les deux cercles se rejoignent au centre.</b> Si ce sont des clopes qui arrivent, ne touche pas : laisse-les s'écraser.</p>
+        ? <p className="fight-hint"><b>Touche l'écran quand les notes arrivent au centre de la jauge.</b> Si ce sont des clopes, ne touche pas : laisse-les s'écraser.</p>
         : !confirmFlee
           ? <div className="fight-actions"><button className="linkbtn" type="button" onClick={() => go("accueil")}>Réduire</button><button className="linkbtn" type="button" onClick={() => setConfirmFlee(true)}>Fausse alerte</button></div>
           : <p className="fight-actions">Le combat s'arrête sans XP. <button className="linkbtn" type="button" onClick={fleeBattle}>Arrêter</button> <button className="linkbtn" type="button" onClick={() => setConfirmFlee(false)}>Continuer</button></p>}
     >
       <BossView stageRef={stage} boss={battle.boss} maxHp={battle.maxHp} hp={startHp} lvl={battle.lvl} />
+      <GaugeView gaugeRef={gauge} style={state.gaugeStyle || "fluid"} />
       {!started && <div className="tap-start" aria-hidden="true">Touche pour commencer</div>}
     </FightScreen>
   );

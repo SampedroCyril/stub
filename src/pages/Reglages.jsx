@@ -1,5 +1,7 @@
 import { useRef, useState } from "react";
 import { useApp, SECTIONS, sectionOn } from "../store/AppStore.jsx";
+import GaugeView from "../game/GaugeView.jsx";
+import { GAUGE_STYLES } from "../game/gfx/Gauge.js";
 import { Panel } from "../components/ui.jsx";
 import InstallCard from "../components/InstallCard.jsx";
 import { isStandalone } from "../lib/install.js";
@@ -126,6 +128,15 @@ export default function Reglages() {
 
       <Group title="Jeu">
         <Toggle id="gamesound" label="Bruitages des combats" sub="Coups, critiques, K.O., clope écrasée" checked={state.gameSound !== false} onChange={(v) => patchState({ gameSound: v })} />
+        <div className="set-row col">
+          <span><b>Style de la jauge</b><small>Le look de la jauge de rythme, en combat et dans l'Arcade</small></span>
+          <div className="gauge-pick" role="radiogroup" aria-label="Style de la jauge">
+            {GAUGE_STYLES.map(([id, n]) => (
+              <button key={id} type="button" role="radio" className="pick" aria-checked={(state.gaugeStyle || "fluid") === id} aria-pressed={(state.gaugeStyle || "fluid") === id} onClick={() => patchState({ gaugeStyle: id })}>{n}</button>
+            ))}
+          </div>
+          <div className="gauge-preview"><GaugeView style={state.gaugeStyle || "fluid"} demo /></div>
+        </div>
         <Toggle id="intense" label="Effets intenses" sub="Flashs et écran inversé sur les gros coups. À couper si tu es sensible aux lumières clignotantes." checked={state.intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches} onChange={(v) => patchState({ intense: v })} />
       </Group>
 

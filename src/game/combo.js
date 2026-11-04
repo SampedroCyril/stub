@@ -52,10 +52,16 @@ export function damageFor(tier, { fast = false, trance = false, combo = 0, ms, p
 export const approachMs = (combo, slow = 1) => Math.round(Math.max(430, 1150 * (1 - combo / 75)) * slow);
 /** Pause entre deux notes. */
 export const NOTE_GAP = 220;
-/** Fenêtres de jugement autour de l'arrivée au centre (ms). */
-export const WINDOW = { perfect: 75, good: 170 };
-export function judge(dt, { perfect = WINDOW.perfect, good = WINDOW.good } = {}) {
-  const a = Math.abs(dt);
+/**
+ * Fenêtres de jugement autour de l'arrivée au centre (ms). late : retard pardonné,
+ * parce qu'on tape presque toujours un poil tard sur un écran tactile.
+ */
+export const WINDOW = { perfect: 90, good: 210, late: 40 };
+/** Parfaits d'affilée pour une série (bonus). */
+export const STREAK = 5;
+export const STREAK_BONUS = 300;
+export function judge(dt, { perfect = WINDOW.perfect, good = WINDOW.good, late = WINDOW.late } = {}) {
+  const a = dt > 0 ? Math.max(0, dt - late) : -dt;
   return a <= perfect ? "perfect" : a <= good ? "good" : "miss";
 }
 /** Une note sur combien est une clope tendue (ne pas toucher : elle s'écrase et le boss encaisse). */
