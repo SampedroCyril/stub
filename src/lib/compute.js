@@ -2,6 +2,7 @@ import { EX, sides, circuitXp } from "../data/exercises.js";
 import { CRAV_XP, XP_DAY, DEFI_XP, QUIT_K, SPORT_K, levelOf, methodOf, HEALTH } from "../data/rules.js";
 import { DEFIS, pickDefis, evalDefi } from "../data/defis.js";
 import { BADGES, badgeInfo } from "../data/badges.js";
+import { RANK_XP } from "../game/battle.js";
 import { DAY, dayKey, weekStart, addDays, clamp } from "./util.js";
 
 /** Liste triée de tous les événements. */
@@ -63,7 +64,7 @@ export function compute(state, days, now = new Date()) {
     ser.res.push({ t: d, v: res });
     if (m === "sport") { resSport++; ser.ressport.push({ t: d, v: resSport }); }
     if (m === "breath") resBreath++;
-    qPoints.push({ t: d, x: CRAV_XP[m] });
+    qPoints.push({ t: d, x: CRAV_XP[m] + (RANK_XP[e.rk] || 0) });
   });
   const quitWins = allWins.filter((d) => d.g === "quit" && d.doneAt >= q);
   quitWins.forEach((d) => qPoints.push({ t: d.doneAt, x: DEFI_XP }));

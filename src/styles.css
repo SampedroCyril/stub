@@ -617,3 +617,29 @@ details.fold[open]>summary::after{content:"–"}
   .boss,.battle-pill,.crisis-move,.rage-shake,.px-name.rage{animation:none!important}
   .dmg{animation-duration:.01s}
 }
+
+/* 0.12 : point faible, tentation, faiblesses, rang */
+.mods{display:flex;flex-wrap:wrap;gap:4px}
+.mod{font:400 8px/1.6 var(--f-pixel);padding:3px 6px;border:2px solid #0d0e17;background:#333c57;color:#c2c3c7}
+.mod.weak{background:#257179;color:#fff}
+.mod.res{background:#5d275d;color:#fff}
+.prefight .mods{margin-top:6px}
+.boss-hit{cursor:crosshair}
+.weakspot{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:0;border:3px solid #ffcd75;background:rgba(228,59,68,.55);cursor:pointer;animation:weak .3s steps(2) infinite;box-shadow:0 0 0 3px #1a1c2c;padding:0}
+.weakspot::before,.weakspot::after{content:"";position:absolute;background:#ffcd75;left:50%;top:50%}
+.weakspot::before{width:4px;height:16px;margin:-8px 0 0 -2px}
+.weakspot::after{width:16px;height:4px;margin:-2px 0 0 -8px}
+@keyframes weak{50%{transform:scale(.8)}}
+.dmg.miss{color:#94b0c2;text-shadow:2px 2px 0 #1a1c2c;font-size:11px}
+.dmg.heal{color:#a7f070;text-shadow:2px 2px 0 #1a1c2c}
+.tempt{position:fixed;inset:0;z-index:60;color:#f4f4f4;background:rgba(43,15,26,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;animation:bubble .2s steps(2)}
+.tempt-art{width:90px;height:auto;aspect-ratio:1/1;animation:shake .15s steps(2) infinite}
+.tempt>*{flex:0 0 auto}
+.tempt .btn{max-width:260px;width:100%;height:auto;min-height:64px}
+.tempt-bar{width:100%;max-width:260px;height:10px;background:#3d1726;border:2px solid #0d0e17}
+.tempt-bar i{display:block;height:100%;background:#e43b44;animation:drain linear forwards}
+@keyframes drain{from{width:100%}to{width:0}}
+.tempt small{color:#b07a88;font-size:12px}
+.rank{margin:0;font:400 44px/1 var(--f-pixel);text-shadow:4px 4px 0 #0d0e17}
+.rank-S{color:#ffcd75} .rank-A{color:#73eff7} .rank-B{color:#a7f070} .rank-C{color:#94b0c2}
+.v-bonus{font-size:10px;color:#ffcd75}

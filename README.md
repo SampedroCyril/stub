@@ -23,21 +23,25 @@ Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
 
-## Le jeu (0.11)
+## Le jeu (0.12)
 
 - **Boss d'envie** : chaque envie notée fait apparaître un boss lié à son déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, et le Spectre de 2h du mat' la nuit). PV = 100 × intensité, +10 % par niveau du boss (un niveau toutes les 5 victoires, couronne dès le niveau 3).
-- **Il s'épuise tout seul en 5 minutes**, la durée réelle d'une envie. Les attaques l'abattent plus vite : tapes (1 %, critique 3 %), cycle de respiration (8 %), ligne aux blocs (10 %, 4 lignes 50 %), circuit (60 %, 80 % si validé caméra). On ne perd qu'en déclarant une rechute.
+- **Il s'épuise tout seul en 5 minutes**, la durée réelle d'une envie. Les attaques l'abattent plus vite : circuit (50 %, 75 % si validé caméra), cycle de respiration complet (7 %), ligne aux blocs (8 %, 4 lignes 35 %). On ne perd qu'en déclarant une rechute.
+- **Point faible** : taper le boss ne fait rien (« Raté ! »). Toutes les 6 à 12 s, un point faible apparaît 1,2 s : 4 %, 8 % si touché en moins de 0,5 s, plafonné à 25 % des PV par combat.
+- **Tentation** : vers 20 s puis toutes les 40 à 50 s, le boss te tend une clope. 4 s pour « Refuser » (−5 % pour lui) ; sinon il récupère 15 %.
+- **Faiblesses** : chaque boss prend ×1,5 d'une attaque et ×0,5 d'une autre (sauf Clopinette), affichées après la première victoire.
+- **Rang** : S (< 2 min avec au moins 2 types d'attaque, +10 XP), A (< 3 min, +5 XP), B (abattu avant l'épuisement), C (épuisement).
 - **Mode crise** (envie à 5) : boss enragé (+20 % PV), 3 minutes guidées en plein écran : respirer, jouer, bouger, puis le coup final.
 - **Arcade** : jeu de blocs tactile, parties libres avec record, ou 3 minutes en combat.
 - **Cendrier** : chaque victoire écrase une clope dans un bocal pixel art qui évolue (bocal, poubelle, benne, volcan éteint).
 - **Records caméra** : pompes en 1 min, squats en 30 s, jumping jacks en 1 min, dips en 45 s, planche et chaise le plus longtemps possible, comptés par le coach.
-- **Bestiaire** : victoires, niveau et meilleur temps par boss.
+- **Bestiaire** : victoires, niveau, meilleur temps, faiblesses et résistances par boss.
 
 Les sprites sont dessinés en texte (`src/game/sprites.js`, 16 × 16, une lettre par couleur) et rendus en SVG net.
 
 ## Barème
 
-- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par boss vaincu +15 en tenant, +20 en respirant ou aux blocs, +25 avec un circuit, +30 en mode crise ; +80 par défi sevrage.
+- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par boss vaincu +15 en tenant, +20 en respirant ou aux blocs, +25 avec un circuit, +30 en mode crise, +10 / +5 au rang S / A ; +80 par défi sevrage.
 - **Sport** (définitif) : reps × difficulté, ou secondes × difficulté ÷ 3, × 2 pour les exos « par côté », +80 par défi sport.
 - **Niveaux** : seuil cumulé `K × (L-1) × L`, K = 75 (sevrage) et 60 (sport).
 

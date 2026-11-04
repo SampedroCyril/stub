@@ -5,6 +5,8 @@ import { CRAV_XP, TRIGGERS, I_NAMES } from "../data/rules.js";
 import Battle from "../game/Battle.jsx";
 import Pixel from "../game/Pixel.jsx";
 import { BOSSES, bossFor } from "../game/bosses.js";
+import { ModChips } from "../game/Battle.jsx";
+import { bestiary } from "../game/battle.js";
 import { durationText, pl } from "../lib/util.js";
 
 export default function Sevrage() {
@@ -56,6 +58,7 @@ export default function Sevrage() {
               <span className="label">Ton adversaire</span>
               <strong className="px-name">{BOSSES[bossFor(craving.trigger, new Date(craving.at))].n}</strong>
               <small>{100 * (craving.intensity || 2)} PV · il s'épuise tout seul en 5 min</small>
+              <ModChips boss={bossFor(craving.trigger, new Date(craving.at))} known={(bestiary(S.ev)[bossFor(craving.trigger, new Date(craving.at))]?.wins || 0) > 0} />
             </div>
           </div>
           {craving.intensity === 5 ? (
@@ -87,10 +90,11 @@ export default function Sevrage() {
         <summary>Comment tu gagnes de l'XP sevrage</summary>
         <div className="rules">
           <div><span>Chaque jour complet sans clope</span><b className="g">+100</b></div>
-          <div><span>Boss vaincu en tenant (tapes ou épuisement)</span><b className="g">+{CRAV_XP.hold}</b></div>
+          <div><span>Boss vaincu en tenant (points faibles ou épuisement)</span><b className="g">+{CRAV_XP.hold}</b></div>
           <div><span>Boss vaincu en respirant ou aux blocs</span><b className="g">+{CRAV_XP.breath}</b></div>
           <div><span>Boss vaincu avec un circuit</span><b className="g">+{CRAV_XP.sport}</b></div>
           <div><span>Boss vaincu en mode crise</span><b className="g">+{CRAV_XP.crisis}</b></div>
+          <div><span>Bonus de rang S / A</span><b className="g">+10 / +5</b></div>
           <div><span>Défi sevrage de la semaine réussi</span><b className="g">+80</b></div>
         </div>
         <p className="tip">Une envie tuée au sport rapporte aussi l'XP sport du circuit.</p>

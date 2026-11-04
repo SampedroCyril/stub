@@ -5,7 +5,7 @@ import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
 import { DEFIS } from "../data/defis.js";
 import { DEFI_XP, Q_TITLES, S_TITLES, CRAV_XP, titleOf } from "../data/rules.js";
-import { createBattle, hit, hpAt, victoryEvent, bestiary } from "../game/battle.js";
+import { createBattle, hit, hpAt, victoryEvent, bestiary, RANK_XP } from "../game/battle.js";
 import { BOSSES } from "../game/bosses.js";
 
 const Ctx = createContext(null);
@@ -157,7 +157,7 @@ export function AppProvider({ children }) {
     setBattle(null);
     setFlow({ mode: "idle" });
     setVictory({ battle: b, ev });
-    commit([ev], [`${BOSSES[b.boss].n} vaincu : +${CRAV_XP[ev.m]} XP sevrage`]);
+    commit([ev], [`${BOSSES[b.boss].n} vaincu${ev.rk ? ` (rang ${ev.rk})` : ""} : +${CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0)} XP sevrage`]);
   }, [commit, setBattle]);
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 

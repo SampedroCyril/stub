@@ -4,6 +4,7 @@ import Pixel from "./Pixel.jsx";
 import Cendrier, { stageOf } from "./Cendrier.jsx";
 import { BOSSES } from "./bosses.js";
 import { CRAV_XP, METHOD_NAME } from "../data/rules.js";
+import { RANK_XP } from "./battle.js";
 import { pad } from "../lib/util.js";
 
 /** Écran de victoire : le boss disparaît, une clope tombe dans le cendrier. */
@@ -24,13 +25,14 @@ export default function Victory() {
         <div className="v-stage">
           <Pixel name={B.sprite} className="boss dissolve" />
           <p className="ko" aria-hidden="true">K.O.</p>
+          {ev.rk && <p className={`rank rank-${ev.rk}`} aria-label={`Rang ${ev.rk}`}>{ev.rk}</p>}
           <p className="px-title" id="v-title">VICTOIRE !</p>
           <p className="v-death">{B.death}</p>
         </div>
         <div className="v-stats">
           <div><span className="label">Temps</span><b>{Math.floor(ev.kt / 60)}:{pad(ev.kt % 60)}</b></div>
           <div><span className="label">Arme</span><b>{METHOD_NAME[ev.m].replace(/^(au|en) /, "")}</b></div>
-          <div><span className="label">XP sevrage</span><b>+{CRAV_XP[ev.m]}</b></div>
+          <div><span className="label">XP sevrage</span><b>+{CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0)}</b>{RANK_XP[ev.rk] ? <small className="v-bonus">dont +{RANK_XP[ev.rk]} rang {ev.rk}</small> : null}</div>
         </div>
         <div className="v-ash">
           <Cendrier count={count} drop />
