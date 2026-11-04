@@ -1,0 +1,17 @@
+{
+  "name": "Roulement anti-clope",
+  "short_name": "Anti-clope",
+  "description": "Chaque envie de fumer devient un circuit de sport. Coach caméra, défis, badges et suivi santé.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F3F7",
+  "theme_color": "#1C8A57",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
