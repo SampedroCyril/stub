@@ -3,11 +3,12 @@ import { Particles, SPARK, rnd } from "./particles.js";
 import { drawText, drawBig } from "./font.js";
 import { BOSS_ART } from "./bossArt.js";
 import { play } from "./sfx.js";
+import { C, cigSpec, linePts, drawStick } from "./stick.js";
 
 export const STAGE_W = 64, STAGE_H = 60;
 const FLOOR = STAGE_H - 4;
 const STEP = 1000 / 60;
-const INK = "#0a0006", BLOOD = "#ff1f3d", PAPER = "#f4f4f4";
+const INK = "#0a0006", BLOOD = "#ff1f3d", PAPER = "#f4f4f4", AIR = "#3ae0ff";
 
 /** Trace une ligne de gros pixels (taille s) dans un buffer. */
 function pline(c, x0, y0, x1, y1, s = 1) {
@@ -43,11 +44,13 @@ function bolts(x, y, n, reach) {
  * Un second canvas plein écran porte les effets qui débordent : éclairs, flashs, lignes de vitesse, textes géants.
  */
 export class BossStage {
-  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, shakeEl = null } = {}) {
+  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, intense } = {}) {
     this.cv = canvas;
     this.art = BOSS_ART[boss];
     this.maxHp = maxHp; this.hp = hp; this.ghost = hp; this.ghostDelay = 0; this.healGlow = 0;
-    this.onTap = onTap; this.shakeEl = shakeEl;
+    this.onTap = onTap; this.onWeakExpire = onWeakExpire; this.shakeEl = shakeEl;
+    this.intense = intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    this.combo = 0; this.comboPop = 0; this.frenzy = null;
     this.buf = document.createElement("canvas");
     this.buf.width = STAGE_W; this.buf.height = STAGE_H;
     this.b = this.buf.getContext("2d");
@@ -63,7 +66,7 @@ export class BossStage {
     Object.assign(this.ov.style, { position: "fixed", left: "0", top: "0", pointerEvents: "none", zIndex: "9999", imageRendering: "pixelated", display: "none" });
     document.body.appendChild(this.ov);
     this.ovBuf = document.createElement("canvas"); this.ob = this.ovBuf.getContext("2d");
-    this.ovFx = [];
+    this.ovFx = []; this.ovParts = new Particles();
     this.resize();
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(canvas.parentElement || canvas);
@@ -155,7 +158,8 @@ export class BossStage {
       play("charge");
       return;
     }
-    const { crit = false, big = false, label } = opts;
+    const { crit = false, big = false, label, title, kind } = opts;
+    const refuse = kind === "refuse";
     const p = this.pos;
     const x = opts.x ?? p.x + p.w / 2 + rnd(-6, 6), y = opts.y ?? p.y + p.h / 2 + rnd(-4, 4);
     this.hp = Math.max(0, this.hp - dmg);
@@ -168,6 +172,7 @@ export class BossStage {
     this.sq = big ? 0.36 : crit ? 0.3 : 0.14; this.sqv = 0;
     this.hurtT = big ? 50 : crit ? 36 : 24; this.talkT = 0;
     this.chroma = big ? 26 : crit ? 18 : 0;
+    if (refuse) { this.stop = 6; this.flash = 4; this.shake = 3.5; this.chroma = 0; }
     const cols = this.art.palList ||= Object.values(this.art.pal).map((v) => (typeof v === "string" ? v : v.r[1]));
     const n = big ? 60 : crit ? 30 : 9;
     this.fx.burst(n, () => {
@@ -176,16 +181,21 @@ export class BossStage {
     });
     this.front.burst(big ? 24 : crit ? 16 : 5, () => {
       const a = rnd(0, Math.PI * 2), v = rnd(1.2, big ? 4.2 : 3.2);
-      return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.86, life: rnd(10, 20) | 0, c: crit || big ? (Math.random() < 0.5 ? BLOOD : INK) : SPARK, size: crit || big ? 2 : 1 };
+      return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.86, life: rnd(10, 20) | 0, c: refuse ? (Math.random() < 0.5 ? AIR : "#ffffff") : crit || big ? (Math.random() < 0.5 ? BLOOD : INK) : SPARK, size: crit || big || refuse ? 2 : 1 };
     });
-    this.rings.push({ x, y, r: 2, max: big ? 22 : crit ? 15 : 7, c: crit || big ? BLOOD : "#ffffff" });
-    this.float(label ?? `-${dmg}`, x, y - 4, { color: crit || big ? "#ffffff" : "#ffffff", sc: big ? 3 : crit ? 2 : 1, alt: crit || big ? BLOOD : null });
+    this.rings.push({ x, y, r: 2, max: big ? 22 : crit ? 15 : refuse ? 14 : 7, c: refuse ? AIR : crit || big ? BLOOD : "#ffffff" });
+    this.float(label ?? `-${dmg}`, x, y - 4, { color: "#ffffff", sc: big ? 3 : crit || refuse ? 2 : 1, alt: refuse ? AIR : crit || big ? BLOOD : null });
     const o = this.ovPos(), ix = o.ox + x, iy = o.oy + y;
-    if (crit || big) {
-      this.ovFx.push({ k: "strobe", age: 0, life: big ? 12 : 9, x: ix, y: iy, reach: big ? 140 : 100, n: big ? 11 : 8 });
+    if (refuse) {
+      this.ovFx.push({ k: "flash", age: 0, life: 16, delay: 0, col: AIR, a: 0.3 });
+      this.ovFx.push({ k: "lines", age: 0, life: 22, x: ix, y: iy, delay: 0, col: AIR });
+      for (let i = 0; i < 2; i++) this.ovFx.push({ k: "ring", age: 0, life: 34, delay: i * 5, x: ix, y: iy, col: AIR });
+    } else if (crit || big) {
+      if (this.intense) this.ovFx.push({ k: "strobe", age: 0, life: big ? 12 : 9, x: ix, y: iy, reach: big ? 140 : 100, n: big ? 11 : 8 });
+      else this.ovFx.push({ k: "flash", age: 0, life: 12, delay: 0, col: BLOOD, a: 0.35 });
       this.ovFx.push({ k: "lines", age: 0, life: big ? 34 : 24, x: ix, y: iy, delay: big ? 12 : 9, col: "#ffffff" });
       this.ovFx.push({ k: "vignette", age: 0, life: big ? 50 : 34, delay: big ? 12 : 9 });
-      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: big ? 12 : 9, text: big ? "ultime" : "critique", fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50) });
+      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: big ? 12 : 9, text: title ?? (big ? "ultime" : "critique"), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50) });
       if (big) {
         this.ovFx.push({ k: "flash", age: 0, life: 22, delay: 12, col: "#ffffff" });
         for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: 12 + i * 5, x: ix, y: iy });
@@ -194,7 +204,7 @@ export class BossStage {
       play(big ? "ultimate" : "black");
     } else {
       this.ovFx.push({ k: "lines", age: 0, life: 8, x: ix, y: iy, delay: 0, col: "#ffffff", few: true });
-      play("hit");
+      play(opts.sfx ?? "hit", opts.sfxArg);
     }
     if (navigator.vibrate) navigator.vibrate(big ? [30, 30, 80] : crit ? [20, 20, 50] : 10);
   }
@@ -228,7 +238,23 @@ export class BossStage {
     play("heal");
   }
 
-  refused(dmg) { this.hit(dmg, { crit: true, label: `non! -${dmg}` }); }
+  /** Refus de la clope tendue : elle apparaît, tremble, se casse en deux et le tabac vole. */
+  refused(dmg) {
+    if (this.dead) return;
+    const p = this.pos, o = this.ovPos();
+    const cx = o.ox + p.x + p.w / 2, cy = Math.max(26, o.oy + p.y - 4);
+    this.ovFx.push({ k: "snap", age: 0, life: 14, x: cx, y: cy });
+    this.ovFx.push({ k: "text", age: 0, life: 56, delay: 9, text: "refusé!", fx: [1, 2], y: Math.max(8, cy - 34), cyan: true });
+    this.refuseAt = { dmg, t: 9 };
+    play("refuse");
+  }
+  /** Coup du mode Frénésie : léger, la note monte avec le combo. */
+  frenzyHit(dmg, { fast = false, x, y } = {}) {
+    this.combo++; this.comboPop = 6;
+    this.hit(dmg, { x, y, label: fast ? `-${dmg}!` : `-${dmg}`, sfx: "weakhit", sfxArg: this.combo });
+    if (fast) { this.front.burst(6, () => { const a = rnd(0, Math.PI * 2), v = rnd(1, 2.4); return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.85, life: 12, c: "#ffcd75" }; }); }
+  }
+  breakCombo() { if (this.combo >= 3) this.float(`combo x${this.combo}`, STAGE_W / 2, 20, { color: "#94b0c2" }); this.combo = 0; }
 
   /** K.O. : éclair noir, gel, puis le boss éclate au ralenti en pixels qui rebondissent. */
   ko() {
@@ -271,6 +297,8 @@ export class BossStage {
 
   update() {
     this.updateOverlay();
+    if (this.refuseAt && --this.refuseAt.t <= 0) { const d = this.refuseAt.dmg; this.refuseAt = null; this.hit(d, { kind: "refuse", label: `-${d}` }); }
+    if (this.comboPop > 0) this.comboPop--;
     if (this.pending && --this.pending.t <= 0) { const { dmg, opts } = this.pending; this.pending = null; this.hit(dmg, opts); }
     if (this.stop > 0) { this.stop--; if (this.stop === 0 && this.koT === 0) { this.koT = 1; this.explode(); } return; }
     if (this.slow > 0) { this.slow--; if (this.slow % 3) { this.tickFloats(); return; } }
@@ -292,7 +320,7 @@ export class BossStage {
     this.sqv += -this.sq * 0.3; this.sqv *= 0.68; this.sq += this.sqv;
     if (this.ghostDelay > 0) this.ghostDelay--;
     else if (this.ghost > this.hp) this.ghost = Math.max(this.hp, this.ghost - Math.max(0.4, (this.ghost - this.hp) * 0.07));
-    if (this.weak && performance.now() - this.weak.born > this.weak.ms) this.weak = null;
+    if (this.weak && performance.now() - this.weak.born > this.weak.ms) { this.weak = null; this.onWeakExpire?.(); }
     if (!this.dead && this.t % 7 === 0) {
       const p = this.pos, st = this.art.steam, angry = this.hp / this.maxHp < 0.45;
       this.fx.add({ x: p.x + st.x + rnd(-4, 4), y: p.y + st.y, vy: rnd(-0.32, -0.18), life: rnd(50, 80) | 0, c: angry ? st.angry : "#dfe4ee", fade: true, fadeIn: true, alpha: 0.75, wob: 0.12, size: 1, grow: 0.025 });
@@ -312,7 +340,10 @@ export class BossStage {
       if (e.delay > 0) { e.delay--; continue; }
       e.age++;
       if (e.k === "strobe" && e.age % 2 === 1) e.b = bolts(e.x, e.y, e.n, e.reach);
+      if (e.k === "snap" && e.age === 8) this.snapBurst(e);
     }
+    this.ovParts.update();
+    this.tickHalves();
     this.ovFx = this.ovFx.filter((e) => e.age < e.life);
   }
 
@@ -415,18 +446,31 @@ export class BossStage {
     b.fillStyle = "rgba(255,255,255,.35)"; b.fillRect(x, y, fw, 1);
     b.fillStyle = "rgba(0,0,0,.25)"; b.fillRect(x, y + h - 2, fw, 2);
     drawText(b, `${Math.ceil(this.hp)} PV`, STAGE_W / 2, y + 1, { color: "#ffffff", sc: 1 });
+    if (this.frenzy) {
+      const k = Math.max(0, 1 - (performance.now() - this.frenzy.start) / this.frenzy.dur);
+      b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
+      b.fillStyle = k < 0.25 && (this.t >> 2) % 2 ? "#ffffff" : "#ffcd75"; b.fillRect(x, y + h + 2, Math.round(w * k), 2);
+    }
+    if (this.combo >= 2) {
+      const sc = this.comboPop > 3 ? 3 : 2;
+      drawText(b, `x${this.combo}`, STAGE_W - 12, y + h + 7, { color: this.combo >= 10 ? "#ffcd75" : "#ffffff", sc });
+    }
   }
 
   // ---------- calque plein écran ----------
   drawOverlay() {
     const live = this.ovFx.filter((e) => !(e.delay > 0));
-    if (!live.length) { if (this.ov.style.display !== "none") this.ov.style.display = "none"; return; }
+    if (!live.length && !this.ovParts.list.length && !this.halves) { if (this.ov.style.display !== "none") this.ov.style.display = "none"; return; }
     this.ov.style.display = "block";
     const o = this.ob, W = this.OW, H = this.OH;
     o.clearRect(0, 0, W, H);
-    const order = ["spot", "letterbox", "focus", "ring", "lines", "vignette", "flash", "strobe", "text"];
+    const order = ["spot", "letterbox", "focus", "ring", "lines", "vignette", "flash", "strobe", "snap", "text"];
     live.sort((a, c) => order.indexOf(a.k) - order.indexOf(c.k));
-    for (const e of live) this[`ov_${e.k}`](o, e, W, H);
+    const top = live.filter((e) => e.k === "text"), rest = live.filter((e) => e.k !== "text");
+    for (const e of rest) this[`ov_${e.k}`](o, e, W, H);
+    this.ovParts.draw(o);
+    for (const h of this.halves || []) drawStick(o, linePts(h.x, h.y, h.a, h.spec.length), h.spec);
+    for (const e of top) this.ov_text(o, e, W, H);
     const c = this.ov.getContext("2d");
     c.imageSmoothingEnabled = false;
     c.clearRect(0, 0, this.ov.width, this.ov.height);
@@ -499,7 +543,7 @@ export class BossStage {
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2, x = e.x + Math.cos(a) * r, y = e.y + Math.sin(a) * r;
       o.fillStyle = PAPER; o.fillRect(Math.round(x), Math.round(y), 2, 2);
-      o.fillStyle = BLOOD; o.fillRect(Math.round(e.x + Math.cos(a) * (r - 2)), Math.round(e.y + Math.sin(a) * (r - 2)), 1, 1);
+      o.fillStyle = e.col || BLOOD; o.fillRect(Math.round(e.x + Math.cos(a) * (r - 2)), Math.round(e.y + Math.sin(a) * (r - 2)), 1, 1);
     }
     o.globalAlpha = 1;
   }
@@ -541,6 +585,35 @@ export class BossStage {
     if (e.age > e.life - 6) drawText(o, "!", cx, q.y - 12, { color: BLOOD, sc: 3 });
   }
 
+  /** La clope tendue : elle tremble au-dessus du boss avant de casser. */
+  ov_snap(o, e) {
+    if (e.age >= 8) {
+      if (e.age < 12) {
+        o.fillStyle = "#ffffff";
+        for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; pline(o, e.x + Math.cos(a) * 3, e.y + Math.sin(a) * 3, e.x + Math.cos(a) * (7 + e.age), e.y + Math.sin(a) * (7 + e.age), 1); }
+      }
+      return;
+    }
+    const j = e.age > 3 ? Math.round(rnd(-1, 1)) : 0;
+    const spec = cigSpec({ ember: (e.age >> 1) % 2, paper: 12 });
+    drawStick(o, linePts(e.x - 11 + j, e.y + j, 0, spec.length), spec);
+  }
+  snapBurst(e) {
+    const spec = cigSpec({ ember: 1, paper: 12 }), mid = 9;
+    this.halves = [
+      { x: e.x - 11, y: e.y, a: 0, va: -0.22, vx: -1.5, vy: -2.2, spec: spec.slice(0, mid) },
+      { x: e.x - 11 + mid, y: e.y, a: 0, va: 0.3, vx: 1.7, vy: -2.6, spec: spec.slice(mid) },
+    ];
+    this.halfT = 50;
+    this.ovParts.burst(22, (i) => { const a = rnd(0, Math.PI * 2), v = rnd(0.6, 2.4); return { x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, g: 0.12, life: rnd(30, 55) | 0, c: i % 5 ? ["#8a5a2b", "#6b3a1f", "#a8743a"][i % 3] : "#ffffff", blink: true }; });
+    this.ovParts.burst(8, () => { const a = rnd(0, Math.PI * 2), v = rnd(1.5, 3); return { x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.85, life: 12, c: AIR, size: 2 }; });
+  }
+  tickHalves() {
+    if (!this.halves) return;
+    for (const h of this.halves) { h.x += h.vx; h.y += h.vy; h.vy += 0.16; h.a += h.va; }
+    if (--this.halfT <= 0) this.halves = null;
+  }
+
   /** Texte géant qui s'écrase à l'écran sur une bande noire. */
   ov_text(o, e, W, H) {
     const a = e.age, [sx, sy] = e.fx, k = a < 4 ? 4 - a : 0;
@@ -549,10 +622,11 @@ export class BossStage {
     if (fade && (a >> 1) % 2) return;
     const bw = Math.round(W * slide);
     o.fillStyle = "#000"; o.fillRect(0, y - 4, bw, th + 8);
-    o.fillStyle = BLOOD; o.fillRect(0, y - 5, bw, 1); o.fillRect(0, y + th + 4, bw, 1);
+    o.fillStyle = e.cyan ? AIR : BLOOD; o.fillRect(0, y - 5, bw, 1); o.fillRect(0, y + th + 4, bw, 1);
     const jx = a < 12 ? Math.round(rnd(-1, 1)) : 0, jy = a < 12 ? Math.round(rnd(-1, 1)) : 0;
-    const col = e.red ? ((a >> 2) % 2 ? "#ffffff" : BLOOD) : (a >> 2) % 2 && a < 24 ? BLOOD : "#ffffff";
-    drawBig(o, e.text, W / 2 + 2 + jx, y + 2 + jy, { color: BLOOD, sx: sx + (k >> 1), sy: sy + k, outline: null });
+    const acc = e.cyan ? AIR : BLOOD;
+    const col = e.red ? ((a >> 2) % 2 ? "#ffffff" : BLOOD) : (a >> 2) % 2 && a < 24 ? acc : "#ffffff";
+    drawBig(o, e.text, W / 2 + 2 + jx, y + 2 + jy, { color: acc, sx: sx + (k >> 1), sy: sy + k, outline: null });
     drawBig(o, e.text, W / 2 + jx, y + jy, { color: col, sx: sx + (k >> 1), sy: sy + k, outline: INK });
   }
 }
