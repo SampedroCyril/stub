@@ -201,7 +201,7 @@ export class BossStage {
         for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: 12 + i * 5, x: ix, y: iy });
         this.slow = 60;
       }
-      play(big ? "ultimate" : "black");
+      play(opts.sfx ?? (big ? "ultimate" : "black"));
     } else {
       this.ovFx.push({ k: "lines", age: 0, life: 8, x: ix, y: iy, delay: 0, col: "#ffffff", few: true });
       play(opts.sfx ?? "hit", opts.sfxArg);

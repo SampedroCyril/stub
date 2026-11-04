@@ -77,6 +77,36 @@ const RECIPES = {
   hit: [0.4, 0.12, (a, d) => impact(a, d, 0, { punch: 0.8, body: 0.09 })],
   weakhit: [0.4, 0.12, (a, d) => { impact(a, d, 0, { punch: 0.7, body: 0.08, snap: 2800 }); osc(a, d, 0, { type: "triangle", f0: 880, peak: 0.08, decay: 0.06 }); }],
   black: [0.9, 0.3, (a, d) => { heavy(a, d, 0, 1); crackle(a, d, 0.02, 9, 0.016); }],
+  // --- comparateur : quatre caractères de coup critique ---
+  // A Cinéma : basse très profonde et propre qui retombe lentement, dans une grande salle
+  crit_a: [2.2, 0.35, (a, d) => {
+    osc(a, d, 0, { type: "sine", f0: 58, f1: 34, glide: 0.25, peak: 1, decay: 1.1 });
+    osc(a, d, 0, { type: "triangle", f0: 110, f1: 60, glide: 0.15, peak: 0.45, decay: 0.35 });
+    osc(a, d, 0, { type: "sine", f0: 180, f1: 70, glide: 0.06, peak: 0.7, decay: 0.12, dist: 6 });
+    hiss(a, d, 0, { type: "highpass", f0: 4500, peak: 0.8, decay: 0.04, dist: 15 });
+  }, "long"],
+  // B Coup de poing : grave sec et lourd, court
+  crit_b: [0.9, 0.15, (a, d) => {
+    osc(a, d, 0, { type: "sine", f0: 140, f1: 48, glide: 0.09, peak: 1, decay: 0.38 });
+    osc(a, d, 0, { type: "triangle", f0: 95, f1: 55, glide: 0.1, peak: 0.4, decay: 0.25 });
+    hiss(a, d, 0, { f0: 2500, q: 1, peak: 0.6, decay: 0.02 });
+    hiss(a, d, 0, { f0: 900, f1: 250, q: 0.8, peak: 0.6, decay: 0.1, dist: 10 });
+  }],
+  // C Explosion : souffle grave qui gronde, comme une détonation
+  crit_c: [2.2, 0.3, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 3500, peak: 0.8, decay: 0.05, dist: 15 });
+    hiss(a, d, 0, { type: "lowpass", f0: 1800, f1: 80, q: 0.5, peak: 0.9, attack: 0.004, decay: 0.9, dist: 4 });
+    osc(a, d, 0, { type: "sine", f0: 50, f1: 30, glide: 0.4, peak: 0.8, decay: 0.8 });
+    osc(a, d, 0, { type: "triangle", f0: 100, f1: 55, glide: 0.2, peak: 0.3, decay: 0.3 });
+  }, "long"],
+  // D Tonnerre : claquement électrique puis grondement qui roule
+  crit_d: [2.4, 0.4, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.9, decay: 0.03, dist: 20 });
+    for (let i = 0; i < 8; i++) hiss(a, d, 0.01 + i * 0.018, { f0: 3000 + Math.random() * 5000, q: 4, peak: 0.3, decay: 0.02, dist: 15 });
+    [[0, 0.8], [0.12, 0.6], [0.3, 0.45], [0.5, 0.3]].forEach(([t, p]) => hiss(a, d, t, { type: "lowpass", f0: 500, f1: 80, q: 0.6, peak: p, decay: 0.3 }));
+    osc(a, d, 0, { type: "sine", f0: 55, f1: 32, glide: 0.3, peak: 0.8, decay: 0.9 });
+    osc(a, d, 0, { type: "triangle", f0: 105, f1: 60, glide: 0.2, peak: 0.3, decay: 0.3 });
+  }, "long"],
   charge: [0.65, 0, (a, d) => hiss(a, d, 0, { f0: 600, f1: 5000, q: 0.9, peak: 0.22, attack: 0.5, decay: 0.05 })],
   ultimate: [1.1, 0.35, (a, d) => { heavy(a, d, 0, 1.4); heavy(a, d, 0.05, 1); crackle(a, d, 0.02, 14, 0.02); }],
   ko: [1.1, 0.35, (a, d) => {
@@ -101,22 +131,24 @@ const RECIPES = {
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
-const LEVEL = { hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
-function impulse(a, dur) {
+const LEVEL = { crit_a: 0.95, crit_b: 0.95, crit_c: 0.95, crit_d: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
+function impulse(a, dur, pow = 5) {
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(2, n, a.sampleRate);
-  for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 5; }
+  for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** pow; }
   return b;
 }
 async function renderAll() {
   const O = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   if (!O) return;
-  for (const [name, [dur, wet, draw]] of Object.entries(RECIPES)) {
+  for (const [name, [dur, wet, draw, room = "short"]] of Object.entries(RECIPES)) {
     const a = new O(2, Math.ceil(SR * dur), SR);
     const dry = a.createGain(); dry.gain.value = 1; dry.connect(a.destination);
     if (wet > 0) {
-      const cv = a.createConvolver(); cv.buffer = impulse(a, 0.45);
+      const cv = a.createConvolver(); cv.buffer = impulse(a, room === "long" ? 1.6 : 0.45, room === "long" ? 2.5 : 5);
       const w = a.createGain(); w.gain.value = wet;
-      dry.connect(cv).connect(w).connect(a.destination);
+      // salle longue assombrie : de l'espace sans sifflement
+      const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = room === "long" ? 2200 : 8000;
+      dry.connect(cv).connect(lp).connect(w).connect(a.destination);
     }
     draw(a, dry);
     try {
