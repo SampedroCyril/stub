@@ -6,7 +6,9 @@ Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne qui
 
 ## Fonctionnalités
 
-| Onglet | Contenu |
+Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, santé), **Sport** (circuit, exercices), **Progrès** (défis, badges, stats) et **Réglages**.
+
+| Écran | Contenu |
 |---|---|
 | Accueil | Temps sans clope, niveaux sevrage et sport, prochain cap santé, défis de la semaine, meilleurs badges |
 | Sevrage | Noter une envie (intensité 1-5, déclencheur), la tenir au sport, en respirant ou sans rien. Bouton « J'ai fumé » protégé par une confirmation |
@@ -15,7 +17,8 @@ Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne qui
 | Santé | 10 caps (20 min → 15 ans) datés depuis la dernière nicotine |
 | Défis | 3 défis tirés chaque lundi, +80 XP chacun, historique et récap par semaine |
 | Badges | 17 badges, 7 à 9 paliers chacun, avec date d'obtention |
-| Stats | Intensité sur 14 jours, déclencheurs, heures critiques, sport, journal, import/export |
+| Stats | Intensité sur 14 jours, déclencheurs, heures critiques, sport, journal |
+| Réglages | Installation, export/import des données, date de la dernière clope, coach caméra, aide |
 | Exos | 25 exercices illustrés, difficulté, XP, compatibilité caméra |
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
@@ -40,7 +43,7 @@ La logique de comptage est un module pur (`src/pose/counters.js`) testé sur des
 
 ## Données
 
-Stockées dans le `localStorage` du navigateur. Onglet **Stats → Données et réglages** :
+Stockées dans le `localStorage` du navigateur. Onglet **Réglages → Mes données** :
 - **Exporter** un fichier JSON (sauvegarde ou changement d'appareil) ;
 - **Importer** un fichier ou coller le JSON exporté depuis la première version (fusion sans doublons, ou remplacement).
 

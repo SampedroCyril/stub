@@ -2,12 +2,10 @@ import { useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, useCountdown } from "../components/ui.jsx";
 import { CRAV_XP, TRIGGERS, I_NAMES } from "../data/rules.js";
-import { durationText, pl, pad } from "../lib/util.js";
-
-const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+import { durationText, pl } from "../lib/util.js";
 
 export default function Sevrage() {
-  const { S, state, flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow, commit, patchState, go } = useApp();
+  const { S, state, flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow, commit, go } = useApp();
   const [confirm, setConfirm] = useState(false);
   const craving = flow.mode === "craving" ? flow.craving : null;
   const countdown = useCountdown(craving?.endsAt);
@@ -82,8 +80,8 @@ export default function Sevrage() {
         </div>
       </section>
 
-      <section className="box">
-        <h3>Comment tu gagnes de l'XP sevrage</h3>
+      <details className="box fold">
+        <summary>Comment tu gagnes de l'XP sevrage</summary>
         <div className="rules">
           <div><span>Chaque jour complet sans clope</span><b className="g">+100</b></div>
           <div><span>Envie tenue</span><b className="g">+{CRAV_XP.hold}</b></div>
@@ -92,9 +90,11 @@ export default function Sevrage() {
           <div><span>Défi sevrage de la semaine réussi</span><b className="g">+80</b></div>
         </div>
         <p className="tip">Une envie tuée au sport rapporte aussi l'XP sport du circuit.</p>
-      </section>
+      </details>
 
       <section className="stack">
+        <h2>Rechute</h2>
+        <p className="sub">Si tu as fumé, dis-le ici : ton sevrage repart de zéro, le reste est gardé.</p>
         {!confirm && <button className="btn danger" type="button" onClick={() => setConfirm(true)}>J'ai fumé</button>}
         {confirm && (
           <div className="confirm">
@@ -106,17 +106,6 @@ export default function Sevrage() {
             </div>
           </div>
         )}
-        <div className="settings">
-          <label htmlFor="quit">Dernière clope</label>
-          <input
-            type="datetime-local" id="quit" value={toLocalInput(S.q)}
-            onChange={(e) => {
-              const d = new Date(e.target.value);
-              if (isNaN(d) || d > new Date()) return;
-              patchState({ quitAt: d.toISOString(), ...(S.smokes.length ? {} : { startAt: d.toISOString() }) });
-            }}
-          />
-        </div>
       </section>
     </Panel>
   );

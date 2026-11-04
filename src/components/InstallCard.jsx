@@ -47,7 +47,7 @@ export default function InstallCard({ dismissible = false }) {
           <span>Dans Chrome ou Edge, clique sur l'icône d'installation dans la barre d'adresse, ou menu → <b>Installer Roulement anti-clope</b>.</span>
         )}
         {p.startsWith("ios") && (
-          <p className="install-warn">Sur iPhone, l'app installée a sa propre mémoire, séparée de Safari. Installe-la d'abord, puis importe tes données dedans (Stats → Données et réglages).</p>
+          <p className="install-warn">Sur iPhone, l'app installée a sa propre mémoire, séparée de Safari. Installe-la d'abord, puis importe tes données dedans (Réglages → Mes données).</p>
         )}
       </div>
       {dismissible && <button className="install-x" type="button" aria-label="Masquer" onClick={dismiss}>×</button>}

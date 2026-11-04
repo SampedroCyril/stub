@@ -9,7 +9,17 @@ import { DEFI_XP, Q_TITLES, S_TITLES, titleOf } from "../data/rules.js";
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
 
-export const VIEWS = ["accueil", "sevrage", "circuit", "respirer", "sante", "defis", "badges", "stats", "exos"];
+/** Navigation : 5 sections en bas de l'écran, chacune avec ses sous-onglets. */
+export const SECTIONS = [
+  { id: "accueil", label: "Accueil", icon: "home", views: ["accueil"] },
+  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer", "sante"] },
+  { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "exos"] },
+  { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "badges", "stats"] },
+  { id: "reglages", label: "Réglages", icon: "gear", views: ["reglages"] },
+];
+export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", sante: "Santé", circuit: "Circuit", exos: "Exercices", defis: "Défis", badges: "Badges", stats: "Stats" };
+export const VIEWS = SECTIONS.flatMap((s) => s.views);
+export const sectionOf = (v) => SECTIONS.find((s) => s.views.includes(v)) || SECTIONS[0];
 const viewFromHash = () => {
   const v = location.hash.replace(/^#/, "");
   return VIEWS.includes(v) ? v : "accueil";

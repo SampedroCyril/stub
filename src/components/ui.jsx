@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useApp, VIEWS } from "../store/AppStore.jsx";
+import { useEffect, useState } from "react";
+import { useApp } from "../store/AppStore.jsx";
 import { Q_TITLES, S_TITLES, titleOf } from "../data/rules.js";
 import { pad } from "../lib/util.js";
 
@@ -39,27 +39,6 @@ export const Dots = ({ d }) => (
     {"●".repeat(d)}<span>{"●".repeat(5 - d)}</span>
   </span>
 );
-
-const TAB_LABELS = { accueil: "Accueil", sevrage: "Sevrage", circuit: "Circuit", respirer: "Respirer", sante: "Santé", defis: "Défis", badges: "Badges", stats: "Stats", exos: "Exos" };
-const TAB_COLOR = { sevrage: "quit", sante: "quit", circuit: "sport", respirer: "breath" };
-
-export function Tabs() {
-  const { view, go } = useApp();
-  const bar = useRef(null);
-  useEffect(() => {
-    const t = bar.current?.querySelector(`[data-v="${view}"]`);
-    if (t && bar.current) bar.current.scrollTo({ left: t.offsetLeft - bar.current.clientWidth / 2 + t.clientWidth / 2, behavior: "smooth" });
-  }, [view]);
-  return (
-    <nav className="tabs" role="tablist" aria-label="Sections" ref={bar}>
-      {VIEWS.map((v) => (
-        <button key={v} className="tab" role="tab" type="button" data-v={v} data-c={TAB_COLOR[v]} aria-selected={view === v} aria-controls={`panel-${v}`} onClick={() => go(v)}>
-          {TAB_LABELS[v]}
-        </button>
-      ))}
-    </nav>
-  );
-}
 
 export function Toast() {
   const { toast } = useApp();

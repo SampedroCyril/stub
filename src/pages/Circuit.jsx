@@ -128,8 +128,8 @@ export default function Circuit() {
         </div>
       </section>
 
-      <section className="box">
-        <h3>Comment tu gagnes de l'XP sport</h3>
+      <details className="box fold">
+        <summary>Comment tu gagnes de l'XP sport</summary>
         <div className="rules">
           <div><span>Exo en répétitions</span><b className="s">reps × difficulté</b></div>
           <div><span>Exo en secondes</span><b className="s">secondes × difficulté ÷ 3</b></div>
@@ -137,7 +137,7 @@ export default function Circuit() {
           <div><span>Défi sport de la semaine réussi</span><b className="s">+80</b></div>
         </div>
         <p className="tip">La difficulté va de 1 à 5. Les quantités montent de 10 % par niveau sport et bougent de 12 % à chaque « trop dur » ou « trop facile ». Avec la caméra, c'est ce que tu as vraiment fait qui compte : plus de reps, plus d'XP.</p>
-      </section>
+      </details>
 
       {coach && (
         <Suspense fallback={<div className="coach"><p className="coach-msg">Chargement…</p></div>}>

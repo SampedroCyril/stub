@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { AppProvider, useApp } from "./store/AppStore.jsx";
-import { Tabs, Toast } from "./components/ui.jsx";
+import { Toast } from "./components/ui.jsx";
+import { BottomNav, SectionHeader } from "./components/Nav.jsx";
+import Reglages from "./pages/Reglages.jsx";
 import RecapModal from "./components/RecapModal.jsx";
 import Home from "./pages/Home.jsx";
 import Sevrage from "./pages/Sevrage.jsx";
@@ -39,11 +41,7 @@ function Shell() {
 
   return (
     <div className="wrap">
-      <div className="topbar">
-        <h1>Roulement anti-clope</h1>
-        <p className="sync ok">Sur cet appareil</p>
-      </div>
-      <Tabs />
+      <SectionHeader />
       <Toast />
       <Home />
       <Sevrage />
@@ -54,6 +52,8 @@ function Shell() {
       <Badges />
       <Stats onRecap={open} />
       <Exos />
+      <Reglages />
+      <BottomNav />
       {recap && <RecapModal ws={recap.ws} onClose={close} />}
     </div>
   );

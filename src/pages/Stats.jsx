@@ -1,10 +1,7 @@
-import { useRef, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import { EX, fmtAmt, circuitXp } from "../data/exercises.js";
 import { TRIG_NAME, METHOD_NAME, PATTERNS, DEFI_XP, methodOf } from "../data/rules.js";
-import { exportJson, parseImport, mergeDays } from "../lib/storage.js";
-import InstallCard from "../components/InstallCard.jsx";
 import { DOW, DAY, dayKey, fTime, fmt1, mins, clamp, lastNDays, weekStart } from "../lib/util.js";
 
 function DayBars({ rows }) {
@@ -18,65 +15,6 @@ function DayBars({ rows }) {
         </div>
       ))}
     </div>
-  );
-}
-
-function Data() {
-  const { data, replaceData, wipe, patchState, state } = useApp();
-  const [msg, setMsg] = useState("");
-  const [text, setText] = useState("");
-  const [confirmWipe, setConfirmWipe] = useState(false);
-  const file = useRef(null);
-
-  const download = () => {
-    const blob = new Blob([exportJson(data)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `anti-clope-${dayKey(new Date())}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    setMsg("Fichier téléchargé.");
-  };
-  const doImport = (raw, mode) => {
-    try {
-      const d = parseImport(raw);
-      replaceData(mode === "merge" ? { state: { ...data.state, ...d.state }, days: mergeDays(data.days, d.days) } : d);
-      const n = Object.values(d.days).reduce((a, l) => a + l.length, 0);
-      setMsg(`Import réussi : ${n} événements.`);
-      setText("");
-    } catch (e) {
-      setMsg(e.message);
-    }
-  };
-
-  return (
-    <section className="box">
-      <h3>Données et réglages</h3>
-      <p className="tip">Tout est stocké sur cet appareil. Exporte régulièrement pour garder une sauvegarde ou passer sur un autre téléphone.</p>
-      <div className="row2">
-        <button className="btn green" type="button" onClick={download}>Exporter (JSON)</button>
-        <button className="btn" type="button" onClick={() => file.current?.click()}>Importer un fichier</button>
-        <input ref={file} type="file" accept="application/json,.json" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (f) doImport(await f.text(), "merge"); e.target.value = ""; }} />
-      </div>
-      <label className="label" htmlFor="paste">Ou colle le JSON copié depuis la version Claude</label>
-      <textarea id="paste" className="paste" value={text} onChange={(e) => setText(e.target.value)} placeholder='{"app":"anti-clope", ...}' />
-      {text && (
-        <div className="row2">
-          <button className="btn green" type="button" onClick={() => doImport(text, "merge")}>Fusionner avec mes données</button>
-          <button className="btn" type="button" onClick={() => doImport(text, "replace")}>Remplacer mes données</button>
-        </div>
-      )}
-      {msg && <p className="tip" role="status">{msg}</p>}
-
-      <div className="settings">
-        <label><input type="checkbox" checked={state.sound} onChange={(e) => patchState({ sound: e.target.checked })} /> Son du coach caméra</label>
-        <label><input type="checkbox" checked={state.model === "full"} onChange={(e) => patchState({ model: e.target.checked ? "full" : "lite" })} /> Détection précise (plus lourde)</label>
-      </div>
-      <div className="settings">
-        {!confirmWipe && <button className="linkbtn" type="button" onClick={() => setConfirmWipe(true)}>Tout effacer</button>}
-        {confirmWipe && <span>Efface tout : historique, niveaux, badges. <button className="linkbtn" type="button" onClick={() => { wipe(); setConfirmWipe(false); }}>Effacer</button> · <button className="linkbtn" type="button" onClick={() => setConfirmWipe(false)}>Annuler</button></span>}
-      </div>
-    </section>
   );
 }
 
@@ -229,8 +167,7 @@ export default function Stats({ onRecap }) {
         </div>
       </section>
 
-      <InstallCard />
-      <Data />
+
     </Panel>
   );
 }
