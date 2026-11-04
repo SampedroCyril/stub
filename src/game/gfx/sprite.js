@@ -76,10 +76,13 @@ export function compile(g, pal, { outline = OUTLINE } = {}) {
     if (at(x, y) !== ".") continue;
     if (at(x + 1, y) !== "." || at(x - 1, y) !== "." || at(x, y + 1) !== "." || at(x, y - 1) !== ".") put(x + 1, y + 1, outline);
   }
-  const wh = makeCanvas(W, H), wc = wh.getContext("2d");
-  wc.drawImage(cv, 0, 0);
-  wc.globalCompositeOperation = "source-in";
-  wc.fillStyle = "#fff";
-  wc.fillRect(0, 0, W, H);
-  return { img: cv, white: wh, pixels, w: W, h: H };
+  const tint = (col) => {
+    const t = makeCanvas(W, H), tc = t.getContext("2d");
+    tc.drawImage(cv, 0, 0);
+    tc.globalCompositeOperation = "source-in";
+    tc.fillStyle = col;
+    tc.fillRect(0, 0, W, H);
+    return t;
+  };
+  return { img: cv, white: tint("#fff"), black: tint("#0a0006"), red: tint("#ff1f3d"), cyan: tint("#3ae0ff"), pixels, w: W, h: H };
 }

@@ -36,6 +36,9 @@ const SFX = {
   tap: () => { tone(140, 60, 0.08, { gain: 0.14 }); noise(0.05, { f: 1800, gain: 0.15 }); },
   crush: () => { for (let i = 0; i < 5; i++) noise(0.03, { f: 2500 + Math.random() * 2000, gain: 0.18, at: i * 0.035 + Math.random() * 0.02 }); },
   psch: () => noise(0.9, { f: 6000, f2: 2500, gain: 0.14, type: "highpass" }),
+  black: () => { tone(70, 28, 0.7, { type: "sine", gain: 0.5 }); tone(140, 40, 0.3, { gain: 0.2 }); noise(0.09, { f: 5000, gain: 0.45, type: "highpass" }); noise(0.5, { f: 900, f2: 100, gain: 0.35, type: "lowpass", at: 0.04 }); for (let i = 0; i < 6; i++) noise(0.025, { f: 3000 + Math.random() * 3000, gain: 0.2, at: 0.05 + i * 0.04 }); },
+  charge: () => { tone(80, 700, 0.55, { type: "sawtooth", gain: 0.06 }); noise(0.55, { f: 300, f2: 4000, gain: 0.12 }); },
+  ultimate: () => { tone(55, 20, 1.1, { type: "sine", gain: 0.6 }); noise(1.0, { f: 1200, f2: 60, gain: 0.5, type: "lowpass" }); noise(0.12, { f: 6000, gain: 0.4, type: "highpass" }); },
   coin: () => { tone(988, 988, 0.07, { type: "square", gain: 0.05 }); tone(1319, 1319, 0.18, { type: "square", gain: 0.05, at: 0.07 }); },
 };
 export function play(name) { if (sound.on) try { SFX[name]?.(); } catch { /* audio indisponible */ } }
