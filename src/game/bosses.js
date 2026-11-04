@@ -81,7 +81,7 @@ export function bossFor(trigger, at = new Date()) {
   return "clope";
 }
 
-export const ATTACK_NAME = { circuit: "Circuit", breath: "Respirer", game: "Blocs" };
+export const ATTACK_NAME = { circuit: "Circuit", breath: "Respirer", game: "Frénésie" };
 
 /** Faiblesses et résistances lisibles : [{src, x, weak}] */
 export const modsOf = (id) => Object.entries(BOSSES[id]?.mods || {}).map(([src, x]) => ({ src, x, weak: x > 1 }));

@@ -521,21 +521,9 @@ details.fold[open]>summary::after{content:"–"}
 @keyframes pill{50%{transform:translateX(-50%) translateY(-2px)}}
 
 /* blocs */
-.blocs{display:flex;flex-direction:column;gap:8px;align-items:center}
-.blocs-top{display:grid;grid-template-columns:repeat(3,1fr) auto;gap:6px;width:100%;max-width:340px;align-items:end}
-.blocs-top>div{display:flex;flex-direction:column;gap:2px}
-.blocs-top b{font:400 12px var(--f-pixel)}
 .arena .blocs-top .label{color:#94b0c2}
-.blocs-next canvas{width:40px;height:40px;image-rendering:pixelated;border:2px solid #0d0e17}
-.blocs-board{position:relative;border:3px solid #0d0e17;box-shadow:0 0 0 2px #566c86;line-height:0}
-.blocs-board canvas{width:min(62vw,240px);height:auto;aspect-ratio:1/2;image-rendering:pixelated;touch-action:none;display:block}
 .flash-a,.flash-b{animation:flashA .25s steps(2)}
 @keyframes flashA{0%{box-shadow:0 0 0 4px #ffcd75}}
-.blocs-overlay{position:absolute;inset:0;background:rgba(26,28,44,.86);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:12px;line-height:1.5}
-.blocs-overlay p{margin:0}
-.blocs-pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;max-width:340px}
-.blocs-pad button{appearance:none;cursor:pointer;height:52px;border:2px solid #0d0e17;background:#333c57;color:#fff;font-size:20px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.35);touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
-.blocs-pad button:active{background:#566c86;transform:translateY(2px)}
 .arena .tip{color:#94b0c2;text-align:center}
 
 /* mode crise */
@@ -643,3 +631,18 @@ details.fold[open]>summary::after{content:"–"}
 .rank{margin:0;font:400 44px/1 var(--f-pixel);text-shadow:4px 4px 0 #0d0e17}
 .rank-S{color:#ffcd75} .rank-A{color:#73eff7} .rank-B{color:#a7f070} .rank-C{color:#94b0c2}
 .v-bonus{font-size:10px;color:#ffcd75}
+
+/* 0.3 : scène de combat en canvas */
+.boss-view{display:flex;justify-content:center;align-self:stretch}
+.boss-canvas{display:block;image-rendering:pixelated;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:crosshair;max-width:100%}
+.boss-thumb{display:block;image-rendering:pixelated;width:64px;height:auto}
+.battle-pill .boss-thumb{width:26px}
+.beast.unknown .boss-thumb{filter:brightness(0) opacity(.6)}
+.beast-art{position:relative}
+.beast-art .crown{position:absolute;width:40%;left:30%;top:-14%}
+.crisis-body.arena{background:transparent;padding:0;overflow:visible}
+.v-ash{display:flex;flex-direction:column;align-items:center;gap:6px}
+.ash-canvas{display:block;image-rendering:pixelated;max-width:100%}
+.v-count{margin:0;font:400 10px/1.6 var(--f-pixel);color:#c2c3c7}
+.v-count b{color:#ffcd75;display:inline-block;animation:bump .35s steps(3)}
+@keyframes bump{30%{transform:scale(1.6) translateY(-3px)}}

@@ -3,7 +3,7 @@
  *
  * - PV = 100 × intensité de l'envie (2 si non notée) × (1 + 10 % par niveau du boss).
  * - Le boss s'épuise tout seul et meurt au bout de 5 minutes : c'est la durée réelle d'une envie.
- * - Les attaques le tuent plus vite : point faible (25 % des PV max au total), cycles de respiration, circuit, lignes au jeu de blocs,
+ * - Les attaques le tuent plus vite : point faible (25 % des PV max au total), cycles de respiration, circuit, Frénésie,
  *   multipliées par les faiblesses / résistances du boss.
  * - Il contre-attaque (tentation) : refuser le blesse, laisser passer le soigne.
  * - On ne perd qu'en déclarant une rechute. Le rang S/A/B/C récompense un combat bien mené.
@@ -20,8 +20,9 @@ export const DMG = {
   breathCycle: 0.07,
   circuit: 0.5,
   circuitCam: 0.75,
-  line: 0.08,
-  quad: 0.35, // 4 lignes d'un coup
+  frenzy: 0.01, // point touché en Frénésie
+  frenzyFast: 0.016, // touché vite
+  frenzyBurst: 0.03, // bonus tous les 10 de combo
   refuse: 0.05, // tentation refusée
   heal: 0.15, // tentation ignorée : le boss se soigne
   crisisPhase: 0.25,
@@ -30,6 +31,11 @@ export const DMG = {
 /** Point faible : apparaît toutes les 6 à 12 s, visible 1,2 s. Tentation : toutes les 40 à 50 s, 4 s pour refuser. */
 export const WEAK = { min: 6000, max: 12000, show: 1200, fast: 500 };
 export const TEMPT = { first: 20000, min: 40000, max: 50000, window: 4000 };
+/**
+ * Frénésie : 30 s de points faibles en chaîne, chacun visible 1 s (critique sous 0,4 s), 0,25 à 0,55 s entre deux. Combo ≥ 10 : ×1,5.
+ * Une bonne partie retire ~35 % des PV : moins qu'un circuit (50 %), plus que 30 s de respiration.
+ */
+export const FRENZY = { dur: 30000, show: 1000, fast: 400, gapMin: 250, gapMax: 550, comboBoost: 10, boost: 1.5 };
 
 /** Les points faibles ne peuvent pas faire plus de 25 % des PV sur un combat. */
 export const WEAK_CAP = 0.25;

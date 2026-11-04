@@ -28,7 +28,7 @@ export const TRIGGERS = [
 export const TRIG_NAME = Object.fromEntries(TRIGGERS);
 export const I_NAMES = ["", "Légère", "Ça va", "Forte", "Très forte", "Énorme"];
 export const methodOf = (e) => e.m || (e.sport ? "sport" : "hold");
-export const METHOD_NAME = { sport: "au sport", breath: "en respirant", game: "en jouant", crisis: "en mode crise", hold: "sans rien" };
+export const METHOD_NAME = { sport: "au sport", breath: "en respirant", game: "en Frénésie", crisis: "en mode crise", hold: "sans rien" };
 
 /* ---------------- Santé (repères après la dernière nicotine) ---------------- */
 export const HEALTH = [

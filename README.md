@@ -1,6 +1,6 @@
 # Roulement anti-clope
 
-App web pour arrêter de fumer, gamifiée : chaque envie de fumer devient un boss en pixel art à abattre, au circuit de sport, en respirant ou au jeu de blocs. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
+App web pour arrêter de fumer, gamifiée : chaque envie de fumer devient un boss en pixel art à abattre, au circuit de sport, en respirant ou en Frénésie. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
 
 Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne quitte jamais l'appareil.
 
@@ -23,25 +23,26 @@ Navigation en 5 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
 
-## Le jeu (0.12)
+## Le jeu (0.3)
 
 - **Boss d'envie** : chaque envie notée fait apparaître un boss lié à son déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, et le Spectre de 2h du mat' la nuit). PV = 100 × intensité, +10 % par niveau du boss (un niveau toutes les 5 victoires, couronne dès le niveau 3).
-- **Il s'épuise tout seul en 5 minutes**, la durée réelle d'une envie. Les attaques l'abattent plus vite : circuit (50 %, 75 % si validé caméra), cycle de respiration complet (7 %), ligne aux blocs (8 %, 4 lignes 35 %). On ne perd qu'en déclarant une rechute.
+- **Il s'épuise tout seul en 5 minutes**, la durée réelle d'une envie. Les attaques l'abattent plus vite : circuit (50 %, 75 % si validé caméra), cycle de respiration complet (7 %), Frénésie (~35 % pour une bonne partie). On ne perd qu'en déclarant une rechute.
 - **Point faible** : taper le boss ne fait rien (« Raté ! »). Toutes les 6 à 12 s, un point faible apparaît 1,2 s : 4 %, 8 % si touché en moins de 0,5 s, plafonné à 25 % des PV par combat.
 - **Tentation** : vers 20 s puis toutes les 40 à 50 s, le boss te tend une clope. 4 s pour « Refuser » (−5 % pour lui) ; sinon il récupère 15 %.
 - **Faiblesses** : chaque boss prend ×1,5 d'une attaque et ×0,5 d'une autre (sauf Clopinette), affichées après la première victoire.
 - **Rang** : S (< 2 min avec au moins 2 types d'attaque, +10 XP), A (< 3 min, +5 XP), B (abattu avant l'épuisement), C (épuisement).
-- **Mode crise** (envie à 5) : boss enragé (+20 % PV), 3 minutes guidées en plein écran : respirer, jouer, bouger, puis le coup final.
-- **Arcade** : jeu de blocs tactile, parties libres avec record, ou 3 minutes en combat.
-- **Cendrier** : chaque victoire écrase une clope dans un bocal pixel art qui évolue (bocal, poubelle, benne, volcan éteint).
+- **Mode crise** (envie à 5) : boss enragé (+20 % PV), 3 minutes guidées en plein écran : respirer, Frénésie, bouger, puis le coup final.
+- **Frénésie** (le mode clicker) : 30 s de points faibles en chaîne, 1 % par coup, 1,6 % si touché vite, ×1,5 dès 10 de combo, +3 % et un critique tous les 10. En combat c'est l'attaque « jeu » ; dans l'Arcade, une partie libre contre un mannequin, pour le score et le combo.
+- **Impacts** : critique en éclair noir et rouge plein écran ; refus de clope en cyan (la clope casse en deux) ; circuit en attaque ultime, tirée au hasard entre *Fracture* (l'écran se fissure puis vole en éclats) et *Supernova* (une lumière avale l'écran) ; K.O. au hasard entre *Tranche* (écran noir, un trait, le boss coupé en deux) et *Manga* (trois cases d'impact). Option « Effets intenses » dans les réglages pour couper flashs et inversions.
+- **Victoire** : la clope de l'envie s'écrase dans le cendrier, crache sa braise et s'éteint. Le bocal de l'accueil compte toutes les clopes écrasées (bocal, poubelle, benne, volcan éteint).
 - **Records caméra** : pompes en 1 min, squats en 30 s, jumping jacks en 1 min, dips en 45 s, planche et chaise le plus longtemps possible, comptés par le coach.
 - **Bestiaire** : victoires, niveau, meilleur temps, faiblesses et résistances par boss.
 
-Les sprites sont dessinés en texte (`src/game/sprites.js`, 16 × 16, une lettre par couleur) et rendus en SVG net.
+Rendu en canvas (`src/game/gfx/`) : les boss sont dessinés par code (`bossArt.js`, ~32 × 32, formes + visage partagé), ombrés et contourés automatiquement, avec leurs états (respiration, clignement, parole, grimace, fissures selon les PV, colère). La scène de combat (`BossStage.js`) gère gel d'image, flash, recul, écrasement, éclats, ondes de choc et un calque plein écran pour les impacts. Les bruitages sont synthétisés puis précalculés une fois (`sfx.js`), sans aucun fichier son.
 
 ## Barème
 
-- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par boss vaincu +15 en tenant, +20 en respirant ou aux blocs, +25 avec un circuit, +30 en mode crise, +10 / +5 au rang S / A ; +80 par défi sevrage.
+- **Sevrage** (remis à zéro à chaque rechute) : +100 par jour complet ; par boss vaincu +15 en tenant, +20 en respirant ou en Frénésie, +25 avec un circuit, +30 en mode crise, +10 / +5 au rang S / A ; +80 par défi sevrage.
 - **Sport** (définitif) : reps × difficulté, ou secondes × difficulté ÷ 3, × 2 pour les exos « par côté », +80 par défi sport.
 - **Niveaux** : seuil cumulé `K × (L-1) × L`, K = 75 (sevrage) et 60 (sport).
 
@@ -102,7 +103,7 @@ src/
   components/ éléments communs, récap hebdo
   art/        personnage 2D, poses, icônes, médailles
   pose/       coach caméra : compteurs (purs), moteur MediaPipe, interface
-  game/       boss, sprites pixel art, combat (pur), jeu de blocs (pur), crise, cendrier, records
+  game/       boss, combat (pur), Frénésie, crise, victoire, records ; gfx/ : rendu canvas, sprites, sons
 tests/        tests node:test
 ```
 

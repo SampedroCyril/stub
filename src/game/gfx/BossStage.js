@@ -1,14 +1,25 @@
 import { compile, OUTLINE } from "./sprite.js";
 import { Particles, SPARK, rnd } from "./particles.js";
-import { drawText, drawBig } from "./font.js";
+import { drawText, drawBig, bigWidth } from "./font.js";
 import { BOSS_ART } from "./bossArt.js";
 import { play } from "./sfx.js";
 import { C, cigSpec, linePts, drawStick } from "./stick.js";
+import { grid } from "./sprite.js";
+import { SPRITES } from "../sprites.js";
 
 export const STAGE_W = 64, STAGE_H = 60;
 const FLOOR = STAGE_H - 4;
 const STEP = 1000 / 60;
 const INK = "#0a0006", BLOOD = "#ff1f3d", PAPER = "#f4f4f4", AIR = "#3ae0ff";
+
+/** Couronne des boss de niveau 3 et plus. */
+let crownCache = null;
+function crownSprite() {
+  if (crownCache) return crownCache;
+  const sp = SPRITES.crown, g = grid(sp.px[0].length, sp.px.length);
+  sp.px.forEach((row, y) => [...row].forEach((c, x) => { if (c !== ".") g.d[y][x] = c; }));
+  return (crownCache = compile(g, sp.pal));
+}
 
 /** Style choisi, ou tiré au hasard parmi les variantes quand il vaut « random ». */
 const pick = (style, all) => (style === "random" || !style ? all[(Math.random() * all.length) | 0] : style);
@@ -47,12 +58,14 @@ function bolts(x, y, n, reach) {
  * Un second canvas plein écran porte les effets qui débordent : éclairs, flashs, lignes de vitesse, textes géants.
  */
 export class BossStage {
-  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, fxRoot = null, intense, ultStyle = "random", koStyle = "random" } = {}) {
+  constructor(canvas, { boss = "cafe", maxHp = 100, hp = maxHp, onTap, onWeakExpire, shakeEl = null, fxRoot = null, intense, ultStyle = "random", koStyle = "random", training = false, lvl = 1 } = {}) {
     this.cv = canvas;
     this.art = BOSS_ART[boss];
     this.maxHp = maxHp; this.hp = hp; this.ghost = hp; this.ghostDelay = 0; this.healGlow = 0;
     this.onTap = onTap; this.onWeakExpire = onWeakExpire; this.shakeEl = shakeEl; this.fxRoot = fxRoot;
     this.ultStyle = ultStyle; this.koStyle = koStyle; this._filt = "";
+    this.training = training; this.score = 0;
+    this.crown = lvl >= 3 ? crownSprite() : null;
     this.intense = intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     this.combo = 0; this.comboPop = 0; this.frenzy = null;
     this.buf = document.createElement("canvas");
@@ -71,6 +84,7 @@ export class BossStage {
     document.body.appendChild(this.ov);
     this.ovBuf = document.createElement("canvas"); this.ob = this.ovBuf.getContext("2d");
     this.ovFx = []; this.ovParts = new Particles();
+    window.__boss = this; // poignée de débogage (tests de bout en bout)
     this.resize();
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(canvas.parentElement || canvas);
@@ -167,7 +181,7 @@ export class BossStage {
     const refuse = kind === "refuse";
     const p = this.pos;
     const x = opts.x ?? p.x + p.w / 2 + rnd(-6, 6), y = opts.y ?? p.y + p.h / 2 + rnd(-4, 4);
-    this.hp = Math.max(0, this.hp - dmg);
+    if (!this.training) this.hp = Math.max(0, this.hp - dmg);
     this.ghostDelay = big ? 40 : crit ? 30 : 22;
     this.stop = big ? 12 : crit ? 9 : 3;
     this.flash = big ? 6 : crit ? 5 : 3;
@@ -256,9 +270,9 @@ export class BossStage {
     play("refuse");
   }
   /** Coup du mode Frénésie : léger, la note monte avec le combo. */
-  frenzyHit(dmg, { fast = false, x, y } = {}) {
+  frenzyHit(dmg, { fast = false, x, y, label } = {}) {
     this.combo++; this.comboPop = 6;
-    this.hit(dmg, { x, y, label: fast ? `-${dmg}!` : `-${dmg}`, sfx: "weakhit", sfxArg: this.combo });
+    this.hit(dmg, { x, y, label: label ?? (fast ? `-${dmg}!` : `-${dmg}`), sfx: "weakhit", sfxArg: this.combo });
     if (fast) { this.front.burst(6, () => { const a = rnd(0, Math.PI * 2), v = rnd(1, 2.4); return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.85, life: 12, c: "#ffcd75" }; }); }
   }
   breakCombo() { if (this.combo >= 3) this.float(`combo x${this.combo}`, STAGE_W / 2, 20, { color: "#94b0c2" }); this.combo = 0; }
@@ -327,9 +341,9 @@ export class BossStage {
     if (this.ghostDelay > 0) this.ghostDelay--;
     else if (this.ghost > this.hp) this.ghost = Math.max(this.hp, this.ghost - Math.max(0.4, (this.ghost - this.hp) * 0.07));
     if (this.weak && performance.now() - this.weak.born > this.weak.ms) { this.weak = null; this.onWeakExpire?.(); }
-    if (!this.dead && this.t % 7 === 0) {
+    if (!this.dead && this.art.steam && this.t % 7 === 0) {
       const p = this.pos, st = this.art.steam, angry = this.hp / this.maxHp < 0.45;
-      this.fx.add({ x: p.x + st.x + rnd(-4, 4), y: p.y + st.y, vy: rnd(-0.32, -0.18), life: rnd(50, 80) | 0, c: angry ? st.angry : "#dfe4ee", fade: true, fadeIn: true, alpha: 0.75, wob: 0.12, size: 1, grow: 0.025 });
+      this.fx.add({ x: p.x + st.x + rnd(-3, 3), y: p.y + st.y, vy: rnd(-0.32, -0.18), life: rnd(50, 80) | 0, c: angry ? st.angry : st.c, fade: true, fadeIn: true, alpha: 0.75, wob: 0.12, size: 1, grow: 0.025 });
     }
     this.fx.update(); this.front.update();
     for (const r of this.rings) r.r += 1.6;
@@ -408,6 +422,7 @@ export class BossStage {
       b.globalAlpha = 1;
     }
     b.drawImage(sp.img, x, y, w, h);
+    if (this.crown) b.drawImage(this.crown.img, Math.round(x + w / 2 - this.crown.w / 2), y - this.crown.h + 5);
     if ((this.flash > 0 && this.flash % 2 === 1) || (this.dead && this.koT === 0)) b.drawImage(this.dead ? sp.black : sp.white, x, y, w, h);
     if (this.healGlow > 0 && (this.healGlow >> 2) % 2) { b.globalAlpha = 0.5; b.drawImage(sp.white, x, y, w, h); b.globalAlpha = 1; }
   }
@@ -451,6 +466,11 @@ export class BossStage {
 
   drawHp(b) {
     const x = 4, y = 2, w = STAGE_W - 8, h = 7;
+    if (this.training) {
+      drawText(b, `score ${this.score}`, STAGE_W / 2, y + 1, { color: "#ffcd75", sc: 1 });
+      this.drawFrenzyHud(b, x, y, w, h);
+      return;
+    }
     b.fillStyle = OUTLINE; b.fillRect(x - 1, y - 1, w + 2, h + 2);
     b.fillStyle = "#29213a"; b.fillRect(x, y, w, h);
     const f = this.hp / this.maxHp, g = this.ghost / this.maxHp;
@@ -462,6 +482,9 @@ export class BossStage {
     b.fillStyle = "rgba(255,255,255,.35)"; b.fillRect(x, y, fw, 1);
     b.fillStyle = "rgba(0,0,0,.25)"; b.fillRect(x, y + h - 2, fw, 2);
     drawText(b, `${Math.ceil(this.hp)} PV`, STAGE_W / 2, y + 1, { color: "#ffffff", sc: 1 });
+    this.drawFrenzyHud(b, x, y, w, h);
+  }
+  drawFrenzyHud(b, x, y, w, h) {
     if (this.frenzy) {
       const k = Math.max(0, 1 - (performance.now() - this.frenzy.start) / this.frenzy.dur);
       b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
@@ -775,7 +798,12 @@ export class BossStage {
 
   /** Texte géant qui s'écrase à l'écran sur une bande noire. */
   ov_text(o, e, W, H) {
-    const a = e.age, [sx, sy] = e.fx, k = a < 4 ? 4 - a : 0;
+    const a = e.age, [sx0, sy] = e.fx, k = a < 4 ? 4 - a : 0;
+    // le titre ne déborde jamais de l'écran, même pendant l'écrasement
+    const fits = (x) => bigWidth(e.text, x) + 7 * (sy + k) * 0.25 <= W - 4;
+    let sx = sx0;
+    while (sx > 1 && !fits(sx)) sx--;
+    const kx = fits(sx + (k >> 1)) ? k >> 1 : 0;
     const th = (sy + k) * 7, y = Math.round(e.y - k * 3);
     const slide = Math.min(1, a / 4), fade = e.life - a < 10;
     if (fade && (a >> 1) % 2) return;
@@ -785,7 +813,7 @@ export class BossStage {
     const jx = a < 12 ? Math.round(rnd(-1, 1)) : 0, jy = a < 12 ? Math.round(rnd(-1, 1)) : 0;
     const acc = e.cyan ? AIR : BLOOD;
     const col = e.red ? ((a >> 2) % 2 ? "#ffffff" : BLOOD) : (a >> 2) % 2 && a < 24 ? acc : "#ffffff";
-    drawBig(o, e.text, W / 2 + 2 + jx, y + 2 + jy, { color: acc, sx: sx + (k >> 1), sy: sy + k, outline: null });
-    drawBig(o, e.text, W / 2 + jx, y + jy, { color: col, sx: sx + (k >> 1), sy: sy + k, outline: INK });
+    drawBig(o, e.text, W / 2 + 2 + jx, y + 2 + jy, { color: acc, sx: sx + kx, sy: sy + k, outline: null });
+    drawBig(o, e.text, W / 2 + jx, y + jy, { color: col, sx: sx + kx, sy: sy + k, outline: INK });
   }
 }

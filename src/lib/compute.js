@@ -77,12 +77,12 @@ export function compute(state, days, now = new Date()) {
   const xpDays = streak * XP_DAY, xpDefQ = quitWins.length * DEFI_XP, xpCrav = qx - xpDays - xpDefQ;
   const best = Math.max(state.best || 0, streak);
 
-  /* ---- jeu : boss et blocs ---- */
-  let bossN = 0, linesN = 0;
+  /* ---- jeu : boss et Frénésie ---- */
+  let bossN = 0, frenzyN = 0;
   ser.boss = [];
-  ser.lines = [];
+  ser.frenzy = [];
   cravAll.forEach((e) => { if (e.b) { bossN++; ser.boss.push({ t: new Date(e.t), v: bossN }); } });
-  ev.filter((e) => e.k === "game").forEach((e) => { if (e.l) { linesN += e.l; ser.lines.push({ t: new Date(e.t), v: linesN }); } });
+  ev.filter((e) => e.k === "game" && e.g === "frenzy").forEach((e) => { if (e.h) { frenzyN += e.h; ser.frenzy.push({ t: new Date(e.t), v: frenzyN }); } });
 
   /* ---- respiration ---- */
   ser.breath = breaths.map((e, i) => ({ t: new Date(e.t), v: i + 1 }));
@@ -140,7 +140,7 @@ export function compute(state, days, now = new Date()) {
   return {
     now, q, startAt, ev, ser, qPoints, sPoints,
     elapsed, streak, res, resSport, resBreath, xpDays, xpCrav, xpDefQ,
-    quitXp: qx, quit: levelOf(qx, QUIT_K), best, cravAll, smokes, breaths, breathSec, bossN, linesN,
+    quitXp: qx, quit: levelOf(qx, QUIT_K), best, cravAll, smokes, breaths, breathSec, bossN, frenzyN,
     tot, c, sportXp: c.xp, sport: levelOf(c.xp, SPORT_K), sportDays, sStreak, bestRun,
     weeks, allWins, sportWinsN: sportWins.length,
   };

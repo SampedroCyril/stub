@@ -24,6 +24,8 @@ export const DEFAULT_STATE = {
   bd: 120,
   recapSeen: "",
   sound: true,
+  gameSound: true,
+  intense: null,
   model: "lite",
 };
 

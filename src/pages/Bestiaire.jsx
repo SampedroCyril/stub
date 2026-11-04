@@ -1,6 +1,7 @@
 import { useApp } from "../store/AppStore.jsx";
 import { Panel } from "../components/ui.jsx";
 import Pixel from "../game/Pixel.jsx";
+import BossThumb from "../game/BossThumb.jsx";
 import { BOSSES } from "../game/bosses.js";
 import { bestiary, bossLevel } from "../game/battle.js";
 import { ModChips } from "../game/Battle.jsx";
@@ -22,7 +23,7 @@ export default function Bestiaire() {
           const s = bz[id];
           return (
             <article className={`beast${s ? "" : " unknown"}`} key={id}>
-              <div className="beast-art"><Pixel name={B.sprite} className="boss" />{s && bossLevel(s.wins) >= 3 && <Pixel name="crown" className="crown" />}</div>
+              <div className="beast-art"><BossThumb id={id} />{s && bossLevel(s.wins) >= 3 && <Pixel name="crown" className="crown" />}</div>
               <div className="beast-info">
                 <strong className="px-name">{s ? B.n : "???"}</strong>
                 <span>{s ? `${s.wins} victoire${s.wins > 1 ? "s" : ""} · niv. ${bossLevel(s.wins)}` : "Pas encore rencontré"}</span>

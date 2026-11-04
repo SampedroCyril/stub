@@ -48,6 +48,12 @@ export function AppProvider({ children }) {
   const battleRef = useRef(battle);
   battleRef.current = battle;
   const [victory, setVictory] = useState(null);
+  /** Effets à jouer au retour sur l'écran de combat (coup du circuit, respiration). */
+  const fxQueue = useRef([]);
+  const queueFx = useCallback((fx) => { fxQueue.current.push(fx); }, []);
+  const takeFx = useCallback(() => { const q = fxQueue.current; fxQueue.current = []; return q; }, []);
+  /** Vrai tant que l'écran de combat est affiché : c'est lui qui joue le K.O. et déclare la victoire. */
+  const battleView = useRef(false);
 
   useEffect(() => { save(data); }, [data]);
   useEffect(() => {
@@ -163,13 +169,13 @@ export function AppProvider({ children }) {
 
   // Un boss s'épuise même app fermée : victoire automatique quand ses PV tombent à 0 (sauf attaque en cours).
   useEffect(() => {
-    if (battle && !flow.attack && hpAt(battle, now) <= 0) winBattle();
+    if (battle && !flow.attack && !battleView.current && hpAt(battle, now) <= 0) winBattle();
   }, [battle, now, flow.attack, winBattle]);
 
   const value = {
     data, state: data.state, days: data.days, S, now, view, go, toast, flash,
     flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow,
-    battle, startBattle, hitBattle, winBattle, fleeBattle, victory, setVictory,
+    battle, startBattle, hitBattle, winBattle, fleeBattle, victory, setVictory, queueFx, takeFx, battleView,
     commit, patchState, replaceData, wipe,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

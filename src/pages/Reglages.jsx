@@ -117,6 +117,11 @@ export default function Reglages() {
         </label>
       </Group>
 
+      <Group title="Jeu">
+        <Toggle id="gamesound" label="Bruitages des combats" sub="Coups, critiques, K.O., clope écrasée" checked={state.gameSound !== false} onChange={(v) => patchState({ gameSound: v })} />
+        <Toggle id="intense" label="Effets intenses" sub="Flashs et écran inversé sur les gros coups. À couper si tu es sensible aux lumières clignotantes." checked={state.intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches} onChange={(v) => patchState({ intense: v })} />
+      </Group>
+
       <Group title="Coach caméra">
         <Toggle id="sound" label="Son" sub="Un bip à chaque rep" checked={state.sound} onChange={(v) => patchState({ sound: v })} />
         <Toggle id="model" label="Détection précise" sub="Plus fiable, plus lourde pour le téléphone" checked={state.model === "full"} onChange={(v) => patchState({ model: v ? "full" : "lite" })} />

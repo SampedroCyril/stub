@@ -8,9 +8,10 @@ import Records from "./pages/Records.jsx";
 import Bestiaire from "./pages/Bestiaire.jsx";
 import Crisis from "./game/Crisis.jsx";
 import Victory from "./game/Victory.jsx";
-import Pixel from "./game/Pixel.jsx";
+import BossThumb from "./game/BossThumb.jsx";
 import { BOSSES } from "./game/bosses.js";
 import { hpAt } from "./game/battle.js";
+import { sound } from "./game/gfx/sfx.js";
 import RecapModal from "./components/RecapModal.jsx";
 import Home from "./pages/Home.jsx";
 import Sevrage from "./pages/Sevrage.jsx";
@@ -27,6 +28,7 @@ import { dayKey } from "./lib/util.js";
 
 function Shell() {
   const { S, state, now, flow, patchState, battle, view, go } = useApp();
+  useEffect(() => { sound.on = state.gameSound !== false; }, [state.gameSound]);
   const [recap, setRecap] = useState(null); // {ws, auto}
 
   // Récap du dimanche : s'ouvre seul à partir de 18h, ou à la prochaine ouverture si raté.
@@ -66,7 +68,7 @@ function Shell() {
       <Reglages />
       {battle && !battle.crisis && view !== "sevrage" && !flow.attack && (
         <button className="battle-pill" type="button" onClick={() => go("sevrage")}>
-          <Pixel name={BOSSES[battle.boss].sprite} />
+          <BossThumb id={battle.boss} />
           <span>Combat en cours · {hpAt(battle, new Date())} PV</span>
         </button>
       )}
