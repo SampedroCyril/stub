@@ -59,6 +59,14 @@ npm run models     # optionnel : télécharge les modèles de posture dans publi
 
 La caméra demande HTTPS (ou `localhost`). Pour tester sur téléphone en local : `npx vite --host` puis un tunnel HTTPS, ou directement la version déployée.
 
+## Versions
+
+Le numéro affiché en bas des Réglages vient de `version` dans `package.json` (`0.1.0` s'affiche « 0.1 »), avec la date du build et le commit déployé. Pour passer à la suivante :
+
+```bash
+npm version 0.2.0 --no-git-tag-version
+```
+
 ## Déploiement
 
 Le workflow `.github/workflows/deploy.yml` teste, télécharge les modèles, build et publie sur GitHub Pages à chaque push sur `main`.

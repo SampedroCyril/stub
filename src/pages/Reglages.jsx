@@ -140,6 +140,12 @@ export default function Reglages() {
             </div>
           )}
       </Group>
+
+      <footer className="app-version">
+        <b>Roulement anti-clope</b>
+        <span>Version {__APP_VERSION__}</span>
+        <span>Mise à jour du {fDate(new Date(__BUILD_DATE__))} {new Date(__BUILD_DATE__).getFullYear()}{__COMMIT__ ? ` · ${__COMMIT__}` : ""}</span>
+      </footer>
     </Panel>
   );
 }
