@@ -617,7 +617,7 @@ export class BossStage {
       b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
       b.fillStyle = k < 0.25 && (this.t >> 2) % 2 ? "#ffffff" : "#ffcd75"; b.fillRect(x, y + h + 2, Math.round(w * k), 2);
     }
-    if (this.combo >= 2 && (!this.counter || this.counter === "classic")) drawText(b, `x${this.combo}`, STAGE_W - 4, y + h + 3, { color: this.trance ? "#ff6b70" : this.combo >= 10 ? "#ffcd75" : "#c2c3c7", sc: 1, align: "right" });
+    if (this.combo >= 2 && !this.counter) drawText(b, `x${this.combo}`, STAGE_W - 4, y + h + 3, { color: this.trance ? "#ff6b70" : this.combo >= 10 ? "#ffcd75" : "#c2c3c7", sc: 1, align: "right" });
   }
 
   // ---------- calque plein écran ----------

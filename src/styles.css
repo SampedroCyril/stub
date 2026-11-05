@@ -816,3 +816,5 @@ details.fold[open]>summary::after{content:"–"}
 .shop-sheet-b .btn:not(.green){background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);color:#f4f4f4}
 .shop-sheet-b .linkbtn{color:#94b0c2;align-self:center}
 .shop-lock{color:#ffcd75 !important;font-weight:600}
+.shop-card.s-tray::before{background:#3b5dc9}
+.shop-ash{width:100%;display:flex;justify-content:center;padding:18px 0 10px}

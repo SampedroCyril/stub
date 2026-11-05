@@ -17,6 +17,7 @@ export const SLOTS = [
   { id: "ult", n: "Ultime", d: "Ton coup aux paliers d'ultime (7 et 8, à débloquer dans l'arbre)." },
   { id: "ko", n: "K.O.", d: "La mise à mort du boss." },
   { id: "sig", n: "Signature", d: "Ce qui gicle à chaque coup ordinaire." },
+  { id: "tray", n: "Cendrier", d: "Là où la clope finit écrasée, à chaque victoire." },
 ];
 
 const BOSS_N = Object.keys(BOSSES).length;
@@ -29,6 +30,8 @@ export const EXPLOITS = {
   "k:sky": { n: `Rang S contre les ${BOSS_N} boss`, prog: (c) => [c.sBosses, BOSS_N] },
   "u:void": { n: "Finir un Boss Run (les 11 boss)", prog: (c) => [c.runDone ? 1 : 0, 1] },
   "s:bd": { n: "50 envies tenues", prog: (c) => [Math.min(50, c.held), 50] },
+  "t:pot": { n: "14 jours d'affilée sans fumer", prog: (c) => [Math.min(14, c.best), 14] },
+  "t:trophy": { n: "30 jours d'affilée sans fumer", prog: (c) => [Math.min(30, c.best), 30] },
 };
 
 /** Catalogue : id = emplacement abrégé + effet (u:, k:, s:). price null = offert d'office. */
@@ -57,6 +60,12 @@ export const ITEMS = [
   { id: "s:gold", slot: "sig", fx: "gold", price: 80 },
   { id: "s:rainbow", slot: "sig", fx: "rainbow", price: 80 },
   { id: "s:bd", slot: "sig", fx: "bd", price: null, exploit: true },
+  { id: "t:classic", slot: "tray", fx: "classic", price: null },
+  { id: "t:glass", slot: "tray", fx: "glass", price: 80 },
+  { id: "t:obsidian", slot: "tray", fx: "obsidian", price: 100 },
+  { id: "t:neon", slot: "tray", fx: "neon", price: 100 },
+  { id: "t:pot", slot: "tray", fx: "pot", price: null, exploit: true },
+  { id: "t:trophy", slot: "tray", fx: "trophy", price: null, exploit: true },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 
@@ -104,7 +113,7 @@ export function ownedItems(bought = [], ctx) {
 export const balance = (earned, bought = []) => earned - bought.reduce((a, id) => a + (ITEM[id]?.price || 0), 0);
 export const canBuy = (id, bal, owned) => !!ITEM[id]?.price && !owned.includes(id) && bal >= ITEM[id].price;
 
-export const DEFAULT_EQ = { ult: "random", ko: "random", sig: "s:classic" };
+export const DEFAULT_EQ = { ult: "random", ko: "random", sig: "s:classic", tray: "random" };
 /** Effets à utiliser en combat pour un emplacement : l'objet équipé (s'il est possédé) ou tous les objets possédés. */
 export function poolOf(slot, eq = DEFAULT_EQ, owned = []) {
   const mine = ITEMS.filter((i) => i.slot === slot && owned.includes(i.id));
