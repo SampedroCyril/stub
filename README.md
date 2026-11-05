@@ -6,9 +6,13 @@ Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne qui
 
 ## Fonctionnalités
 
-Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer), **Santé** (récupération, symptômes, la clope), **Sport** (circuit, records, exos), **Joueur** (talents, boutique, arcade, boss) et **Progrès** (défis, badges, stats). Santé, Sport, Joueur et Progrès peuvent être masqués : l'app ne montre que ce qui te parle.
+Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, clopes, respirer), **Santé** (récupération, symptômes, la clope), **Sport** (circuit, records, exos), **Joueur** (talents, boutique, arcade, boss) et **Progrès** (défis, badges, stats). Santé, Sport, Joueur et Progrès peuvent être masqués : l'app ne montre que ce qui te parle.
 
 Quand on note une envie, sa force se règle sur une jauge de 1 à 10 (les envies notées avant sur 5 comptent double dans les stats) ; elle règle les PV du boss. Un combat quitté en cours de route reste ouvert : quelques secondes plus tard, l'app demande s'il faut l'annuler.
+
+**Arrêter ou réduire** (roue crantée de Sevrage) : une clope fumée remet toujours le sevrage à zéro, dans les deux modes. En mode Réduction, on suit en plus ses clopes du jour face à un objectif, soit automatique (une clope de moins tous les 3, 7 ou 14 jours, en partant de sa moyenne récente), soit réglé à la main. L'onglet **Clopes** montre le jour face à l'objectif, la moyenne sur 7 jours et la baisse par rapport à la conso de départ, les jours tenus sous l'objectif, le plus long écart, 30 jours en barres, les heures à risque et les déclencheurs. Une clope notée par erreur s'annule dans le quart d'heure. Les économies se calculent depuis le début du suivi, clopes fumées déduites.
+
+**Déclencheurs** (envies et clopes) rangés en quatre catégories : Situation, Émotion, Entourage, Corps, plus « Autre ». Chaque déclencheur amène son boss.
 
 Chaque catégorie a ses réglages derrière la roue crantée de son en-tête (Sevrage : dernière clope ; Sport : coach caméra ; Joueur : bruitages, jauge, effets intenses). La roue crantée de l'Accueil ouvre les réglages généraux : sections affichées, installation, données, aide.
 

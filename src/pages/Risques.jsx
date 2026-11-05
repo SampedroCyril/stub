@@ -1,7 +1,7 @@
 import { useApp } from "../store/AppStore.jsx";
 import { Panel } from "../components/ui.jsx";
 import { RISKS, SOURCES } from "../data/health.js";
-import { DAY } from "../lib/util.js";
+import { savings } from "../lib/smoking.js";
 
 const Src = ({ k }) => <a className="src" href={SOURCES[k].u} target="_blank" rel="noreferrer">Source : {SOURCES[k].n}</a>;
 const eur = (v) => v.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: v >= 100 ? 0 : 2 });
@@ -12,7 +12,6 @@ export default function Risques() {
   const { S, state, patchState } = useApp();
   const cpd = state.cpd || 0, price = state.packPrice || 0, pack = state.packSize || 20;
   const perCig = price && pack ? price / pack : 0;
-  const days = Math.max(0, S.elapsed / DAY);
   const R1 = RISKS.oneADay, R2 = RISKS.light, R3 = RISKS.france;
 
   return (
@@ -30,7 +29,7 @@ export default function Risques() {
                 <div key={n}><small>{n}</small><b>{n0(cpd * d)}</b><span>cigarettes{perCig ? ` · ${eur(cpd * d * perCig)}` : ""}</span></div>
               ))}
             </div>
-            <p className="conso-won">Depuis ton arrêt : <b>{n0(cpd * days)} cigarettes évitées</b>{perCig ? <> et <b>{eur(cpd * days * perCig)} économisés</b></> : null}.</p>
+            {(() => { const sv = savings(S.ev, { now: S.now, startAt: S.startAt, cpd, price, pack }); return sv && <p className="conso-won">Depuis le début du suivi : <b>{n0(sv.avoided)} cigarettes évitées</b>{sv.saved ? <> et <b>{eur(sv.saved)} économisés</b></> : null}, clopes fumées déduites.</p>; })()}
           </>
         ) : <p className="tip">Indique ce que tu fumais pour voir ce que ça représente, et ce que tu économises depuis l'arrêt.</p>}
       </section>

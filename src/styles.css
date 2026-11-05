@@ -848,3 +848,53 @@ details.fold[open]>summary::after{content:"–"}
 .skill-nav{appearance:none;width:40px;height:40px;flex:none;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:600 22px/1 var(--f-body);cursor:pointer}
 .skill-nav:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .skill-sheet{border-left-width:1px;border-top:4px solid var(--brc, var(--gold))}
+
+/* 0.4.2 : déclencheurs par catégorie, clopes fumées, mode Réduction */
+.trig{display:flex;flex-direction:column;gap:8px}
+.trig-cats{display:flex;gap:4px;padding:3px;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow-x:auto;scrollbar-width:none}
+.trig-cats::-webkit-scrollbar{display:none}
+.trig-cats button{appearance:none;cursor:pointer;flex:1;white-space:nowrap;font:600 13px var(--f-body);padding:7px 10px;border:0;border-radius:8px;background:none;color:var(--muted);position:relative}
+.trig-cats button[aria-selected="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.trig-cats button.has::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--quit)}
+.trig-cats button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.smk-sheet .label{margin-top:2px}
+.smk-today{gap:10px}
+.smk-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.smk-top>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.smk-n{font:700 40px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.smk-n small{font-size:20px;color:var(--muted)}
+.smk-sub{font-size:13px;color:var(--muted)}
+.smk-today.over .smk-n,.smk-today.over .smk-sub{color:var(--danger)}
+.smk-since{text-align:right;align-items:flex-end}
+.smk-since b{font:700 18px var(--f-display)}
+.smk-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.smk-tiles>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.smk-tiles small{font-size:12px;color:var(--muted);font-weight:600}
+.smk-tiles b{font:700 22px var(--f-display);font-variant-numeric:tabular-nums}
+.smk-tiles span{font-size:12px;color:var(--muted)}
+.smk-tiles .good b{color:var(--quit)}
+.smk-chart{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;height:110px;align-items:end}
+.smk-bar{position:relative;height:100%;display:flex;align-items:flex-end}
+.smk-bar .v{display:block;width:100%;background:var(--accent);border-radius:3px 3px 1px 1px;min-height:0}
+.smk-bar.over .v{background:var(--danger)}
+.smk-bar.off{opacity:.35}
+.smk-bar .goal{position:absolute;left:-1px;right:-1px;height:2px;background:var(--quit);border-radius:1px}
+.smk-hours{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;height:90px;align-items:end}
+.smk-hours div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
+.smk-hours i{display:block;width:100%;background:var(--warn);border-radius:3px 3px 1px 1px}
+.smk-hours small{font-size:10px;color:var(--muted)}
+.smk-cats{display:flex;flex-wrap:wrap;gap:6px}
+.smk-cats span{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.home-reduce{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.hr-info{appearance:none;cursor:pointer;background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:4px;color:var(--fg);font:inherit;min-width:0}
+.hr-info b{font:700 26px/1.05 var(--f-display);font-variant-numeric:tabular-nums}
+.hr-info b small{font-size:14px;color:var(--muted)}
+.home-reduce.over .hr-info b{color:var(--danger)}
+.hr-add{flex:none;padding:12px 16px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.seg .pick{border-radius:10px;text-align:center;padding:9px 6px;font-size:13px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.stepper button{appearance:none;cursor:pointer;width:40px;height:40px;border:0;background:var(--bg);color:var(--fg);font:600 20px var(--f-body)}
+.stepper output{min-width:42px;text-align:center;font:700 18px var(--f-mono)}
+.btn.blue{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}

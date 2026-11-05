@@ -4,6 +4,7 @@ import { load, save, DEFAULT_STATE } from "../lib/storage.js";
 import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
 import { EARN } from "../game/shop.js";
+import { goalAt, smokeStats } from "../lib/smoking.js";
 import { DEFIS } from "../data/defis.js";
 import { DEFI_XP, Q_TITLES, S_TITLES, P_TITLES, CRAV_XP, METHOD_NAME, titleOf } from "../data/rules.js";
 import { createBattle, hit, hpAt, victoryEvent, bestiary, RANK_XP } from "../game/battle.js";
@@ -18,14 +19,14 @@ export const useApp = () => useContext(Ctx);
  */
 export const SECTIONS = [
   { id: "accueil", label: "Accueil", icon: "home", views: ["accueil"] },
-  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer"] },
+  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "clopes", "respirer"] },
   { id: "sante", label: "Santé", icon: "heart", views: ["sante", "symptomes", "risques"], optional: true, d: "Ton corps qui récupère, tes symptômes de sevrage, ce que fait la clope." },
   { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "records", "exos"], optional: true, d: "Circuits, records caméra, exercices. Masquée : plus de « Bouger » quand tu notes une envie." },
   { id: "joueur", label: "Joueur", icon: "gamepad", views: ["talents", "boutique", "arcade", "bestiaire"], optional: true, d: "Combats de boss, talents, boutique, Arcade, bestiaire. Masquée : plus de « Combat » quand tu notes une envie." },
   { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "badges", "stats"], optional: true, d: "Défis de la semaine, badges, statistiques." },
   { id: "reglages", label: "Réglages", icon: "gear", views: ["reglages"], nav: false },
 ];
-export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", sante: "Récupération", symptomes: "Symptômes", risques: "La clope", circuit: "Circuit", records: "Records", exos: "Exos", talents: "Talents", boutique: "Boutique", arcade: "Arcade", bestiaire: "Boss", defis: "Défis", badges: "Badges", stats: "Stats" };
+export const SUB_LABELS = { sevrage: "Envies", clopes: "Clopes", respirer: "Respirer", sante: "Récupération", symptomes: "Symptômes", risques: "La clope", circuit: "Circuit", records: "Records", exos: "Exos", talents: "Talents", boutique: "Boutique", arcade: "Arcade", bestiaire: "Boss", defis: "Défis", badges: "Badges", stats: "Stats" };
 /** Sections de la barre du bas, selon les réglages (Accueil et Sevrage sont toujours là). */
 export const visibleSections = (state) => SECTIONS.filter((s) => s.nav !== false && (!s.optional || state?.sections?.[s.id] !== false));
 export const sectionOn = (state, id) => state?.sections?.[id] !== false;
@@ -186,6 +187,35 @@ export function AppProvider({ children }) {
   }, [commit, setBattle]);
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 
+  /**
+   * Une clope fumée : le sevrage repart de zéro (dans les deux modes). L'événement garde la date de la clope
+   * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
+   */
+  const logSmoke = useCallback((tr = null) => {
+    const cur = dataRef.current, t = new Date();
+    const S0 = compute(cur.state, cur.days, t);
+    const ev = { k: "smoked", t: t.toISOString(), ...(tr ? { tr } : {}), pq: cur.state.quitAt, pb: cur.state.best || 0 };
+    let msg = "C'est noté. Le sevrage repart de zéro, ton sport et tes stats restent. La prochaine envie, tu la tiens.";
+    if (cur.state.goal === "reduce") {
+      const g = goalAt(cur.state.reduce, t), n = smokeStats([...S0.ev, ev], { now: t }).today;
+      msg = g == null ? `Clope notée : ${n} aujourd'hui.` : n <= g ? `Clope notée : ${n} / ${g} aujourd'hui.` : `Clope notée : ${n} / ${g}. Objectif dépassé pour aujourd'hui, demain on repart.`;
+    }
+    setFlow({ mode: "idle" });
+    commit([ev], [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });
+  }, [commit]);
+  /** Annule une clope notée par erreur : l'événement disparaît, la date de dernière clope et le record reviennent. */
+  const undoSmoke = useCallback((ev) => {
+    const cur = dataRef.current, k = dayKey(new Date(ev.t));
+    const days = { ...cur.days, [k]: (cur.days[k] || []).filter((e) => !(e.k === "smoked" && e.t === ev.t)) };
+    if (!days[k].length) delete days[k];
+    const state = ev.pq ? { ...cur.state, quitAt: ev.pq, best: ev.pb ?? cur.state.best } : cur.state;
+    const next = { state, days };
+    dataRef.current = next;
+    setData(next);
+    setNow(new Date());
+    flash(["Clope retirée."]);
+  }, [flash]);
+
   // Victoire automatique si les PV sont à 0 hors de l'écran de combat (sauf attaque en cours).
   useEffect(() => {
     if (battle && !flow.attack && !battleView.current && hpAt(battle, now) <= 0) winBattle();
@@ -193,7 +223,7 @@ export function AppProvider({ children }) {
 
   const value = {
     data, state: data.state, days: data.days, S, now, view, go, toast, flash,
-    flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow,
+    flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow, logSmoke, undoSmoke,
     battle, startBattle, hitBattle, patchBattle, holdCraving, winBattle, fleeBattle, victory, setVictory, queueFx, takeFx, battleView,
     commit, patchState, replaceData, wipe,
   };

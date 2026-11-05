@@ -39,11 +39,8 @@ export function levelOf(xp, k) {
 }
 
 /* ---------------- Envies ---------------- */
-export const TRIGGERS = [
-  ["ennui", "Ennui"], ["repas", "Après manger"], ["cafe", "Café"], ["stress", "Stress"], ["alcool", "Alcool"],
-  ["ecran", "Écran / jeu"], ["reveil", "Réveil"], ["potes", "Entre potes"], ["fatigue", "Fatigue"], ["autre", "Autre"],
-];
-export const TRIG_NAME = Object.fromEntries(TRIGGERS);
+// déclencheurs : rangés par catégorie dans triggers.js
+export { TRIGGERS, TRIG_NAME } from "./triggers.js";
 export const I_NAMES = ["", "Légère", "Ça va", "Forte", "Très forte", "Énorme"];
 /** Force d'une envie sur 10 (0.4.1). Les envies notées avant sur 5 comptent double. */
 export const ivOf = (e) => e?.iv ?? (e?.i ? e.i * 2 : null);
