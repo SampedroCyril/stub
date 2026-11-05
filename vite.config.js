@@ -12,7 +12,7 @@ export default defineConfig({
     // Version affichée dans Réglages : « 0.11.0 » s'affiche « 0.11 »
     __APP_VERSION__: JSON.stringify(pkg.version.replace(/\.0$/, "")),
     __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
-    __COMMIT__: JSON.stringify((process.env.GITHUB_SHA || "").slice(0, 7)),
+    __COMMIT__: JSON.stringify((process.env.GITHUB_SHA || process.env.CF_PAGES_COMMIT_SHA || process.env.COMMIT_REF || "").slice(0, 7)),
   },
   build: { target: "es2022", chunkSizeWarningLimit: 900 },
 });
