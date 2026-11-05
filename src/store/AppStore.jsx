@@ -141,7 +141,7 @@ export function AppProvider({ children }) {
   }, []);
   const cravingEvent = useCallback((m, craving) => {
     const c = craving || flow.craving;
-    return { k: "craving", t: (c?.at || new Date()).toISOString(), m, ...(c?.intensity ? { i: c.intensity } : {}), ...(c?.trigger ? { tr: c.trigger } : {}) };
+    return { k: "craving", t: (c?.at || new Date()).toISOString(), m, ...(c?.intensity ? { iv: c.intensity, i: Math.ceil(c.intensity / 2) } : {}), ...(c?.trigger ? { tr: c.trigger } : {}) };
   }, [flow.craving]);
   const resetFlow = useCallback(() => setFlow({ mode: "idle" }), []);
 
@@ -154,7 +154,7 @@ export function AppProvider({ children }) {
   const startBattle = useCallback(() => {
     const c = flow.craving || { at: new Date(), intensity: null, trigger: null };
     const victories = Object.fromEntries(Object.entries(bestiary(S.ev)).map(([k, v]) => [k, v.wins]));
-    setBattle(createBattle({ at: new Date(c.at), intensity: c.intensity, trigger: c.trigger, victories }));
+    setBattle(createBattle({ at: new Date(c.at), iv: c.intensity, trigger: c.trigger, victories }));
     setFlow({ mode: "idle" });
     go("sevrage");
   }, [flow.craving, S.ev, setBattle, go]);

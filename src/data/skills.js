@@ -10,27 +10,27 @@ export const BRANCHES = [
   { id: "hyb", n: "Ponts", d: "Entre deux branches" },
 ];
 
-/** Bulles : position dans la constellation (viewBox 520 × 610), taille (small, big, key), icône. */
+/** Bulles : position dans la constellation (viewBox 520 × 540), taille (small, big, key), icône. */
 export const SKILLS = [
-  { id: "root", br: "root", x: 260, y: 315, k: "key", ic: "★", n: "Départ", d: "Le point de départ : tout part d'ici." },
-  { id: "p1", br: "power", x: 192, y: 378, k: "small", ic: "✦", n: "Poigne", d: "+10 % de dégâts." },
-  { id: "p2", br: "power", x: 128, y: 440, k: "big", ic: "»", n: "Élan", d: "Les paliers arrivent 10 % plus tôt dans le combo." },
-  { id: "p3", br: "power", x: 200, y: 495, k: "small", ic: "✕", n: "Refus cinglant", d: "Refuser une clope fait deux fois plus mal au boss." },
-  { id: "p4", br: "power", x: 70, y: 515, k: "small", ic: "✦", n: "Poigne d'acier", d: "+20 % de dégâts en plus." },
-  { id: "p5", br: "power", x: 130, y: 575, k: "key", ic: "☠", n: "Coup de grâce", d: "Sous 5 % de PV, ton coup suivant l'achève." },
-  { id: "t1", br: "tech", x: 328, y: 378, k: "small", ic: "◎", n: "Réflexes", d: "La fenêtre « parfait » est plus large." },
-  { id: "t2", br: "tech", x: 392, y: 440, k: "big", ic: "◉", n: "Œil de lynx", d: "La fenêtre « bien » est 25 % plus large." },
-  { id: "t3", br: "tech", x: 320, y: 495, k: "small", ic: "♥", n: "Seconde chance", d: "Un raté pardonné par combat." },
-  { id: "t4", br: "tech", x: 450, y: 515, k: "small", ic: "❄", n: "Sang-froid", d: "Les notes arrivent 15 % moins vite." },
-  { id: "t5", br: "tech", x: 390, y: 575, k: "key", ic: "♥", n: "Increvable", d: "Deux ratés pardonnés par combat." },
-  { id: "s1", br: "show", x: 260, y: 230, k: "small", ic: "ϟ", n: "Éclipse", d: "Débloque le palier 6 : Éclipse, l'image d'impact rouge et noir." },
-  { id: "s2", br: "show", x: 196, y: 160, k: "big", ic: "◇", n: "Ascension", d: "Un palier d'ultime de plus : ton ultime équipé tombe au palier 7, puis au 8 avec Apogée." },
-  { id: "s3", br: "show", x: 324, y: 160, k: "big", ic: "☀", n: "Apogée", d: "Un palier d'ultime de plus : ton ultime équipé tombe au palier 7, puis au 8 avec Ascension." },
-  { id: "s4", br: "show", x: 260, y: 100, k: "small", ic: "∞", n: "Éveil", d: "Débloque le palier 9 : l'Éveil, dégâts doublés jusqu'au prochain raté." },
-  { id: "s5", br: "show", x: 260, y: 38, k: "key", ic: "✺", n: "Éveil prolongé", d: "En Éveil, ton premier raté ne te fait pas retomber." },
-  { id: "h1", br: "hyb", x: 92, y: 260, k: "big", ic: "♨", n: "Brûlure", d: "En Éveil, dégâts × 2,5 au lieu de × 2." },
-  { id: "h2", br: "hyb", x: 428, y: 260, k: "big", ic: "◌", n: "Concentration", d: "Après une Éclipse ou un ultime, la note suivante arrive plus lentement." },
-  { id: "h3", br: "hyb", x: 260, y: 545, k: "big", ic: "◆", n: "Série dorée", d: "La série se déclenche à 4 parfaits au lieu de 5." },
+  { id: "root", br: "root", x: 260, y: 268, k: "key", ic: "★", n: "Départ", d: "Le point de départ : tout part d'ici." },
+  { id: "p1", br: "power", x: 192, y: 322, k: "small", ic: "✦", n: "Poigne", d: "+10 % de dégâts." },
+  { id: "p2", br: "power", x: 128, y: 376, k: "big", ic: "»", n: "Élan", d: "Les paliers arrivent 10 % plus tôt dans le combo." },
+  { id: "p3", br: "power", x: 200, y: 423, k: "small", ic: "✕", n: "Refus cinglant", d: "Refuser une clope fait deux fois plus mal au boss." },
+  { id: "p4", br: "power", x: 70, y: 440, k: "small", ic: "✦", n: "Poigne d'acier", d: "+20 % de dégâts en plus." },
+  { id: "p5", br: "power", x: 130, y: 492, k: "key", ic: "☠", n: "Coup de grâce", d: "Sous 5 % de PV, ton coup suivant l'achève." },
+  { id: "t1", br: "tech", x: 328, y: 322, k: "small", ic: "◎", n: "Réflexes", d: "La fenêtre « parfait » est plus large." },
+  { id: "t2", br: "tech", x: 392, y: 376, k: "big", ic: "◉", n: "Œil de lynx", d: "La fenêtre « bien » est 25 % plus large." },
+  { id: "t3", br: "tech", x: 320, y: 423, k: "small", ic: "♥", n: "Seconde chance", d: "Un raté pardonné par combat." },
+  { id: "t4", br: "tech", x: 450, y: 440, k: "small", ic: "❄", n: "Sang-froid", d: "Les notes arrivent 15 % moins vite." },
+  { id: "t5", br: "tech", x: 390, y: 492, k: "key", ic: "♥", n: "Increvable", d: "Deux ratés pardonnés par combat." },
+  { id: "s1", br: "show", x: 260, y: 195, k: "small", ic: "ϟ", n: "Éclipse", d: "Débloque le palier 6 : Éclipse, l'image d'impact rouge et noir." },
+  { id: "s2", br: "show", x: 196, y: 135, k: "big", ic: "◇", n: "Ascension", d: "Un palier d'ultime de plus : ton ultime équipé tombe au palier 7, puis au 8 avec Apogée." },
+  { id: "s3", br: "show", x: 324, y: 135, k: "big", ic: "☀", n: "Apogée", d: "Un palier d'ultime de plus : ton ultime équipé tombe au palier 7, puis au 8 avec Ascension." },
+  { id: "s4", br: "show", x: 260, y: 83, k: "small", ic: "∞", n: "Éveil", d: "Débloque le palier 9 : l'Éveil, dégâts doublés jusqu'au prochain raté." },
+  { id: "s5", br: "show", x: 260, y: 30, k: "key", ic: "✺", n: "Éveil prolongé", d: "En Éveil, ton premier raté ne te fait pas retomber." },
+  { id: "h1", br: "hyb", x: 92, y: 221, k: "big", ic: "♨", n: "Brûlure", d: "En Éveil, dégâts × 2,5 au lieu de × 2." },
+  { id: "h2", br: "hyb", x: 428, y: 221, k: "big", ic: "◌", n: "Concentration", d: "Après une Éclipse ou un ultime, la note suivante arrive plus lentement." },
+  { id: "h3", br: "hyb", x: 260, y: 466, k: "big", ic: "◆", n: "Série dorée", d: "La série se déclenche à 4 parfaits au lieu de 5." },
 ];
 export const SKILL = Object.fromEntries(SKILLS.map((s) => [s.id, s]));
 /** Liens de la constellation : chemins de branche, ponts, et deux chemins qui se croisent sous le Départ. */

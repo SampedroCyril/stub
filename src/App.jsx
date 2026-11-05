@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppProvider, useApp, sectionOf, sectionOn } from "./store/AppStore.jsx";
 import { Toast } from "./components/ui.jsx";
 import { BottomNav, SectionHeader } from "./components/Nav.jsx";
@@ -28,6 +28,45 @@ import Exos from "./pages/Exos.jsx";
 import { recapDue } from "./lib/compute.js";
 import { RECAP_HOUR } from "./data/rules.js";
 import { dayKey } from "./lib/util.js";
+
+/**
+ * Combat laissé en plan : quelques secondes après avoir quitté l'écran de combat, on demande s'il faut l'annuler.
+ * « Non » garde le combat (la pastille reste) et ne redemande pas avant la prochaine sortie.
+ */
+function PendingBattle() {
+  const { battle, view, go, fleeBattle } = useApp();
+  const [ask, setAsk] = useState(false);
+  const asked = useRef(null);
+  const away = !!battle && view !== "sevrage";
+  useEffect(() => {
+    if (!away) { setAsk(false); if (view === "sevrage") asked.current = null; return; }
+    if (asked.current === battle.id) return;
+    const t = setTimeout(() => { asked.current = battle.id; setAsk(true); }, 4000);
+    return () => clearTimeout(t);
+  }, [away, view, battle]);
+  if (!away) return null;
+  return (
+    <>
+      <button className="battle-pill" type="button" onClick={() => go("sevrage")}>
+        <BossThumb id={battle.boss} />
+        <span>Combat en cours · {hpAt(battle, new Date())} PV</span>
+      </button>
+      {ask && (
+        <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="pb-t" aria-describedby="pb-d">
+          <div className="sheet pb-sheet">
+            <h2 id="pb-t">Combat en cours</h2>
+            <p id="pb-d">Tu as laissé {BOSSES[battle.boss].n} en plan. Tu veux annuler ce combat ? L'envie ne sera pas comptée.</p>
+            <div className="row2">
+              <button className="btn" type="button" onClick={() => setAsk(false)}>Non, je le garde</button>
+              <button className="btn danger-fill" type="button" onClick={() => { setAsk(false); fleeBattle(); }}>Oui, l'annuler</button>
+            </div>
+            <button className="linkbtn" type="button" onClick={() => { setAsk(false); go("sevrage"); }}>Reprendre le combat</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 function Shell() {
   const { S, state, now, flow, patchState, battle, view, go } = useApp();
@@ -75,12 +114,7 @@ function Shell() {
       <Records />
       <Exos />
       <Reglages />
-      {battle && view !== "sevrage" && (
-        <button className="battle-pill" type="button" onClick={() => go("sevrage")}>
-          <BossThumb id={battle.boss} />
-          <span>Combat en cours · {hpAt(battle, new Date())} PV</span>
-        </button>
-      )}
+      <PendingBattle />
       <Victory />
       <BottomNav />
       {recap && <RecapModal ws={recap.ws} onClose={close} />}

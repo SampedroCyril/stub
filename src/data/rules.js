@@ -45,6 +45,9 @@ export const TRIGGERS = [
 ];
 export const TRIG_NAME = Object.fromEntries(TRIGGERS);
 export const I_NAMES = ["", "Légère", "Ça va", "Forte", "Très forte", "Énorme"];
+/** Force d'une envie sur 10 (0.4.1). Les envies notées avant sur 5 comptent double. */
+export const ivOf = (e) => e?.iv ?? (e?.i ? e.i * 2 : null);
+export const ivName = (v) => ["", "Légère", "Légère", "Ça titille", "Ça titille", "Bien présente", "Bien présente", "Forte", "Forte", "Très forte", "Insupportable"][v] || "";
 export const methodOf = (e) => e.m || (e.sport ? "sport" : "hold");
 export const METHOD_NAME = { sport: "au sport", breath: "en respirant", game: "au combat", crisis: "en mode crise", hold: "sans rien" };
 
