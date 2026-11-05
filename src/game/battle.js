@@ -32,7 +32,8 @@ export function createBattle({ at = new Date(), intensity = null, trigger = null
 }
 
 export const dealt = (b) => b.hits.reduce((a, h) => a + h.d, 0);
-export const elapsedMs = (b, now) => Math.max(0, now - new Date(b.at));
+/** Temps de combat écoulé, pauses du joueur déduites (pz, en ms). */
+export const elapsedMs = (b, now) => Math.max(0, now - new Date(b.at) - (b.pz || 0));
 /** Part des PV perdue par épuisement : (t / 5 min)². */
 export const decayOf = (b, now) => Math.min(1, elapsedMs(b, now) / BATTLE_MS) ** 2;
 

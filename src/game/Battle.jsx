@@ -30,6 +30,8 @@ export default function Battle() {
   const [started, setStarted] = useState(false);
   const [menu, setMenu] = useState(null); // null · pause · quit · flee
   const ko = useRef(false);
+  const pausedAt = useRef(0); // pause du joueur : le combat entier s'arrête (PV, chrono)
+  const clock = () => new Date(pausedAt.current || Date.now());
   const latest = useRef({});
   latest.current = { battle, winBattle };
   const [startHp] = useState(() => (battle ? hpAt(battle, new Date()) : 0));
@@ -70,7 +72,7 @@ export default function Battle() {
     const id = setInterval(() => {
       setTick((x) => x + 1);
       const s = stage.current, b = latest.current.battle;
-      if (!s || !b || s.dead || s.pending || s.refuseAt) return;
+      if (!s || !b || s.dead || s.pending || s.refuseAt || pausedAt.current) return;
       const hp = hpAt(b, new Date());
       s.setHp(hp);
       if (hp <= 0 && !ko.current) {
@@ -86,7 +88,7 @@ export default function Battle() {
 
   if (!battle) return null;
   const B = BOSSES[battle.boss];
-  const left = Math.max(0, Math.ceil((BATTLE_MS - elapsedMs(battle, new Date())) / 1000));
+  const left = Math.max(0, Math.ceil((BATTLE_MS - elapsedMs(battle, clock())) / 1000));
   const known = (bestiary(S.ev)[battle.boss]?.wins || 0) > 0;
 
   const onTap = () => {
@@ -96,14 +98,21 @@ export default function Battle() {
   };
   const open = (m) => {
     if (!started) { if (m === "quit") go("accueil"); return; }
-    if (ko.current) return;
+    if (ko.current || pausedAt.current) return;
+    pausedAt.current = Date.now();
     clicker.hold(true); setMenu(m);
   };
-  const close = () => { setMenu(null); clicker.hold(false); };
-  const sub = "Le chrono de l'envie continue : elle baisse même en pause.";
+  /** Fin de pause : le temps passé en pause est retiré du chrono du combat. */
+  const unpause = () => {
+    if (!pausedAt.current) return;
+    patchBattle({ pz: (battle.pz || 0) + (Date.now() - pausedAt.current) });
+    pausedAt.current = 0;
+  };
+  const close = () => { unpause(); setMenu(null); clicker.hold(false); };
+  const leave = () => { unpause(); go("accueil"); };
   const menus = {
-    pause: <FightMenu title="Pause" sub={sub} actions={[["Reprendre", close], ["Quitter", () => go("accueil")]]} links={[["Fausse alerte", () => setMenu("flee")]]}><ModChips boss={battle.boss} known={known} /></FightMenu>,
-    quit: <FightMenu title="Quitter le combat ?" sub="Le boss t'attendra : tu reprends quand tu veux." actions={[["Quitter", () => go("accueil"), "green"], ["Reprendre", close, " "]]} />,
+    pause: <FightMenu title="Pause" actions={[["Reprendre", close], ["Quitter", leave]]} links={[["Fausse alerte", () => setMenu("flee")]]}><ModChips boss={battle.boss} known={known} /></FightMenu>,
+    quit: <FightMenu title="Quitter le combat ?" sub="Le boss t'attendra : tu reprends quand tu veux." actions={[["Quitter", leave, "green"], ["Reprendre", close, " "]]} />,
     flee: <FightMenu title="Fausse alerte ?" sub="Le combat s'arrête, sans XP." actions={[["Retour", () => setMenu("pause")], ["Arrêter", fleeBattle, "danger"]]} />,
   };
 

@@ -28,9 +28,10 @@ export class Gauge {
     this.c = this.cv.getContext("2d"); this.c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
   }
   judge(kind) {
-    this.fx.push({ kind, age: 0 });
-    if (kind === "perfect") { this.streak++; if (this.streak >= 5) { this.streak = 0; this.streakFlash = 40; this.fx.push({ kind: "streak", age: -8 }); } }
-    else if (kind !== "refused") this.streak = 0;
+    for (const f of this.fx) if (f.age >= 0) f.age = Math.max(f.age, 26); // l'ancien mot s'efface aussitôt
+    if (kind === "perfect" && ++this.streak >= 5) { this.streak = 0; this.streakFlash = 40; this.fx.push({ kind: "streak", age: 0 }); }
+    else this.fx.push({ kind, age: 0 });
+    if (kind !== "perfect" && kind !== "refused") this.streak = 0;
     if (kind === "miss" || kind === "took") this.shake = 6;
   }
   geo() {
