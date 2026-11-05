@@ -1,5 +1,5 @@
 /**
- * Déclencheurs d'une envie ou d'une clope, rangés par catégorie.
+ * Déclencheurs d'une envie ou d'une cigarette, rangés par catégorie.
  * [id, nom, boss] : le boss qui apparaît pour une envie avec ce déclencheur (voir bosses.js).
  * Les anciens identifiants (cafe, repas, stress…) sont gardés pour l'historique.
  */

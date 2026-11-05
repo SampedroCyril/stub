@@ -17,7 +17,7 @@ export const SLOTS = [
   { id: "ult", n: "Ultime", d: "Ton coup aux paliers d'ultime (7 et 8, à débloquer dans l'arbre)." },
   { id: "ko", n: "K.O.", d: "La mise à mort du boss." },
   { id: "sig", n: "Signature", d: "Ce qui gicle à chaque coup ordinaire." },
-  { id: "tray", n: "Cendrier", d: "Là où la clope finit écrasée, à chaque victoire." },
+  { id: "tray", n: "Cendrier", d: "Là où la cigarette finit écrasée, à chaque victoire." },
   { id: "aura", n: "Aura d'Éveil", d: "Ce qui entoure le boss pendant l'Éveil (palier 9)." },
   { id: "counter", n: "Compteur", d: "Le style du compteur de combo." },
 ];
@@ -85,7 +85,7 @@ export const ITEMS = [
 ];
 export const ITEM = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 
-/** Jours complets sans clope depuis le début du suivi (minuit à minuit, jour en cours exclu). */
+/** Jours complets sans cigarette depuis le début du suivi (minuit à minuit, jour en cours exclu). */
 export function cleanDays(ev, startAt, now = new Date()) {
   const smoked = new Set(ev.filter((e) => e.k === "smoked").map((e) => dayKey(new Date(e.t))));
   const d = new Date(startAt);

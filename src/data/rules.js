@@ -1,9 +1,9 @@
 import { DAY, dayKey } from "../lib/util.js";
 
 /* ---------------- Progression ----------------
- * Seuil cumulé pour atteindre le niveau L : K × (L-1) × L
+ * Sport et joueur : seuil cumulé pour atteindre le niveau L : K × (L-1) × L.
+ * Sevrage : voir quitLevelOf plus bas (999 niveaux, multiplicateur de série).
  */
-export const QUIT_K = 75;
 export const SPORT_K = 60;
 export const XP_DAY = 100;
 export const DEFI_XP = 80;
@@ -27,9 +27,30 @@ export function playerXpOf(e, dayMap = new Map()) {
   return 0;
 }
 
-export const Q_TITLES = ["Premier pas", "Ça tient", "Poumons en chantier", "Souffle retrouvé", "Moins accro", "Ex-fumeur", "Libre", "Inarrêtable", "Non-fumeur", "Légende"];
+/**
+ * Sevrage : l'XP ne repart jamais à zéro. Une cigarette remet seulement la série, et donc le multiplicateur, à ×1.
+ * Chaque jour d'affilée sans fumer ajoute 1 % à tout ce que tu gagnes : le jour n de la série rapporte × (1 + 0,01 × (n - 1)).
+ * 999 niveaux ; le niveau L demande 100 + (L - 1)^1,6 XP, de plus en plus. Sans fumer, le niveau 999 prend une vingtaine
+ * d'années grâce au multiplicateur (plusieurs siècles sans lui).
+ */
+export const MULT_DAY = 0.01;
+export const multOf = (days) => 1 + MULT_DAY * Math.max(0, days);
+export const QUIT_MAX = 999;
+export const quitNeed = (L) => Math.round(100 + (L - 1) ** 1.6);
+/** Q_CUM[L - 1] : XP cumulée pour atteindre le niveau L. */
+const Q_CUM = [0];
+for (let L = 1; L < QUIT_MAX; L++) Q_CUM.push(Q_CUM[L - 1] + quitNeed(L));
+export function quitLevelOf(xp) {
+  let lo = 1, hi = QUIT_MAX;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (Q_CUM[m - 1] <= xp) lo = m; else hi = m - 1; }
+  if (lo === QUIT_MAX) return { L: lo, cur: 1, need: 1, max: true };
+  return { L: lo, cur: xp - Q_CUM[lo - 1], need: quitNeed(lo) };
+}
+/** Titres du sevrage, par niveau de départ. */
+export const Q_TITLES = [[1, "Premier pas"], [5, "Bien parti"], [15, "Poumons en chantier"], [30, "Souffle retrouvé"], [50, "Moins dépendant"], [120, "Ex-fumeur"], [200, "Libre"], [370, "Inarrêtable"], [620, "Non-fumeur"], [999, "Légende"]];
 export const S_TITLES = ["Rouillé", "Échauffé", "Motivé", "Régulier", "Solide", "Costaud", "Athlète", "Machine", "Monstre", "Légende"];
-export const titleOf = (titles, L) => titles[Math.min(L - 1, titles.length - 1)];
+/** Titre d'un niveau : liste simple (un titre par niveau), ou liste de [niveau de départ, titre]. */
+export const titleOf = (titles, L) => (Array.isArray(titles[0]) ? titles.filter(([m]) => m <= L).pop()[1] : titles[Math.min(L - 1, titles.length - 1)]);
 
 export function levelOf(xp, k) {
   let L = 1;

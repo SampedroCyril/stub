@@ -29,7 +29,7 @@ export default function Risques() {
                 <div key={n}><small>{n}</small><b>{n0(cpd * d)}</b><span>cigarettes{perCig ? ` · ${eur(cpd * d * perCig)}` : ""}</span></div>
               ))}
             </div>
-            {(() => { const sv = savings(S.ev, { now: S.now, startAt: S.startAt, cpd, price, pack }); return sv && <p className="conso-won">Depuis le début du suivi : <b>{n0(sv.avoided)} cigarettes évitées</b>{sv.saved ? <> et <b>{eur(sv.saved)} économisés</b></> : null}, clopes fumées déduites.</p>; })()}
+            {(() => { const sv = savings(S.ev, { now: S.now, startAt: S.startAt, cpd, price, pack }); return sv && <p className="conso-won">Depuis le début du suivi : <b>{n0(sv.avoided)} cigarettes évitées</b>{sv.saved ? <> et <b>{eur(sv.saved)} économisés</b></> : null}, cigarettes fumées déduites.</p>; })()}
           </>
         ) : <p className="tip">Indique ce que tu fumais pour voir ce que ça représente, et ce que tu économises depuis l'arrêt.</p>}
       </section>

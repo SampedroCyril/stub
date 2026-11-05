@@ -68,14 +68,14 @@ export function judge(dt, { perfect = WINDOW.perfect, good = WINDOW.good, late =
   const a = dt > 0 ? Math.max(0, dt - late) : -dt;
   return a <= perfect ? "perfect" : a <= good ? "good" : "miss";
 }
-/** Une note sur combien est une clope tendue (ne pas toucher : elle s'écrase et le boss encaisse). */
+/** Une note sur combien est une cigarette tendue (ne pas toucher : elle s'écrase et le boss encaisse). */
 export const CIG_EVERY = [12, 18];
 /** Pause après un gros palier, le temps de la mise en scène. */
 export const pauseAfter = (shownTier) => (shownTier >= 7 ? 1500 : shownTier === 6 ? 450 : 0);
 
 /**
  * PV d'un boss, calibrés par simulation au rythme de la jauge : un bon joueur (93 % de coups réussis, 45 % de parfaits,
- * la plupart des clopes refusées) le tue en targetOf(intensité) secondes, à la seule force de ses coups.
+ * la plupart des cigarettes refusées) le tue en targetOf(intensité) secondes, à la seule force de ses coups.
  * (Valeurs de la 0.3.3 moins la part que faisait l'épuisement, (T / 5 min)², supprimé en 0.3.6.)
  * Un expert met environ les trois quarts de ce temps ; un robot parfait, un peu plus de la moitié (la jauge impose le rythme).
  */

@@ -320,7 +320,7 @@ export class BossStage {
     play("heal");
   }
 
-  /** Refus de la clope tendue : elle apparaît, tremble, se casse en deux et le tabac vole. */
+  /** Refus de la cigarette tendue : elle apparaît, tremble, se casse en deux et le tabac vole. */
   refused(dmg) {
     if (this.dead) return;
     const p = this.pos, o = this.ovPos();
@@ -337,7 +337,7 @@ export class BossStage {
     if (fast) { this.front.burst(6, () => { const a = rnd(0, Math.PI * 2), v = rnd(1, 2.4); return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.85, life: 12, c: "#ffcd75" }; }); }
   }
   breakCombo() { this.combo = 0; this.comboBreak = 12; }
-  /** Résultat d'une note de la jauge : parfait, bon, raté, clope prise ou refusée. */
+  /** Résultat d'une note de la jauge : parfait, bon, raté, cigarette prise ou refusée. */
   judged(kind) { this.judgeFx = { kind, age: 0 }; }
   forgiven(left, text) { this.judgeFx = { kind: "refused", age: 0 }; this.float(text || (left ? `${left} joker` : "dernier joker"), STAGE_W / 2, GAUGE_Y - 8, { color: "#73eff7", sc: 1 }); }
 
@@ -515,7 +515,7 @@ export class BossStage {
     if (this.healGlow > 0 && (this.healGlow >> 2) % 2) { b.globalAlpha = 0.5; b.drawImage(sp.white, x, y, w, h); b.globalAlpha = 1; }
   }
 
-  /** Jauge de rythme : rail, centre « || », fenêtres, deux cercles (ou deux clopes) qui convergent. */
+  /** Jauge de rythme : rail, centre « || », fenêtres, deux cercles (ou deux cigarettes) qui convergent. */
   drawGauge(b) {
     const y = GAUGE_Y, L = 5, R = STAGE_W - 6, C = STAGE_W / 2, g = this.gauge, jf = this.judgeFx;
     b.fillStyle = OUTLINE; b.fillRect(L - 2, y - 2, R - L + 5, 5);
@@ -535,7 +535,7 @@ export class BossStage {
       const off = Math.round((C - L) * Math.min(k, 1.15));
       for (const [x, dir] of [[L + off, 1], [R - off, -1]]) {
         if (g.kind === "cig") {
-          // une clope qui glisse, braise devant
+          // une cigarette qui glisse, braise devant
           b.fillStyle = OUTLINE; b.fillRect(x - 4 * dir - (dir < 0 ? 0 : 0) - 1, y - 2, 10, 4);
           for (let i = 0; i < 7; i++) { const px = x - i * dir; b.fillStyle = i === 0 ? ((this.t >> 2) % 2 ? "#ffcd75" : "#ef7d57") : i < 5 ? "#f4f4f4" : "#ef7d57"; b.fillRect(px, y - 1, 1, 2); }
         } else {
@@ -926,7 +926,7 @@ export class BossStage {
     o.globalAlpha = 1;
   }
 
-  /** La clope tendue : elle tremble au-dessus du boss avant de casser. */
+  /** La cigarette tendue : elle tremble au-dessus du boss avant de casser. */
   ov_snap(o, e) {
     if (e.age >= 8) {
       if (e.age < 12) {

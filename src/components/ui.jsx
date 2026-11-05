@@ -17,16 +17,20 @@ export const Bar = ({ pct, color, height }) => (
   </div>
 );
 
+const nf = (v) => v.toLocaleString("fr-FR");
+/** Multiplicateur de série du sevrage, « ×1,07 ». */
+export const multText = (m) => `×${m.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 export function LevelCard({ kind, label }) {
   const { S } = useApp();
   const lv = kind === "quit" ? S.quit : kind === "player" ? S.player : S.sport;
   const titles = kind === "quit" ? Q_TITLES : kind === "player" ? P_TITLES : S_TITLES;
   return (
     <div className={`lvl ${kind}`}>
-      <span className="label">{label}</span>
+      <span className="label">{label}{kind === "quit" && <span className="lvl-mult" title="Multiplicateur de série">{multText(S.mult)}</span>}</span>
       <div className="lvl-top">
         <span className="lvl-num"><small>niv.</small>{lv.L}</span>
-        <span className="lvl-xp">{lv.cur} / {lv.need} XP</span>
+        <span className="lvl-xp">{lv.max ? "Niveau maximum" : `${nf(lv.cur)} / ${nf(lv.need)} XP`}</span>
       </div>
       <span className="lvl-title">{titleOf(titles, lv.L)}</span>
       <Bar pct={(lv.cur / lv.need) * 100} />

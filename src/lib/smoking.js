@@ -1,10 +1,10 @@
 /**
- * Clopes fumées (module pur, testé dans tests/smoking.test.js) : ce que le sevrage a fait gagner.
- * Une clope fumée remet le sevrage à zéro (un sevrage est un sevrage).
+ * Cigarettes fumées (module pur, testé dans tests/smoking.test.js) : ce que le sevrage a fait gagner.
+ * Une cigarette fumée remet le sevrage à zéro (un sevrage est un sevrage).
  */
 import { DAY } from "./util.js";
 
-/** Clopes évitées et euros économisés depuis le début du suivi, par rapport à la conso de départ. */
+/** Cigarettes évitées et euros économisés depuis le début du suivi, par rapport à la conso de départ. */
 export function savings(ev, { now = new Date(), startAt, cpd = 0, price = 0, pack = 20 } = {}) {
   if (!cpd || !startAt) return null;
   const smoked = ev.filter((e) => e.k === "smoked" && new Date(e.t) >= new Date(startAt)).length;

@@ -29,9 +29,9 @@ export default function Badges() {
   return (
     <Panel id="badges">
       <div className="topbar"><h2>Badges</h2><span className="label">{got} / {all} paliers</span></div>
-      <p className="sub">Chaque badge a plusieurs paliers, de Bronze à Légende. Les badges sevrage repartent à zéro si tu fumes, les autres sont acquis pour de bon.</p>
+      <p className="sub">Chaque badge a plusieurs paliers, de Bronze à Légende. Ils sont acquis pour de bon, même après une rechute.</p>
       <div className="stack">
-        <h3 className="sec-title">Sevrage · depuis ta dernière clope</h3>
+        <h3 className="sec-title">Sevrage</h3>
         <div className="badge-grid">{BADGES.filter((b) => b.g === "quit").map((b) => <BadgeCard key={b.id} b={b} S={S} />)}</div>
       </div>
       <div className="stack">

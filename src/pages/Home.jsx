@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <Panel id="accueil">
       <section className="hero">
-        <span className="label">Sans clope depuis</span>
+        <span className="label">Sans cigarette depuis</span>
         <span className="count">{durationText(S.elapsed)}</span>
         <span className="since">
           Depuis le {DOW[S.q.getDay()]} {fDate(S.q)} à {fTime(S.q)}
@@ -39,7 +39,7 @@ export default function Home() {
       <section className="gains" aria-label="Ce que tu as gagné">
         <div><b>{S.cravAll.length}</b><span>{S.cravAll.length > 1 ? "envies tenues" : "envie tenue"}</span></div>
         {sv
-          ? <><div><b>{sv.avoided.toLocaleString("fr-FR")}</b><span>clopes évitées</span></div>{sv.saved > 0 && <div><b>{eur(sv.saved)}</b><span>économisés</span></div>}</>
+          ? <><div><b>{sv.avoided.toLocaleString("fr-FR")}</b><span>cigarettes évitées</span></div>{sv.saved > 0 && <div><b>{eur(sv.saved)}</b><span>économisés</span></div>}</>
           : on("sante") && <button type="button" className="gains-set" onClick={() => go("risques")}>Indique ta conso pour voir tes économies ›</button>}
       </section>
 

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { compute, recapDue } from "../src/lib/compute.js";
 import { normalizeData, parseImport, exportJson, mergeDays } from "../src/lib/storage.js";
 import { xpOf } from "../src/data/exercises.js";
-import { levelOf } from "../src/data/rules.js";
+import { levelOf, quitLevelOf, quitNeed, multOf, titleOf, Q_TITLES } from "../src/data/rules.js";
 import { amount } from "../src/lib/circuit.js";
 
 const iso = (...a) => new Date(...a).toISOString();
@@ -31,7 +31,21 @@ test("quantités : +10 % par niveau sport, ±12 % par retour", () => {
   assert.equal(amount("gainage", 1, 0), 40);
 });
 
-test("XP sevrage : jours + envies selon la méthode", () => {
+test("niveaux sevrage : 999 niveaux, de plus en plus chers", () => {
+  assert.deepEqual(quitLevelOf(0), { L: 1, cur: 0, need: 100 });
+  assert.equal(quitLevelOf(99).L, 1);
+  assert.equal(quitLevelOf(100).L, 2);
+  assert.ok(quitNeed(100) > quitNeed(10) && quitNeed(500) > quitNeed(100));
+  assert.equal(quitLevelOf(1e12).L, 999);
+  assert.ok(quitLevelOf(1e12).max);
+  assert.equal(multOf(0), 1);
+  assert.equal(multOf(30), 1.3);
+  assert.equal(titleOf(Q_TITLES, 1), "Premier pas");
+  assert.equal(titleOf(Q_TITLES, 14), "Bien parti");
+  assert.equal(titleOf(Q_TITLES, 999), "Légende");
+});
+
+test("XP sevrage : jours + envies selon la méthode, avec le multiplicateur de série", () => {
   const now = new Date(2026, 10, 4, 14, 0);
   const { state, days } = base(iso(2026, 10, 2, 0, 0));
   days["2026-11-04"] = [
@@ -42,12 +56,14 @@ test("XP sevrage : jours + envies selon la méthode", () => {
   ];
   const S = compute(state, days, now);
   assert.equal(S.streak, 2);
-  assert.equal(S.quitXp, 2 * 100 + 15 + 20 + 25);
+  // jour 1 × 1, jour 2 × 1,01 ; envies du 3e jour × 1,02
+  assert.equal(S.quitXp, 100 + 101 + 15 + 20 + 26);
+  assert.equal(S.mult, 1.02);
   assert.equal(S.sportXp, 30);
   assert.equal(S.res, 3);
 });
 
-test("rechute : le sevrage repart de zéro, le sport reste", () => {
+test("rechute : l'XP et le niveau restent, la série et le multiplicateur repartent de zéro", () => {
   const now = new Date(2026, 10, 6, 12, 0);
   const { days } = base(iso(2026, 10, 2));
   days["2026-11-03"] = [
@@ -57,10 +73,25 @@ test("rechute : le sevrage repart de zéro, le sport reste", () => {
   days["2026-11-05"] = [{ k: "smoked", t: iso(2026, 10, 5, 22) }];
   const state = { ...base(iso(2026, 10, 2)).state, quitAt: iso(2026, 10, 5, 22), best: 3 };
   const S = compute(state, days, now);
-  assert.equal(S.res, 0);
-  assert.equal(S.quitXp, 0);
+  assert.equal(S.streak, 0);
+  assert.equal(S.mult, 1);
+  assert.equal(S.res, 1);
+  assert.equal(S.quitXp, 100 + 101 + 102 + 25); // 3 jours avant la cigarette + l'envie du 3 (× 1,01)
   assert.equal(S.sportXp, 24);
   assert.equal(S.best, 3);
+  assert.deepEqual(S.ser.streak.map((p) => p.v), [1, 2, 3]); // le badge « Sans fumer » garde son record
+});
+
+test("après une rechute, le multiplicateur repart de ×1", () => {
+  const { days } = base(iso(2026, 10, 1));
+  days["2026-11-11"] = [{ k: "smoked", t: iso(2026, 10, 11, 0) }];
+  const state = { ...base(iso(2026, 10, 1)).state, quitAt: iso(2026, 10, 11, 0) };
+  const S = compute(state, days, new Date(2026, 10, 13, 12));
+  // 10 jours (100 à 109) puis 2 jours d'une nouvelle série (100 et 101)
+  assert.equal(S.xpDays, 1045 + 201);
+  assert.equal(S.streak, 2);
+  assert.equal(S.mult, 1.02);
+  assert.equal(S.best, 10);
 });
 
 test("récap : pas en semaine, oui dimanche 18h, rattrapé le lundi seulement si la page servait déjà", () => {

@@ -102,7 +102,7 @@ export const BOSS_ART = {
       g.rect(5, 11, 21, 14, "g");
       for (let i = 0; i < 5; i++) { const x = 5 + i * 4 + wave; g.rect(x, 25, 3, 2 + ((i + wave) % 2) * 2, "g"); }
       g.rect(25, 13, 2, 3, "g").rect(26, 11, 2, 3, "g");
-      // clope tenue au bout du bras
+      // cigarette tenue au bout du bras
       g.rect(27, 10, 1, 3, "o").rect(27, 7, 1, 3, "p").px(27, 6, s.f % 2 ? "y" : "o");
       eyes(g, s, { lx: 9, rx: 17, y: 9, w: 4, h: 5, bg: "g", kind: "hollow" });
       mouth(g, s, { x: 10, y: 17, w: 8, kind: s.anger ? "teeth" : "zigzag" });

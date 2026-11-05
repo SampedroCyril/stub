@@ -8,7 +8,7 @@ export const DEFIS = {
   ressport3: { g: "quit", n: "Tuer 3 envies avec un circuit", target: 3, ic: "flame", acc: (e) => (e.k === "craving" && methodOf(e) === "sport" ? 1 : 0) },
   breath3: { g: "quit", n: "Faire 3 séances de respiration", target: 3, ic: "wind", acc: (e) => (e.k === "breath" ? 1 : 0) },
   note5: { g: "quit", n: "Noter le déclencheur de 5 envies", target: 5, ic: "tag", acc: (e) => (e.k === "craving" && e.tr ? 1 : 0) },
-  clean7: { g: "quit", n: "Une semaine entière sans clope", target: 7, ic: "calendar", clean: true },
+  clean7: { g: "quit", n: "Une semaine entière sans cigarette", target: 7, ic: "calendar", clean: true },
   circ5: { g: "sport", n: "Faire 5 circuits", target: 5, ic: "dumbbell", acc: (e) => (e.k === "circuit" ? 1 : 0) },
   days3: { g: "sport", n: "Du sport 3 jours différents", target: 3, ic: "calendar", days: true },
   xp200: { g: "sport", n: "Gagner 200 XP sport", target: 200, ic: "star", acc: (e) => (e.k === "circuit" || e.k === "challenge" ? circuitXp(e) : 0) },

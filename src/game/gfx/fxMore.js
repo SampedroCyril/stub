@@ -140,7 +140,7 @@ const CAP = { chakra: 0.7, pixel: 0.875 };
 // ======================= CENDRIERS =======================
 /**
  * Cendriers de la victoire. pal : couleurs du cendrier (a : bord, b : pied, i : intérieur, h : fond).
- * ash : couleurs des cendres au fond · back/front(b, t, s) : décor avant et après la clope (s = scène).
+ * ash : couleurs des cendres au fond · back/front(b, t, s) : décor avant et après la cigarette (s = scène).
  */
 export const TRAYS = {
   classic: { n: "Bleu", d: "Le cendrier de toujours.", pal: { a: { r: ["#1f3b7a", "#3b5dc9", "#73a6f6"], cyl: true }, b: { r: ["#151d3b", "#29366f", "#3b5dc9"] }, i: "#1b2550", h: "#25336a" } },
@@ -178,7 +178,7 @@ export const TRAYS = {
     },
   },
   pot: {
-    n: "Pot de fleur", d: "La clope finit en terreau… et une pousse sort de terre.",
+    n: "Pot de fleur", d: "La cigarette finit en terreau… et une pousse sort de terre.",
     pal: { a: { r: ["#8a3a1f", "#c2602f", "#e8955a"], cyl: true }, b: { r: ["#5a2414", "#8a3a1f", "#c2602f"] }, i: "#3a2418", h: "#4a2e1e" },
     ash: ["#5a3a24", "#3a2418"],
     count(s) { s.front.burst(10, (i) => ({ x: 30 + rnd(-2, 2), y: 18, vx: rnd(-0.8, 0.8), vy: rnd(-0.9, -0.3), g: 0.02, wob: 0.3, life: rnd(40, 60) | 0, c: i % 2 ? "#a7f070" : "#38b764", fade: true })); },
