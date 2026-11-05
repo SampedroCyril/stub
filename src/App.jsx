@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AppProvider, useApp, sectionOf, sectionOn, CRAVING_VIEWS, cravingHome } from "./store/AppStore.jsx";
+import { AppProvider, useApp, sectionOf, sectionOn } from "./store/AppStore.jsx";
 import { Toast } from "./components/ui.jsx";
 import { BottomNav, SectionHeader } from "./components/Nav.jsx";
 import Reglages from "./pages/Reglages.jsx";
@@ -10,7 +10,6 @@ import Talents from "./pages/Talents.jsx";
 import Boutique from "./pages/Boutique.jsx";
 import Symptomes from "./pages/Symptomes.jsx";
 import Risques from "./pages/Risques.jsx";
-import Clopes, { Reduction } from "./pages/Clopes.jsx";
 import Victory from "./game/Victory.jsx";
 import BossThumb from "./game/BossThumb.jsx";
 import { BOSSES } from "./game/bosses.js";
@@ -35,21 +34,20 @@ import { dayKey } from "./lib/util.js";
  * « Non » garde le combat (la pastille reste) et ne redemande pas avant la prochaine sortie.
  */
 function PendingBattle() {
-  const { battle, view, go, fleeBattle, state } = useApp();
+  const { battle, view, go, fleeBattle } = useApp();
   const [ask, setAsk] = useState(false);
   const asked = useRef(null);
-  const home = CRAVING_VIEWS.includes(view);
-  const away = !!battle && !home;
+  const away = !!battle && view !== "sevrage";
   useEffect(() => {
-    if (!away) { setAsk(false); if (home) asked.current = null; return; }
+    if (!away) { setAsk(false); if (view === "sevrage") asked.current = null; return; }
     if (asked.current === battle.id) return;
     const t = setTimeout(() => { asked.current = battle.id; setAsk(true); }, 4000);
     return () => clearTimeout(t);
-  }, [away, home, battle]);
+  }, [away, view, battle]);
   if (!away) return null;
   return (
     <>
-      <button className="battle-pill" type="button" onClick={() => go(cravingHome(state))}>
+      <button className="battle-pill" type="button" onClick={() => go("sevrage")}>
         <BossThumb id={battle.boss} />
         <span>Combat en cours · {hpAt(battle, new Date())} PV</span>
       </button>
@@ -62,7 +60,7 @@ function PendingBattle() {
               <button className="btn" type="button" onClick={() => setAsk(false)}>Non, je le garde</button>
               <button className="btn danger-fill" type="button" onClick={() => { setAsk(false); fleeBattle(); }}>Oui, l'annuler</button>
             </div>
-            <button className="linkbtn" type="button" onClick={() => { setAsk(false); go(cravingHome(state)); }}>Reprendre le combat</button>
+            <button className="linkbtn" type="button" onClick={() => { setAsk(false); go("sevrage"); }}>Reprendre le combat</button>
           </div>
         </div>
       )}
@@ -74,7 +72,7 @@ function Shell() {
   const { S, state, now, flow, patchState, battle, view, go } = useApp();
   useEffect(() => { sound.on = state.gameSound !== false; }, [state.gameSound]);
   // section masquée dans les réglages : retour à l'accueil
-  useEffect(() => { const sec = sectionOf(view, state); if (sec.optional && !sectionOn(state, sec.id)) go("accueil"); }, [view, state, go]);
+  useEffect(() => { const sec = sectionOf(view); if (sec.optional && !sectionOn(state, sec.id)) go("accueil"); }, [view, state, go]);
   const [recap, setRecap] = useState(null); // {ws, auto}
 
   // Récap du dimanche : s'ouvre seul à partir de 18h, ou à la prochaine ouverture si raté.
@@ -101,8 +99,6 @@ function Shell() {
       <Toast />
       <Home />
       <Sevrage />
-      <Reduction />
-      <Clopes />
       <Circuit />
       <Respirer />
       <Arcade />

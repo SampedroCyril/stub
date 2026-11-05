@@ -1,11 +1,10 @@
 /* Stub : une colonne, barre d'onglets défilante.
-   Sevrage = vert, réduction = violet, sport = bleu, respiration = turquoise, défis = or. */
+   Sevrage = vert, sport = bleu, respiration = turquoise, défis = or. */
 :root{
   --bg:#F2F3F7; --surface:#FFFFFF; --fg:#14161C; --muted:#5C6271; --line:#DCDFE8;
   --accent:#2F5BEA; --accent-ink:#FFFFFF; --accent-soft:#E4EAFD;
   --quit:#1C8A57; --quit-soft:#DDF2E7;
   --breath:#0E8C9B; --breath-soft:#DDF3F5;
-  --reduce:#6B44D4; --reduce-soft:#ECE6FB;
   --warn:#B9470F; --danger:#C2343F; --heart:#E5484D; --pink:#EE7F98; --smoke:#A9AFBB; --gold:#D8A31A; --scrim:rgba(14,16,24,.55);
   --ghost:#C3CEF3;
   --skin:#EDB894; --skin-far:#D29A75; --shirt:#2F5BEA; --shirt-far:#5B7CE8; --pants:#283044; --pants-far:#5A6278; --shoe:#11141C; --hair:#2B211C;
@@ -18,7 +17,7 @@
   :root:not([data-theme="light"]){
     --bg:#0E1015; --surface:#171A21; --fg:#E7E9EF; --muted:#9097A6; --line:#272B35;
     --accent:#7390FF; --accent-ink:#0B0D12; --accent-soft:#1D2440;
-    --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A; --reduce:#A386FF; --reduce-soft:#251D42;
+    --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A;
     --warn:#F08A4B; --danger:#FF6B75; --heart:#FF6B70; --pink:#F48DA4; --smoke:#5E6574; --gold:#E9B93A; --scrim:rgba(0,0,0,.66);
     --ghost:#323C6E;
     --shirt:#6E8BFF; --shirt-far:#4D66C8; --pants:#5A6684; --pants-far:#414A62; --shoe:#C9CFDC; --hair:#4A3A31;
@@ -28,7 +27,7 @@
 :root[data-theme="dark"]{
   --bg:#0E1015; --surface:#171A21; --fg:#E7E9EF; --muted:#9097A6; --line:#272B35;
   --accent:#7390FF; --accent-ink:#0B0D12; --accent-soft:#1D2440;
-  --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A; --reduce:#A386FF; --reduce-soft:#251D42;
+  --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A;
   --warn:#F08A4B; --danger:#FF6B75; --heart:#FF6B70; --pink:#F48DA4; --smoke:#5E6574; --gold:#E9B93A; --scrim:rgba(0,0,0,.66);
   --ghost:#323C6E;
   --shirt:#6E8BFF; --shirt-far:#4D66C8; --pants:#5A6684; --pants-far:#414A62; --shoe:#C9CFDC; --hair:#4A3A31;
@@ -850,7 +849,7 @@ details.fold[open]>summary::after{content:"–"}
 .skill-nav:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .skill-sheet{border-left-width:1px;border-top:4px solid var(--brc, var(--gold))}
 
-/* 0.4.2 : déclencheurs par catégorie, clopes fumées, mode Réduction */
+/* 0.4.2 : déclencheurs par catégorie, fenêtre « J'ai fumé une clope » */
 .trig{display:flex;flex-direction:column;gap:8px}
 .trig-cats{display:flex;gap:4px;padding:3px;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow-x:auto;scrollbar-width:none}
 .trig-cats::-webkit-scrollbar{display:none}
@@ -859,57 +858,3 @@ details.fold[open]>summary::after{content:"–"}
 .trig-cats button.has::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--quit)}
 .trig-cats button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .smk-sheet .label{margin-top:2px}
-.smk-today{gap:10px}
-.smk-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
-.smk-top>div{display:flex;flex-direction:column;gap:2px;min-width:0}
-.smk-n{font:700 40px/1 var(--f-display);font-variant-numeric:tabular-nums}
-.smk-n small{font-size:20px;color:var(--muted)}
-.smk-sub{font-size:13px;color:var(--muted)}
-.smk-today.over .smk-n,.smk-today.over .smk-sub{color:var(--danger)}
-.smk-since{text-align:right;align-items:flex-end}
-.smk-since b{font:700 18px var(--f-display)}
-.smk-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.smk-tiles>div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:1px;min-width:0}
-.smk-tiles small{font-size:12px;color:var(--muted);font-weight:600}
-.smk-tiles b{font:700 22px var(--f-display);font-variant-numeric:tabular-nums}
-.smk-tiles span{font-size:12px;color:var(--muted)}
-.smk-tiles .good b{color:var(--quit)}
-.smk-chart{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;height:110px;align-items:end}
-.smk-bar{position:relative;height:100%;display:flex;align-items:flex-end}
-.smk-bar .v{display:block;width:100%;background:var(--accent);border-radius:3px 3px 1px 1px;min-height:0}
-.smk-bar.over .v{background:var(--danger)}
-.smk-bar.off{opacity:.35}
-.smk-bar .goal{position:absolute;left:-1px;right:-1px;height:2px;background:var(--quit);border-radius:1px}
-.smk-hours{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;height:90px;align-items:end}
-.smk-hours div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%}
-.smk-hours i{display:block;width:100%;background:var(--warn);border-radius:3px 3px 1px 1px}
-.smk-hours small{font-size:10px;color:var(--muted)}
-.smk-cats{display:flex;flex-wrap:wrap;gap:6px}
-.smk-cats span{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
-.home-reduce{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
-.hr-info{appearance:none;cursor:pointer;background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:4px;color:var(--fg);font:inherit;min-width:0}
-.hr-info b{font:700 26px/1.05 var(--f-display);font-variant-numeric:tabular-nums}
-.hr-info b small{font-size:14px;color:var(--muted)}
-.home-reduce.over .hr-info b{color:var(--danger)}
-.hr-add{flex:none;padding:12px 16px}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
-.seg.three{grid-template-columns:repeat(3,1fr)}
-.seg .pick{border-radius:10px;text-align:center;padding:9px 6px;font-size:13px}
-.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
-.stepper button{appearance:none;cursor:pointer;width:40px;height:40px;border:0;background:var(--bg);color:var(--fg);font:600 20px var(--f-body)}
-.stepper output{min-width:42px;text-align:center;font:700 18px var(--f-mono)}
-.btn.blue{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-
-/* ---------- Réduction (violet) ---------- */
-.btn.reduce{background:var(--reduce);border-color:var(--reduce);color:#fff}
-.subnav[data-s="reduction"] button[aria-selected="true"]{background:var(--reduce);color:#fff}
-.bottomnav button[aria-current="page"][data-s="reduction"]{color:var(--reduce)}
-.hero.reduce{background:#6B44D4}
-.hero.reduce.over{background:var(--danger)}
-.hero.reduce .count small{font-size:20px;opacity:.85}
-.hero.reduce .bar{margin-top:8px;background:rgba(255,255,255,.25)}
-.hero.reduce .hero-cta{color:#6B44D4}
-.hero.reduce.over .hero-cta{color:var(--danger)}
-.hero-cta2{appearance:none;cursor:pointer;margin-top:8px;align-self:stretch;background:none;color:#fff;border:1.5px solid rgba(255,255,255,.6);border-radius:12px;padding:11px;font:600 15px var(--f-body)}
-.set-row.dim{opacity:.6}
-.set-row.dim .switch{cursor:not-allowed}

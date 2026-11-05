@@ -4,7 +4,6 @@ import { load, save, DEFAULT_STATE } from "../lib/storage.js";
 import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
 import { EARN } from "../game/shop.js";
-import { goalAt, smokeStats } from "../lib/smoking.js";
 import { DEFIS } from "../data/defis.js";
 import { DEFI_XP, Q_TITLES, S_TITLES, P_TITLES, CRAV_XP, METHOD_NAME, titleOf } from "../data/rules.js";
 import { createBattle, hit, hpAt, victoryEvent, bestiary, RANK_XP } from "../game/battle.js";
@@ -13,8 +12,8 @@ import { BOSSES } from "../game/bosses.js";
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
 
-export { SECTIONS, SUB_LABELS, sectionOn, visibleSections, CRAVING_VIEWS, cravingHome, VIEWS, sectionOf } from "../data/sections.js";
-import { sectionOn, CRAVING_VIEWS, cravingHome, VIEWS, sectionOf } from "../data/sections.js";
+export { SECTIONS, SUB_LABELS, sectionOn, visibleSections, VIEWS, sectionOf } from "../data/sections.js";
+import { VIEWS } from "../data/sections.js";
 
 const viewFromHash = () => {
   const v = location.hash.replace(/^#/, "");
@@ -30,8 +29,6 @@ export function AppProvider({ children }) {
   dataRef.current = data;
   const [now, setNow] = useState(() => new Date());
   const [view, setView] = useState(viewFromHash);
-  const viewRef = useRef(view);
-  viewRef.current = view;
   const [toast, setToast] = useState(null);
   /**
    * flow.mode : "idle" | "craving" | "circuit" | "breath"
@@ -120,11 +117,8 @@ export function AppProvider({ children }) {
   /* ---- parcours d'une envie / d'un circuit ---- */
   const startCraving = useCallback(() => {
     const at = new Date();
-    // on reste sur la page si elle accueille déjà les envies, sinon on va à celle de la catégorie active
-    const cur = viewRef.current, st = dataRef.current.state;
-    const from = CRAVING_VIEWS.includes(cur) && sectionOn(st, sectionOf(cur, st).id) ? cur : cravingHome(st);
-    setFlow({ mode: "craving", craving: { at, endsAt: +at + CRAVING_MS, intensity: null, trigger: null, from } });
-    go(from);
+    setFlow({ mode: "craving", craving: { at, endsAt: +at + CRAVING_MS, intensity: null, trigger: null } });
+    go("sevrage");
   }, [go]);
   const setCravingField = useCallback((k, v) => {
     setFlow((f) => (f.craving ? { ...f, craving: { ...f.craving, [k]: f.craving[k] === v ? null : v } } : f));
@@ -146,7 +140,7 @@ export function AppProvider({ children }) {
     const victories = Object.fromEntries(Object.entries(bestiary(S.ev)).map(([k, v]) => [k, v.wins]));
     setBattle(createBattle({ at: new Date(c.at), iv: c.intensity, trigger: c.trigger, victories }));
     setFlow({ mode: "idle" });
-    go(c.from || cravingHome(dataRef.current.state));
+    go("sevrage");
   }, [flow.craving, S.ev, setBattle, go]);
   /** Attaque le boss en cours (dégâts en PV, négatifs pour un soin) ; renvoie les dégâts infligés. */
   const hitBattle = useCallback((src, d) => {
@@ -177,20 +171,14 @@ export function AppProvider({ children }) {
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 
   /**
-   * Une clope fumée : le sevrage repart de zéro (même s'il est masqué), et elle compte dans l'objectif de la Réduction. L'événement garde la date de la clope
+   * Une clope fumée : le sevrage repart de zéro. L'événement garde la date de la clope
    * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
    */
   const logSmoke = useCallback((tr = null) => {
     const cur = dataRef.current, t = new Date();
     const S0 = compute(cur.state, cur.days, t);
     const ev = { k: "smoked", t: t.toISOString(), ...(tr ? { tr } : {}), pq: cur.state.quitAt, pb: cur.state.best || 0 };
-    const sev = sectionOn(cur.state, "sevrage");
-    let msg = "C'est noté. Le sevrage repart de zéro, ton sport et tes stats restent. La prochaine envie, tu la tiens.";
-    if (sectionOn(cur.state, "reduction")) {
-      const g = goalAt(cur.state.reduce, t), n = smokeStats([...S0.ev, ev], { now: t }).today;
-      msg = g == null ? `Clope notée : ${n} aujourd'hui.` : n <= g ? `Clope notée : ${n} / ${g} aujourd'hui.` : `Clope notée : ${n} / ${g}. Objectif dépassé pour aujourd'hui, demain on repart.`;
-      if (sev) msg += " Le sevrage repart de zéro.";
-    }
+    const msg = "C'est noté. Le sevrage repart de zéro, ton sport et tes stats restent. La prochaine envie, tu la tiens.";
     setFlow({ mode: "idle" });
     commit([ev], [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });
   }, [commit]);
