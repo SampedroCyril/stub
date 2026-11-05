@@ -20,38 +20,53 @@ export default function Home() {
   const hs = healthState(S);
   const cpd = state.cpd || 0;
   const sv = savings(S.ev, { now: S.now, startAt: S.startAt, cpd, price: state.packPrice || 0, pack: state.packSize || 20 });
-  const reduce = state.goal === "reduce";
-  const st = reduce ? smokeStats(S.ev, { now: S.now, startAt: S.startAt, reduce: state.reduce }) : null;
+  const sev = on("sevrage"), red = on("reduction");
+  const st = red ? smokeStats(S.ev, { now: S.now, startAt: S.startAt, reduce: state.reduce }) : null;
+  const over = st && st.goalToday != null && st.today > st.goalToday;
   const [sheet, setSheet] = useState(false);
   const levels = [
-    { k: "quit", n: "Sevrage", lv: S.quit, t: Q_TITLES, to: "sevrage", show: true },
+    { k: "quit", n: "Sevrage", lv: S.quit, t: Q_TITLES, to: "sevrage", show: sev },
     { k: "sport", n: "Sport", lv: S.sport, t: S_TITLES, to: "circuit", show: on("sport") },
     { k: "player", n: "Joueur", lv: S.player, t: P_TITLES, to: "talents", show: on("joueur") },
   ].filter((l) => l.show);
 
   return (
     <Panel id="accueil">
-      <section className="hero">
-        <span className="label">Sans clope depuis</span>
-        <span className="count">{durationText(S.elapsed)}</span>
-        <span className="since">
-          Depuis le {DOW[S.q.getDay()]} {fDate(S.q)} à {fTime(S.q)}
-          {S.best > S.streak ? ` · record ${pl(S.best, "jour")}` : ""}
-        </span>
-        <button className="hero-cta" type="button" onClick={startCraving}>J'ai envie de fumer</button>
-      </section>
-
-      {reduce && (
-        <section className={`box home-reduce${st.goalToday != null && st.today > st.goalToday ? " over" : ""}`}>
-          <button type="button" className="hr-info" onClick={() => go("clopes")}>
-            <span className="label">Aujourd'hui</span>
-            <b>{st.today}{st.goalToday != null && <small> / {st.goalToday} clopes</small>}</b>
-            {st.goalToday != null && <Bar pct={st.goalToday ? Math.min(100, (st.today / st.goalToday) * 100) : st.today ? 100 : 0} color={st.today > st.goalToday ? "var(--danger)" : "var(--accent)"} />}
-          </button>
-          <button className="btn blue hr-add" type="button" onClick={() => setSheet(true)}>J'ai fumé</button>
-          {sheet && <SmokeSheet onClose={() => setSheet(false)} />}
+      {sev ? (
+        <section className="hero">
+          <span className="label">Sans clope depuis</span>
+          <span className="count">{durationText(S.elapsed)}</span>
+          <span className="since">
+            Depuis le {DOW[S.q.getDay()]} {fDate(S.q)} à {fTime(S.q)}
+            {S.best > S.streak ? ` · record ${pl(S.best, "jour")}` : ""}
+          </span>
+          <button className="hero-cta" type="button" onClick={startCraving}>J'ai envie de fumer</button>
+        </section>
+      ) : (
+        <section className={`hero reduce${over ? " over" : ""}`}>
+          <span className="label">Aujourd'hui</span>
+          <span className="count">{st.today}{st.goalToday != null && <small> / {st.goalToday} {st.goalToday > 1 ? "clopes" : "clope"}</small>}</span>
+          <span className="since">
+            {st.goalToday == null ? "Règle ton objectif dans Réduction" : over ? "Objectif dépassé, demain on repart" : st.goalToday === st.today ? "Objectif atteint, on n'en ajoute plus" : `Encore ${pl(st.goalToday - st.today, "clope")} sous l'objectif`}
+            {st.last ? ` · dernière il y a ${durationText(st.current)}` : ""}
+          </span>
+          {st.goalToday != null && <Bar pct={st.goalToday ? Math.min(100, (st.today / st.goalToday) * 100) : st.today ? 100 : 0} color="#fff" />}
+          <button className="hero-cta" type="button" onClick={startCraving}>J'ai envie de fumer</button>
+          <button className="hero-cta2" type="button" onClick={() => setSheet(true)}>J'ai fumé une clope</button>
         </section>
       )}
+
+      {sev && red && (
+        <section className={`box home-reduce${over ? " over" : ""}`}>
+          <button type="button" className="hr-info" onClick={() => go("reduction")}>
+            <span className="label">Réduction · aujourd'hui</span>
+            <b>{st.today}{st.goalToday != null && <small> / {st.goalToday} {st.goalToday > 1 ? "clopes" : "clope"}</small>}</b>
+            {st.goalToday != null && <Bar pct={st.goalToday ? Math.min(100, (st.today / st.goalToday) * 100) : st.today ? 100 : 0} color={over ? "var(--danger)" : "var(--reduce)"} />}
+          </button>
+          <button className="btn reduce hr-add" type="button" onClick={() => setSheet(true)}>J'ai fumé</button>
+        </section>
+      )}
+      {sheet && <SmokeSheet onClose={() => setSheet(false)} />}
 
       <section className="gains" aria-label="Ce que tu as gagné">
         <div><b>{S.cravAll.length}</b><span>{S.cravAll.length > 1 ? "envies tenues" : "envie tenue"}</span></div>

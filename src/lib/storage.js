@@ -28,7 +28,6 @@ export const DEFAULT_STATE = {
   skills: [],
   sympt: {},
   cpd: 0,
-  goal: "quit",
   reduce: null,
   packPrice: 0,
   shop: { bought: [], eq: { ult: "random", ko: "random", sig: "s:classic" } },
@@ -58,6 +57,13 @@ export function migrateState(s) {
   if (s.v >= 3) {
     const o = { ...DEFAULT_STATE, ...s, v: 4 };
     if (!o.startAt) o.startAt = o.quitAt;
+    // 0.4.3 : l'ancien choix « Réduire » du Sevrage devient la catégorie Réduction
+    if (o.goal !== undefined) {
+      const sec = { ...(o.sections || {}) };
+      if (o.goal === "reduce" && sec.reduction === undefined) sec.reduction = true;
+      o.sections = sec;
+      delete o.goal;
+    }
     return o;
   }
   const q = s.quit ? new Date(`${s.quit}T00:00:00`) : null;

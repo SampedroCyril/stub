@@ -1,10 +1,11 @@
 /* Stub : une colonne, barre d'onglets défilante.
-   Sevrage = vert, sport = bleu, respiration = turquoise, défis = or. */
+   Sevrage = vert, réduction = violet, sport = bleu, respiration = turquoise, défis = or. */
 :root{
   --bg:#F2F3F7; --surface:#FFFFFF; --fg:#14161C; --muted:#5C6271; --line:#DCDFE8;
   --accent:#2F5BEA; --accent-ink:#FFFFFF; --accent-soft:#E4EAFD;
   --quit:#1C8A57; --quit-soft:#DDF2E7;
   --breath:#0E8C9B; --breath-soft:#DDF3F5;
+  --reduce:#6B44D4; --reduce-soft:#ECE6FB;
   --warn:#B9470F; --danger:#C2343F; --heart:#E5484D; --pink:#EE7F98; --smoke:#A9AFBB; --gold:#D8A31A; --scrim:rgba(14,16,24,.55);
   --ghost:#C3CEF3;
   --skin:#EDB894; --skin-far:#D29A75; --shirt:#2F5BEA; --shirt-far:#5B7CE8; --pants:#283044; --pants-far:#5A6278; --shoe:#11141C; --hair:#2B211C;
@@ -17,7 +18,7 @@
   :root:not([data-theme="light"]){
     --bg:#0E1015; --surface:#171A21; --fg:#E7E9EF; --muted:#9097A6; --line:#272B35;
     --accent:#7390FF; --accent-ink:#0B0D12; --accent-soft:#1D2440;
-    --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A;
+    --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A; --reduce:#A386FF; --reduce-soft:#251D42;
     --warn:#F08A4B; --danger:#FF6B75; --heart:#FF6B70; --pink:#F48DA4; --smoke:#5E6574; --gold:#E9B93A; --scrim:rgba(0,0,0,.66);
     --ghost:#323C6E;
     --shirt:#6E8BFF; --shirt-far:#4D66C8; --pants:#5A6684; --pants-far:#414A62; --shoe:#C9CFDC; --hair:#4A3A31;
@@ -27,7 +28,7 @@
 :root[data-theme="dark"]{
   --bg:#0E1015; --surface:#171A21; --fg:#E7E9EF; --muted:#9097A6; --line:#272B35;
   --accent:#7390FF; --accent-ink:#0B0D12; --accent-soft:#1D2440;
-  --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A;
+  --quit:#3CC487; --quit-soft:#143326; --breath:#3CC9D6; --breath-soft:#12303A; --reduce:#A386FF; --reduce-soft:#251D42;
   --warn:#F08A4B; --danger:#FF6B75; --heart:#FF6B70; --pink:#F48DA4; --smoke:#5E6574; --gold:#E9B93A; --scrim:rgba(0,0,0,.66);
   --ghost:#323C6E;
   --shirt:#6E8BFF; --shirt-far:#4D66C8; --pants:#5A6684; --pants-far:#414A62; --shoe:#C9CFDC; --hair:#4A3A31;
@@ -898,3 +899,17 @@ details.fold[open]>summary::after{content:"–"}
 .stepper button{appearance:none;cursor:pointer;width:40px;height:40px;border:0;background:var(--bg);color:var(--fg);font:600 20px var(--f-body)}
 .stepper output{min-width:42px;text-align:center;font:700 18px var(--f-mono)}
 .btn.blue{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* ---------- Réduction (violet) ---------- */
+.btn.reduce{background:var(--reduce);border-color:var(--reduce);color:#fff}
+.subnav[data-s="reduction"] button[aria-selected="true"]{background:var(--reduce);color:#fff}
+.bottomnav button[aria-current="page"][data-s="reduction"]{color:var(--reduce)}
+.hero.reduce{background:#6B44D4}
+.hero.reduce.over{background:var(--danger)}
+.hero.reduce .count small{font-size:20px;opacity:.85}
+.hero.reduce .bar{margin-top:8px;background:rgba(255,255,255,.25)}
+.hero.reduce .hero-cta{color:#6B44D4}
+.hero.reduce.over .hero-cta{color:var(--danger)}
+.hero-cta2{appearance:none;cursor:pointer;margin-top:8px;align-self:stretch;background:none;color:#fff;border:1.5px solid rgba(255,255,255,.6);border-radius:12px;padding:11px;font:600 15px var(--f-body)}
+.set-row.dim{opacity:.6}
+.set-row.dim .switch{cursor:not-allowed}
