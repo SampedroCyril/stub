@@ -28,13 +28,19 @@ export function playerXpOf(e, dayMap = new Map()) {
 }
 
 /**
- * Sevrage : l'XP ne repart jamais à zéro. Une cigarette remet seulement la série, et donc le multiplicateur, à ×1.
- * Chaque jour d'affilée sans fumer ajoute 1 % à tout ce que tu gagnes : le jour n de la série rapporte × (1 + 0,01 × (n - 1)).
+ * Sevrage : l'XP ne repart jamais à zéro. Chaque jour d'affilée sans fumer ajoute 1 % au multiplicateur, appliqué à tout
+ * ce que tu gagnes. Une cigarette remet la série à zéro et retire la moitié du bonus (× 1,60 devient × 1,30) : un écart isolé
+ * coûte peu, fumer à nouveau régulièrement ramène vite à × 1. La première journée complète sans fumer après une cigarette
+ * rapporte un bonus de rebond.
  * 999 niveaux ; le niveau L demande 100 + (L - 1)^1,6 XP, de plus en plus. Sans fumer, le niveau 999 prend une vingtaine
  * d'années grâce au multiplicateur (plusieurs siècles sans lui).
  */
 export const MULT_DAY = 0.01;
-export const multOf = (days) => 1 + MULT_DAY * Math.max(0, days);
+/** Multiplicateur après days jours d'une série partie avec le bonus b0. */
+export const multOf = (days, b0 = 0) => 1 + b0 + MULT_DAY * Math.max(0, days);
+/** Bonus gardé après une cigarette : la moitié. */
+export const afterSmoke = (mult) => 1 + Math.round(((mult - 1) / 2) * 10000) / 10000;
+export const REBOUND_XP = 100;
 export const QUIT_MAX = 999;
 export const quitNeed = (L) => Math.round(100 + (L - 1) ** 1.6);
 /** Q_CUM[L - 1] : XP cumulée pour atteindre le niveau L. */

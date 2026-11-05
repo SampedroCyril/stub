@@ -8,6 +8,7 @@ export const BADGES = [
   { id: "streak", g: "quit", n: "Sans fumer", tiers: [1, 3, 7, 14, 30, 60, 90, 180, 365], f: (v) => pl(v, "jour") },
   { id: "res", g: "quit", n: "Envies tenues", tiers: [1, 10, 25, 50, 100, 250, 500], f: (v) => pl(v, "envie") },
   { id: "ressport", g: "quit", n: "Envies tuées au sport", tiers: [1, 5, 15, 30, 60, 120, 250], f: (v) => pl(v, "envie") },
+  { id: "rebond", g: "quit", n: "Rebond", tiers: [1, 3, 5, 10, 20], f: (v) => pl(v, "rebond") },
   { id: "lvlq", g: "quit", n: "Niveau sevrage", tiers: [5, 15, 30, 50, 100, 200, 370, 620, 999], f: (v) => `niveau ${v}`, lvl: true },
   { id: "circ", g: "sport", n: "Circuits", tiers: [1, 10, 25, 50, 100, 250, 500, 1000], f: (v) => pl(v, "circuit") },
   { id: "pompes", g: "sport", n: "Pompes", tiers: [50, 100, 250, 500, 1000, 2500, 5000, 10000], f: (v) => pl(v, "pompe") },

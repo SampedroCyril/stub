@@ -174,13 +174,13 @@ export function AppProvider({ children }) {
    * Une cigarette fumée : la série (et son multiplicateur) repart de zéro, l'XP reste. L'événement garde la date de la cigarette
    * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
    */
-  const logSmoke = useCallback((tr = null) => {
+  const logSmoke = useCallback((tr = null, { silent = false } = {}) => {
     const cur = dataRef.current, t = new Date();
     const S0 = compute(cur.state, cur.days, t);
     const ev = { k: "smoked", t: t.toISOString(), ...(tr ? { tr } : {}), pq: cur.state.quitAt, pb: cur.state.best || 0 };
     const msg = "C'est noté. Ta série repart de zéro, ton XP et ton niveau restent. La prochaine envie, tu la tiens.";
     setFlow({ mode: "idle" });
-    commit([ev], [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });
+    commit([ev], silent ? [] : [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });
   }, [commit]);
   /** Annule une cigarette notée par erreur : l'événement disparaît, la date de dernière cigarette et le record reviennent. */
   const undoSmoke = useCallback((ev) => {
