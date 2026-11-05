@@ -1,5 +1,5 @@
 import { EX, sides, circuitXp } from "../data/exercises.js";
-import { CRAV_XP, XP_DAY, DEFI_XP, QUIT_K, SPORT_K, PLAYER_K, levelOf, methodOf, playerXpOf, HEALTH } from "../data/rules.js";
+import { CRAV_XP, XP_DAY, DEFI_XP, QUIT_K, SPORT_K, PLAYER_K, levelOf, methodOf, playerXpOf, HEALTH, ivOf } from "../data/rules.js";
 import { DEFIS, pickDefis, evalDefi } from "../data/defis.js";
 import { BADGES, badgeInfo } from "../data/badges.js";
 import { RANK_XP } from "../game/battle.js";
@@ -175,8 +175,8 @@ export function weekData(S, state, ws) {
   const inW = (t) => { const d = new Date(t); return d >= ws && d < we; };
   const ev = S.ev.filter((e) => inW(e.t));
   const crav = ev.filter((e) => e.k === "craving");
-  const withI = crav.filter((e) => e.i);
-  const avgI = withI.length ? withI.reduce((a, e) => a + e.i, 0) / withI.length : null;
+  const withI = crav.filter((e) => ivOf(e));
+  const avgI = withI.length ? withI.reduce((a, e) => a + ivOf(e), 0) / withI.length : null;
   const circ = ev.filter((e) => e.k === "circuit");
   const reps = ev.filter((e) => e.k === "circuit" || e.k === "challenge").reduce((a, e) => a + (e.items || []).reduce((b, it) => b + (EX[it.e] && EX[it.e].u === "reps" ? it.n * sides(it.e) : 0), 0), 0);
   const breaths = ev.filter((e) => e.k === "breath");

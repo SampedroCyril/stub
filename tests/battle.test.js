@@ -16,10 +16,13 @@ test("boss selon le déclencheur, Spectre la nuit, Clopinette sinon", () => {
 });
 
 test("PV selon l'intensité et le niveau du boss", () => {
-  assert.equal(createBattle({ at, intensity: 3, trigger: "cafe" }).maxHp, HP_BASE[3]);
+  // envie notée sur 10 : 1 → échelle de jeu 1, 10 → 5, entre les deux on interpole
+  assert.equal(createBattle({ at, iv: 1, trigger: "cafe" }).maxHp, HP_BASE[1]);
   assert.equal(createBattle({ at }).maxHp, HP_BASE[2]);
   assert.equal(bossLevel(12), 3);
-  assert.equal(createBattle({ at, intensity: 5, trigger: "cafe", victories: { cafe: 12 } }).maxHp, Math.round(HP_BASE[5] * 1.2 / 50) * 50);
+  assert.equal(createBattle({ at, iv: 10, trigger: "cafe", victories: { cafe: 12 } }).maxHp, Math.round(HP_BASE[5] * 1.2 / 50) * 50);
+  const mid = createBattle({ at, iv: 6 }).maxHp;
+  assert.ok(mid > HP_BASE[3] && mid < HP_BASE[4]);
 });
 
 test("pas d'épuisement : le boss ne perd des PV que sous les coups", () => {
@@ -53,8 +56,8 @@ test("rangs : S rapide avec un beau combo, A dans les temps, B abattu, C très l
 });
 
 test("victoire : événement avec boss, temps, rang et combo max", () => {
-  const b = { ...createBattle({ at, intensity: 3, trigger: "repas" }), mc: 31 };
-  assert.deepEqual(victoryEvent(b, later(110e3)), { k: "craving", t: at.toISOString(), m: "game", i: 3, tr: "repas", b: "repas", bl: 1, kt: 110, rk: "S", mc: 31 });
+  const b = { ...createBattle({ at, iv: 6, trigger: "repas" }), mc: 31 };
+  assert.deepEqual(victoryEvent(b, later(110e3)), { k: "craving", t: at.toISOString(), m: "game", iv: 6, i: 3, tr: "repas", b: "repas", bl: 1, kt: 110, rk: "S", mc: 31 });
 });
 
 test("bestiaire : victoires, meilleur temps, meilleur combo", () => {

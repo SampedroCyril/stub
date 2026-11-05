@@ -93,7 +93,6 @@ export default function Reglages() {
 
       <Group title="Aide">
         <div className="set-row"><span><b>Tabac Info Service</b><small>Gratuit, avec un suivi personnalisé par des tabacologues</small></span><a className="set-link" href="tel:3989">39 89</a></div>
-        <a className="set-row action" href="https://github.com/SampedroCyril/killing-smoke" target="_blank" rel="noreferrer"><span><b>Code source</b><small>github.com/SampedroCyril/killing-smoke</small></span><span className="chev">›</span></a>
       </Group>
 
       <Group title="Zone sensible">

@@ -1,7 +1,7 @@
 import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import { EX, fmtAmt, circuitXp } from "../data/exercises.js";
-import { TRIG_NAME, METHOD_NAME, PATTERNS, DEFI_XP, methodOf } from "../data/rules.js";
+import { TRIG_NAME, METHOD_NAME, PATTERNS, DEFI_XP, methodOf, ivOf } from "../data/rules.js";
 import { BOSSES } from "../game/bosses.js";
 import { DOW, DAY, dayKey, fTime, fmt1, mins, clamp, lastNDays, weekStart } from "../lib/util.js";
 
@@ -27,11 +27,11 @@ export default function Stats({ onRecap }) {
   const byDay = (k) => crav.filter((e) => dayKey(new Date(e.t)) === k);
   const cw = w.map((x) => { const l = byDay(x.k); const m = (k) => l.filter((e) => methodOf(e) === k).length; return { ...x, s: m("sport"), b: m("breath"), g: m("game") + m("crisis"), h: m("hold") }; });
   const sum7 = cw.reduce((a, x) => a + x.s + x.b + x.g + x.h, 0);
-  const withI = crav.filter((e) => e.i);
-  const avgI = withI.length ? withI.reduce((a, e) => a + e.i, 0) / withI.length : null;
+  const withI = crav.filter((e) => ivOf(e));
+  const avgI = withI.length ? withI.reduce((a, e) => a + ivOf(e), 0) / withI.length : null;
 
   // intensité sur 14 jours
-  const d14 = lastNDays(14, S.now).map((x) => { const l = byDay(x.k).filter((e) => e.i); return { ...x, n: l.length, avg: l.length ? l.reduce((a, e) => a + e.i, 0) / l.length : 0 }; });
+  const d14 = lastNDays(14, S.now).map((x) => { const l = byDay(x.k).filter((e) => ivOf(e)); return { ...x, n: l.length, avg: l.length ? l.reduce((a, e) => a + ivOf(e), 0) / l.length : 0 }; });
   const a7 = d14.slice(7).filter((x) => x.n), b7 = d14.slice(0, 7).filter((x) => x.n);
   const m = (l) => l.reduce((a, x) => a + x.avg, 0) / l.length;
 
@@ -66,7 +66,7 @@ export default function Stats({ onRecap }) {
       <div className="stats four">
         <Stat label="Aujourd'hui" value={byDay(today).length} />
         <Stat label="Moy. / jour" value={crav.length ? fmt1(sum7 / span).replace(",0", "") : "0"} small="7 derniers jours" />
-        <Stat label="Intensité moy." value={avgI ? fmt1(avgI) : "–"} small="sur 5" />
+        <Stat label="Intensité moy." value={avgI ? fmt1(avgI) : "–"} small="sur 10" />
         <Stat label="Au sport" value={crav.length ? `${Math.round((crav.filter((e) => methodOf(e) === "sport").length / crav.length) * 100)}%` : "–"} small="des envies" />
         <Stat label="Tenues" value={crav.length} small="au total" />
         <Stat label="Record" value={`${S.best} j`} small="sans fumer" />
@@ -81,13 +81,13 @@ export default function Stats({ onRecap }) {
             : a7.length && b7.length ? (m(a7) <= m(b7)
               ? <>Tes envies baissent : <b>{fmt1(m(a7))}</b> en moyenne cette semaine contre {fmt1(m(b7))} la semaine d'avant.</>
               : <>Semaine plus dure : <b>{fmt1(m(a7))}</b> en moyenne contre {fmt1(m(b7))} avant. Ça arrive, tiens bon.</>)
-              : <>Intensité moyenne : <b>{fmt1(avgI)}</b> sur 5. La tendance s'affiche après deux semaines.</>}
+              : <>Intensité moyenne : <b>{fmt1(avgI)}</b> sur 10. La tendance s'affiche après deux semaines.</>}
         </p>
         <svg className="ichart" viewBox="0 0 340 120" role="img" aria-label="Intensité moyenne des envies par jour">
-          {[1, 2, 3, 4, 5].map((v) => { const y = 100 - v * 18; return <g key={v}><line x1="22" x2="336" y1={y} y2={y} style={{ stroke: "var(--line)" }} strokeWidth="1" /><text x="12" y={y + 3.5} textAnchor="middle">{v}</text></g>; })}
+          {[2, 4, 6, 8, 10].map((v) => { const y = 100 - v * 9; return <g key={v}><line x1="22" x2="336" y1={y} y2={y} style={{ stroke: "var(--line)" }} strokeWidth="1" /><text x="12" y={y + 3.5} textAnchor="middle">{v}</text></g>; })}
           {d14.map((x, i) => {
-            const bx = 26 + i * 22.2, h = x.avg * 18;
-            const col = x.avg < 2.5 ? "--quit" : x.avg < 3.5 ? "--warn" : "--danger";
+            const bx = 26 + i * 22.2, h = x.avg * 9;
+            const col = x.avg < 5 ? "--quit" : x.avg < 7 ? "--warn" : "--danger";
             return (
               <g key={x.k}>
                 {x.n ? <rect x={bx.toFixed(1)} y={(100 - h).toFixed(1)} width="15" height={h.toFixed(1)} rx="3" style={{ fill: `var(${col})` }} /> : <rect x={bx.toFixed(1)} y="98" width="15" height="2" rx="1" style={{ fill: "var(--line)" }} />}
@@ -160,7 +160,7 @@ export default function Stats({ onRecap }) {
           {recent.length ? recent.map((e, i) => {
             const d = new Date(e.t);
             const when = <time>{DOW[d.getDay()]} {d.getDate()} · {fTime(d)}</time>;
-            if (e.k === "craving") return <div key={i}>{when}<span className="what"><span className="k-craving">{e.b ? `${BOSSES[e.b]?.n || "Boss"} vaincu` : "Envie tenue"}</span> {METHOD_NAME[methodOf(e)]}{e.kt ? ` en ${Math.floor(e.kt / 60)}:${String(e.kt % 60).padStart(2, "0")}` : ""}{e.i ? ` · ${e.i}/5` : ""}{e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : ""}</span></div>;
+            if (e.k === "craving") return <div key={i}>{when}<span className="what"><span className="k-craving">{e.b ? `${BOSSES[e.b]?.n || "Boss"} vaincu` : "Envie tenue"}</span> {METHOD_NAME[methodOf(e)]}{e.kt ? ` en ${Math.floor(e.kt / 60)}:${String(e.kt % 60).padStart(2, "0")}` : ""}{ivOf(e) ? ` · ${ivOf(e)}/10` : ""}{e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : ""}</span></div>;
             if (e.k === "breath") return <div key={i}>{when}<span className="what"><span className="k-breath">Respiration</span> {PATTERNS[e.p] ? PATTERNS[e.p].n.toLowerCase() : ""} · {mins(e.sec || 0)}</span></div>;
             if (e.k === "game") return <div key={i}>{when}<span className="what"><span className="k-game">{e.g === "frenzy" ? "Frénésie" : "Blocs"}</span> {e.s} points · {e.g === "frenzy" ? `combo ${e.c}` : `${e.l} lignes`}</span></div>;
             if (e.k === "challenge") return <div key={i}>{when}<span className="what"><span className="k-circuit">Défi caméra</span> {(e.items || []).filter((it) => EX[it.e]).map((it) => `${EX[it.e].n} ${fmtAmt(it.e, it.n)}`).join("")} · +{circuitXp(e)} XP</span></div>;

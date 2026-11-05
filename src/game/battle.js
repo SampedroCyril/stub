@@ -8,7 +8,7 @@
  * - On ne perd qu'en déclarant une rechute.
  */
 import { bossFor } from "./bosses.js";
-import { clickerHp, rankFor } from "./combo.js";
+import { clickerHp, rankFor, scale5 } from "./combo.js";
 
 /** Durée réelle d'une envie (repère d'affichage, le boss ne meurt plus tout seul). */
 export const BATTLE_MS = 5 * 60 * 1000;
@@ -25,10 +25,12 @@ export const RANK_XP = { S: 10, A: 5, B: 0, C: 0 };
 
 export const bossLevel = (victories = 0) => Math.min(10, 1 + Math.floor(victories / 5));
 
-export function createBattle({ at = new Date(), intensity = null, trigger = null, victories = {} }) {
+/** iv : force de l'envie sur 10 ; intensity : la même sur l'échelle de jeu de 1 à 5 (PV, temps visé, paliers). */
+export function createBattle({ at = new Date(), iv = null, trigger = null, victories = {} }) {
   const boss = bossFor(trigger, at);
   const lvl = bossLevel(victories[boss]);
-  return { id: `${+at}`, at: at.toISOString(), boss, lvl, intensity, trigger, maxHp: clickerHp(intensity, lvl), hits: [], mc: 0 };
+  const intensity = iv ? scale5(iv) : null;
+  return { id: `${+at}`, at: at.toISOString(), boss, lvl, iv, intensity, trigger, maxHp: clickerHp(intensity, lvl), hits: [], mc: 0 };
 }
 
 export const dealt = (b) => b.hits.reduce((a, h) => a + h.d, 0);
@@ -56,7 +58,7 @@ export function rankOf(b, now = new Date()) {
 export function victoryEvent(b, now = new Date()) {
   return {
     k: "craving", t: b.at, m: "game",
-    ...(b.intensity ? { i: b.intensity } : {}),
+    ...(b.iv ? { iv: b.iv, i: Math.ceil(b.iv / 2) } : b.intensity ? { i: Math.round(b.intensity) } : {}),
     ...(b.trigger ? { tr: b.trigger } : {}),
     b: b.boss, bl: b.lvl, kt: Math.round(elapsedMs(b, now) / 1000),
     rk: rankOf(b, now), mc: b.mc || 0,

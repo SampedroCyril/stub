@@ -15,7 +15,11 @@ export const TIER_NAMES = ["", "Coup", "Coup sûr", "Coup net", "Critique", "Cri
 
 /** Durée visée d'un combat bien joué, en secondes, selon l'intensité de l'envie. */
 export const TARGET_S = { 1: 60, 2: 90, 3: 120, 4: 150, 5: 180 };
-export const targetOf = (intensity) => TARGET_S[intensity || 2];
+/** Envie notée sur 10 → échelle de jeu de 1 à 5 (continue). */
+export const scale5 = (iv) => (iv ? 1 + ((Math.min(10, Math.max(1, iv)) - 1) * 4) / 9 : 2);
+/** Valeur d'une table 1 à 5 pour une intensité continue (interpolation linéaire). */
+const lerpT = (T, x) => { const v = Math.min(5, Math.max(1, x || 2)), a = Math.floor(v), b = Math.min(5, a + 1); return T[a] + (T[b] - T[a]) * (v - a); };
+export const targetOf = (intensity) => lerpT(TARGET_S, intensity);
 
 /** Seuils de combo des paliers 3 à 9, pour une envie d'intensité 3. */
 const BASE_MS = [5, 10, 15, 20, 26, 32, 40];
@@ -76,7 +80,7 @@ export const pauseAfter = (shownTier) => (shownTier >= 7 ? 1500 : shownTier === 
  * Un expert met environ les trois quarts de ce temps ; un robot parfait, un peu plus de la moitié (la jauge impose le rythme).
  */
 export const HP_BASE = { 1: 8150, 2: 12750, 3: 17650, 4: 24400, 5: 31700 };
-export const clickerHp = (intensity, lvl = 1) => Math.round((HP_BASE[intensity || 2] * (1 + 0.1 * (lvl - 1))) / 50) * 50;
+export const clickerHp = (intensity, lvl = 1) => Math.round((lerpT(HP_BASE, intensity) * (1 + 0.1 * (lvl - 1))) / 50) * 50;
 
 /** Rang : S rapide avec un beau combo, A dans les temps, B abattu, C au-delà de trois fois le temps visé. */
 export function rankFor({ kt, intensity, maxCombo = 0, exhausted = false }) {

@@ -50,7 +50,7 @@ export default function RecapModal({ ws, onClose }) {
           <div className="r-tiles">
             <div className="r-tile"><span className="label">Jours sans clope</span><b>{W.clean}<small style={{ fontSize: 14 }}> / {W.counted || 7}</small></b>{W.smokes > 0 && <span className="delta bad">{pl(W.smokes, "rechute")}</span>}</div>
             <div className="r-tile"><span className="label">Envies tenues</span><b>{W.crav}</b>{P && <Delta cur={W.crav} prev={P.crav} lowerIsBetter />}</div>
-            <div className="r-tile"><span className="label">Intensité moy.</span><b>{W.avgI != null ? fmt1(W.avgI) : "–"}</b>{P && P.avgI != null && W.avgI != null ? <Delta cur={W.avgI} prev={P.avgI} lowerIsBetter fmt={fmt1} /> : <small>{W.withI ? "sur 5" : "non notée"}</small>}</div>
+            <div className="r-tile"><span className="label">Intensité moy.</span><b>{W.avgI != null ? fmt1(W.avgI) : "–"}</b>{P && P.avgI != null && W.avgI != null ? <Delta cur={W.avgI} prev={P.avgI} lowerIsBetter fmt={fmt1} /> : <small>{W.withI ? "sur 10" : "non notée"}</small>}</div>
             <div className="r-tile"><span className="label">XP sport</span><b>{W.xpS}</b>{P && <Delta cur={W.xpS} prev={P.xpS} />}</div>
           </div>
 
