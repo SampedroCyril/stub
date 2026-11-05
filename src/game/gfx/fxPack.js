@@ -22,27 +22,30 @@ const FIRE = ["#b13e53", "#ef7d57", "#ffcd75", "#fff6c8"];
 export const DARK = { band: "#000", acc: BLOOD, fg: PAPER, vig: BLOOD, ring: BLOOD, lines: PAPER };
 export const CRIT_PAL = { 4: { band: "#1a1205", acc: "#ffcd75", fg: PAPER, vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" }, 5: { band: "#0d0618", acc: "#b55dff", fg: PAPER, vig: "#5d275d", ring: "#b55dff", lines: PAPER } };
 
-/** Ultimes : nom, ligne de description, D = image où tombent titre et lignes de vitesse, life = durée (images). */
+/** Titres à l'écran des paliers 4, 5, 6 et 9 (les ultimes affichent leur propre nom). */
+export const TITLES = { 4: "Éclat d'or", 5: "Frappe du Vide", 6: "Éclipse", 9: "Éveil" };
+
+/** Ultimes : nom (affiché à l'écran au moment du coup), ancien nom de travail (was), ligne de description, D = image où tombent titre et lignes de vitesse, life = durée (images). */
 export const ULT = {
-  fracture: { n: "Fracture", d: "L'écran se fend comme du verre, puis vole en éclats.", D: 31, life: 75, pal: { band: "#0b1f33", acc: "#7fd8f0", fg: PAPER, vig: "#3b5dc9", ring: "#bfefff", lines: "#dff6ff" } },
-  nova: { n: "Supernova", d: "Un soleil avale l'écran, le boss en ombre chinoise.", D: 28, life: 52, pal: { band: "#2a1400", acc: "#ffcd75", fg: "#fff6c8", vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" } },
-  thunder: { n: "Foudre", d: "L'orage gronde, puis l'éclair tombe pile sur le boss.", D: 18, life: 66, pal: { band: "#05081a", acc: AIR, fg: PAPER, vig: "#3b5dc9", ring: AIR, lines: "#cfe9ff" } },
-  void: { n: "Trou noir", d: "Tout est aspiré dans un point… qui explose.", D: 42, life: 74, pal: { band: "#1a0a2e", acc: "#ff5fd2", fg: PAPER, vig: "#5d275d", ring: "#b55dff", lines: "#ffd1e8" } },
-  ink: { n: "Encre", d: "Un coup de pinceau géant, et le sceau rouge.", D: 16, life: 68, pal: { band: "#efe6d0", acc: BLOOD, fg: INK, out: null, vig: "#3a2a1a", ring: INK, lines: INK } },
-  glitch: { n: "Glitch", d: "L'image bugue, se déchire, et redémarre.", D: 34, life: 60, pal: { band: "#0b0b14", acc: "#00ffd5", fg: "#ff2bd6", vig: "#ff2bd6", ring: "#00ffd5", lines: "#00ffd5" } },
-  meteor: { n: "Météore", d: "Une boule de feu, un seul impact.", D: 30, life: 72, pal: { band: "#1a0505", acc: "#ef7d57", fg: "#ffcd75", vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" } },
-  blades: { n: "Mille lames", d: "Dix coupes en une seconde, puis la croix. Rouge et noir.", D: 34, life: 62, pal: DARK },
+  fracture: { n: "Brise-Monde", was: "Fracture", d: "L'écran se fend comme du verre, puis vole en éclats.", D: 31, life: 75, pal: { band: "#0b1f33", acc: "#7fd8f0", fg: PAPER, vig: "#3b5dc9", ring: "#bfefff", lines: "#dff6ff" } },
+  nova: { n: "Soleil Déchu", was: "Supernova", d: "Un soleil avale l'écran, le boss en ombre chinoise.", D: 28, life: 52, pal: { band: "#2a1400", acc: "#ffcd75", fg: "#fff6c8", vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" } },
+  thunder: { n: "Courroux Céleste", was: "Foudre", d: "L'orage gronde, puis l'éclair tombe pile sur le boss.", D: 18, life: 66, pal: { band: "#05081a", acc: AIR, fg: PAPER, vig: "#3b5dc9", ring: AIR, lines: "#cfe9ff" } },
+  void: { n: "Singularité", was: "Trou noir", d: "Tout est aspiré dans un point… qui explose.", D: 42, life: 74, pal: { band: "#1a0a2e", acc: "#ff5fd2", fg: PAPER, vig: "#5d275d", ring: "#b55dff", lines: "#ffd1e8" } },
+  ink: { n: "Dernier Trait", was: "Encre", d: "Un coup de pinceau géant, et le sceau rouge.", D: 16, life: 68, pal: { band: "#efe6d0", acc: BLOOD, fg: INK, out: null, vig: "#3a2a1a", ring: INK, lines: INK } },
+  glitch: { n: "Erreur Fatale", was: "Glitch", d: "L'image bugue, se déchire, et redémarre.", D: 34, life: 60, pal: { band: "#0b0b14", acc: "#00ffd5", fg: "#ff2bd6", vig: "#ff2bd6", ring: "#00ffd5", lines: "#00ffd5" } },
+  meteor: { n: "Chute d'Astre", was: "Météore", d: "Une boule de feu, un seul impact.", D: 30, life: 72, pal: { band: "#1a0505", acc: "#ef7d57", fg: "#ffcd75", vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" } },
+  blades: { n: "Mille Entailles", was: "Mille lames", d: "Dix coupes en une seconde, puis la croix. Rouge et noir.", D: 34, life: 62, pal: DARK },
 };
 /** K.O. : stop = images de gel de la scène avant la fin, life = durée de l'effet, pal = couleurs du « K.O. ». */
 export const KO = {
-  cut: { n: "Tranche", d: "Écran noir, un trait, le boss coupé en deux.", pal: DARK },
-  manga: { n: "Manga", d: "Trois cases qui claquent.", pal: { band: PAPER, acc: INK, fg: INK, out: null } },
-  ash: { n: "Cendres", d: "Le boss s'éteint et part en cendres avec le vent.", stop: 72, life: 156, pal: { band: INK, acc: "#ef7d57", fg: "#c2c3c7" } },
-  stomp: { n: "Écrasé", d: "Une botte géante. Écrasé comme un mégot.", stop: 60, life: 132, pal: { band: "#2a1d1d", acc: "#ffcd75", fg: PAPER } },
-  fireworks: { n: "Feu d'artifice", d: "Envoyé en l'air, il explose en bouquet final.", stop: 40, life: 168, pal: { band: "#0b0d24", acc: "#ff5fd2", fg: "#ffcd75" } },
-  crt: { n: "Extinction", d: "Comme une vieille télé qu'on éteint.", stop: 56, life: 106, pal: { band: "#000", acc: AIR, fg: PAPER } },
-  freeze: { n: "Gel", d: "Pris dans la glace, puis brisé en mille éclats.", stop: 74, life: 134, pal: { band: "#0b1f33", acc: "#7fd8f0", fg: "#dff6ff" } },
-  sky: { n: "Envolé", d: "Expédié dans le ciel. Ting !", stop: 30, life: 132, pal: { band: "#3b5dc9", acc: "#ffcd75", fg: PAPER } },
+  cut: { n: "Dernière Lame", was: "Tranche", d: "Écran noir, un trait, le boss coupé en deux.", pal: DARK },
+  manga: { n: "Fin du Chapitre", was: "Manga", d: "Trois cases qui claquent.", pal: { band: PAPER, acc: INK, fg: INK, out: null } },
+  ash: { n: "Cendres au Vent", was: "Cendres", d: "Le boss s'éteint et part en cendres avec le vent.", stop: 72, life: 156, pal: { band: INK, acc: "#ef7d57", fg: "#c2c3c7" } },
+  stomp: { n: "Talon de Fer", was: "Écrasé", d: "Une botte géante. Écrasé comme un mégot.", stop: 60, life: 132, pal: { band: "#2a1d1d", acc: "#ffcd75", fg: PAPER } },
+  fireworks: { n: "Bouquet Final", was: "Feu d'artifice", d: "Envoyé en l'air, il explose en bouquet final.", stop: 40, life: 168, pal: { band: "#0b0d24", acc: "#ff5fd2", fg: "#ffcd75" } },
+  crt: { n: "Fin de Transmission", was: "Extinction", d: "Comme une vieille télé qu'on éteint.", stop: 56, life: 106, pal: { band: "#000", acc: AIR, fg: PAPER } },
+  freeze: { n: "Zéro Absolu", was: "Gel", d: "Pris dans la glace, puis brisé en mille éclats.", stop: 74, life: 134, pal: { band: "#0b1f33", acc: "#7fd8f0", fg: "#dff6ff" } },
+  sky: { n: "Aller Simple", was: "Envolé", d: "Expédié dans le ciel. Ting !", stop: 30, life: 132, pal: { band: "#3b5dc9", acc: "#ffcd75", fg: PAPER } },
 };
 
 // ---------- signatures ----------
@@ -69,7 +72,7 @@ function star(b, x, y, R, r, n, seed, fill, line) {
 export const HIT_SKINS = {
   classic: { n: "Étincelles", d: "Le classique." },
   embers: {
-    n: "Braises", d: "Une flamme jaillit à chaque coup, les braises montent.", col: "#ffcd75", out: "#5a0a18", ring: "#ef7d57", sfx: "sig_embers", life: 18, cnt: 14,
+    n: "Poing de Braise", was: "Braises", d: "Une flamme jaillit à chaque coup, les braises montent.", col: "#ffcd75", out: "#5a0a18", ring: "#ef7d57", sfx: "sig_embers", life: 18, cnt: 14,
     p: (x, y, v) => ({ x: x + rnd(-3, 3), y, vx: rnd(-1, 1) * v, vy: rnd(-2.4, -0.8) * v, g: -0.03, drag: 0.94, wob: 0.3, life: rnd(30, 55) | 0, c: SPARK, blink: true, size: Math.random() < 0.35 ? 2 : 1 }),
     stamp(b, s) {
       const k = s.age / s.life, h = Math.round(19 - k * 7), y0 = s.y + 5 - s.age * 0.7;
@@ -83,7 +86,7 @@ export const HIT_SKINS = {
     },
   },
   ink: {
-    n: "Encre", d: "Une tache d'encre éclate et reste un moment sur le boss.", col: INK, out: PAPER, ring: INK, sfx: "sig_ink", life: 46, cnt: 14,
+    n: "Sumi-e", was: "Encre", d: "Une tache d'encre éclate et reste un moment sur le boss.", col: INK, out: PAPER, ring: INK, sfx: "sig_ink", life: 46, cnt: 14,
     p: (x, y, v) => ({ x, y, vx: rnd(-2.8, 2.8) * v, vy: rnd(-2.6, -0.3) * v, g: 0.22, drag: 0.97, floor: FLOOR, bounce: 0, life: rnd(50, 80) | 0, c: Math.random() < 0.12 ? BLOOD : INK, size: Math.random() < 0.5 ? 2 : 1 }),
     stamp(b, s) {
       if (s.age > s.life - 12 && (s.age >> 1) % 2) return;
@@ -95,7 +98,7 @@ export const HIT_SKINS = {
     },
   },
   neon: {
-    n: "Néon", d: "Une croix de lumière et un anneau rose et cyan.", col: AIR, out: "#2a0a3a", alt: "#ff5fd2", ring: "#ff5fd2", sfx: "sig_neon", life: 13, cnt: 16,
+    n: "Nuit Néon", was: "Néon", d: "Une croix de lumière et un anneau rose et cyan.", col: AIR, out: "#2a0a3a", alt: "#ff5fd2", ring: "#ff5fd2", sfx: "sig_neon", life: 13, cnt: 16,
     p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), sp = rnd(1.6, 4) * v; return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, drag: 0.86, life: rnd(14, 26) | 0, c: i % 2 ? "#ff5fd2" : AIR, size: i % 4 ? 1 : 2 }; },
     stamp(b, s) {
       const k = s.age / s.life, L = Math.round(16 * (1 - k) + 3), M = Math.round(L * 0.6);
@@ -106,7 +109,7 @@ export const HIT_SKINS = {
     },
   },
   petals: {
-    n: "Pétales", d: "Une fleur éclot sur le coup, ses pétales s'envolent.", col: "#ff9ecf", out: "#5d275d", ring: "#ffd1e8", sfx: "sig_petals", life: 22, cnt: 14,
+    n: "Sakura", was: "Pétales", d: "Une fleur éclot sur le coup, ses pétales s'envolent.", col: "#ff9ecf", out: "#5d275d", ring: "#ffd1e8", sfx: "sig_petals", life: 22, cnt: 14,
     p: (x, y, v, i) => ({ x, y, vx: rnd(-1.8, 1.8) * v, vy: rnd(-2.2, -0.6) * v, g: 0.03, drag: 0.96, wob: 0.35, life: rnd(60, 95) | 0, c: ["#ff9ecf", "#ffd1e8", "#ffffff", "#ff6fb5"][i % 4], size: 2, fade: true }),
     stamp(b, s) {
       const open = s.age < 10 ? 2 + s.age * 0.25 : 4.5 + (s.age - 10) * 1.1, rot = s.r + s.age * 0.08;
@@ -116,7 +119,7 @@ export const HIT_SKINS = {
     },
   },
   gold: {
-    n: "Pièces d'or", d: "Un éclat doré et une pluie de pièces qui rebondissent.", col: "#ffcd75", out: "#5a3a10", ring: "#ffcd75", sfx: "sig_gold", life: 14, cnt: 14,
+    n: "Jackpot", was: "Pièces d'or", d: "Un éclat doré et une pluie de pièces qui rebondissent.", col: "#ffcd75", out: "#5a3a10", ring: "#ffcd75", sfx: "sig_gold", life: 14, cnt: 14,
     p: (x, y, v) => ({ x, y, vx: rnd(-2.2, 2.2) * v, vy: rnd(-3.4, -1.6) * v, g: 0.2, floor: FLOOR, bounce: 0.55, life: rnd(55, 75) | 0, c: (t) => (((t * 40) | 0) % 3 ? "#ffcd75" : "#fff6c8"), size: Math.random() < 0.5 ? 3 : 2, blink: true }),
     stamp(b, s) {
       const L = [4, 9, 13, 12, 11, 10, 9, 8, 6, 5, 4, 3, 2, 1][s.age] ?? 1, D = Math.round(L * 0.5);
@@ -126,7 +129,7 @@ export const HIT_SKINS = {
     },
   },
   rainbow: {
-    n: "Arc-en-ciel", d: "Un arc-en-ciel jaillit, les dégâts changent de couleur.", cycle: RAINBOW, out: "#140c1c", ring: "#b55dff", sfx: "sig_rainbow", life: 15, cnt: 16,
+    n: "Prisme", was: "Arc-en-ciel", d: "Un arc-en-ciel jaillit, les dégâts changent de couleur.", cycle: RAINBOW, out: "#140c1c", ring: "#b55dff", sfx: "sig_rainbow", life: 15, cnt: 16,
     p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), sp = rnd(1.4, 3.4) * v; return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.5, g: 0.06, drag: 0.9, life: rnd(20, 36) | 0, c: RAINBOW[i % 7], size: Math.random() < 0.4 ? 2 : 1 }; },
     stamp(b, s) {
       const r0 = 2 + s.age * 0.7;
@@ -137,7 +140,7 @@ export const HIT_SKINS = {
     },
   },
   bd: {
-    n: "Onomatopées", d: "POW ! BAM ! KRAK ! Chaque coup, sa bulle de BD.", col: PAPER, out: INK, ring: "#ffcd75", sfx: "sig_bd", life: 20, cnt: 8,
+    n: "Kaboom", was: "Onomatopées", d: "POW ! BAM ! KRAK ! Chaque coup, sa bulle de BD.", col: PAPER, out: INK, ring: "#ffcd75", sfx: "sig_bd", life: 20, cnt: 8,
     p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), sp = rnd(1.4, 3) * v; return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, drag: 0.86, life: rnd(12, 20) | 0, c: i % 2 ? "#ffcd75" : PAPER, size: 2 }; },
     stamp(b, s) {
       if (s.age > s.life - 6 && s.age % 2) return;

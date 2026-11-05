@@ -7,7 +7,7 @@ import { C, cigSpec, linePts, drawStick } from "./stick.js";
 import { grid } from "./sprite.js";
 import { SPRITES } from "../sprites.js";
 import { INK, BLOOD, PAPER, AIR, pline, bolts } from "./pix.js";
-import { fxMethods, ULT, KO, HIT_SKINS, DARK, CRIT_PAL } from "./fxPack.js";
+import { fxMethods, ULT, KO, HIT_SKINS, DARK, CRIT_PAL, TITLES } from "./fxPack.js";
 
 export const STAGE_W = 64, STAGE_H = 60;
 const FLOOR = 56;
@@ -62,6 +62,7 @@ export class BossStage {
     document.body.appendChild(this.ov);
     this.ovBuf = document.createElement("canvas"); this.ob = this.ovBuf.getContext("2d");
     this.ovFx = []; this.ovParts = new Particles();
+    document.fonts?.load?.('700 30px "Chakra Petch"').catch(() => {}); // police des titres, chargée d'avance
     window.__boss = this; // poignée de débogage (tests de bout en bout)
     this.resize();
     this.ro = new ResizeObserver(() => this.resize());
@@ -211,7 +212,7 @@ export class BossStage {
       else this.ovFx.push({ k: "flash", age: 0, life: 12, delay: 0, col: BLOOD, a: 0.35 });
       this.ovFx.push({ k: "lines", age: 0, life: big ? 34 : 24, x: ix, y: iy, delay: D, col: pal.lines });
       this.ovFx.push({ k: "vignette", age: 0, life: big ? 50 : 34, delay: D, col: pal.vig });
-      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: D, text: title ?? (big ? "ultime" : "critique"), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50), pal });
+      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: D, text: title ?? (big ? U.n : TITLES[6]), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50), pal });
       if (big) for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: D + i * 5, x: ix, y: iy, col: pal.ring, col2: pal.fg === INK ? INK : PAPER });
       play(opts.sfx ?? (big ? `ult_${ULT[style] ? style : "fracture"}` : "crit_h"));
     } else {
@@ -233,10 +234,10 @@ export class BossStage {
     if (t >= 9) this.enterTrance();
     if (t >= 7) {
       const style = t === 7 ? "fracture" : t === 8 ? "nova" : this.trance && this.trance.n++ % 2 ? "nova" : "fracture";
-      this.hit(dmg, { ...base, big: true, style, charge: 16, title: t >= 9 ? "transe" : "super critique" });
+      this.hit(dmg, { ...base, big: true, style, charge: 16, title: t >= 9 ? TITLES[9] : undefined });
       return;
     }
-    if (t === 6) { this.hit(dmg, { ...base, crit: true, title: "impact noir" }); return; }
+    if (t === 6) { this.hit(dmg, { ...base, crit: true, title: TITLES[6] }); return; }
     this.hit(dmg, { ...base, sfx: TIER_SFX[t], sfxArg: o.combo, sc: t >= 4 ? 2 : 1, color: t >= 2 ? "#ffcd75" : undefined });
     const ov = this.ovPos(), ix = ov.ox + x, iy = ov.oy + y;
     if (t >= 2) {
@@ -252,7 +253,7 @@ export class BossStage {
       this.shake = Math.max(this.shake, 3.2); this.chroma = Math.max(this.chroma, 8); this.kbv += x < p.x + p.w / 2 ? 1.2 : -1.2;
       const cp = CRIT_PAL[t >= 5 ? 5 : 4];
       this.ovFx.push({ k: "vignette", age: 0, life: 22, delay: 0, col: cp.vig });
-      this.ovFx.push({ k: "text", age: 0, life: t >= 5 ? 40 : 32, delay: 0, text: t >= 5 ? "critique noir" : "critique", fx: t >= 5 ? [1, 2] : [1, 1], y: Math.max(12, iy - 42), pal: cp });
+      this.ovFx.push({ k: "text", age: 0, life: t >= 5 ? 40 : 32, delay: 0, text: TITLES[t >= 5 ? 5 : 4], fx: t >= 5 ? [1, 2] : [1, 1], y: Math.max(12, iy - 42), pal: cp });
     }
     if (t >= 5) {
       this.stop = Math.max(this.stop, 6);
@@ -605,7 +606,7 @@ export class BossStage {
   }
   drawFrenzyHud(b, x, y, w, h) {
     if (this.frenzy) {
-      const k = Math.max(0, 1 - (performance.now() - this.frenzy.start) / this.frenzy.dur);
+      const k = Math.max(0, 1 - ((this.frozenAt || performance.now()) - this.frenzy.start) / this.frenzy.dur); // figé en pause
       b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
       b.fillStyle = k < 0.25 && (this.t >> 2) % 2 ? "#ffffff" : "#ffcd75"; b.fillRect(x, y + h + 2, Math.round(w * k), 2);
     }
@@ -625,11 +626,46 @@ export class BossStage {
     for (const e of rest) this[`ov_${e.k}`](o, e, W, H);
     this.ovParts.draw(o);
     for (const h of this.halves || []) drawStick(o, linePts(h.x, h.y, h.a, h.spec.length), h.spec);
-    for (const e of top) this.ov_text(o, e, W, H);
     const c = this.ov.getContext("2d");
     c.imageSmoothingEnabled = false;
     c.clearRect(0, 0, this.ov.width, this.ov.height);
     c.drawImage(this.ovBuf, 0, 0, this.ov.width, this.ov.height);
+    for (const e of top) this.title(c, e);
+  }
+
+  /**
+   * Titre d'un gros coup ou du K.O. : police nette (Chakra Petch) dessinée en pleine résolution par-dessus les pixels,
+   * en biais sur une bande fine aux couleurs de l'effet. Taille selon e.fx : petit (critiques), moyen (ultimes), grand (K.O.).
+   */
+  title(c, e) {
+    const a = e.age, S = this.ov.width / this.OW, dpr = this.ov.width / (parseFloat(this.ov.style.width) || this.ov.width);
+    const Wd = this.ov.width, P = e.pal || (e.cyan ? { band: "#000", acc: AIR, fg: PAPER } : DARK), fg = P.fg || PAPER, acc = P.acc;
+    const text = e.text.toUpperCase();
+    let fs = (e.fx[0] >= 3 ? 58 : e.fx[0] >= 2 ? 34 : 24) * dpr;
+    const font = () => { c.font = `700 ${fs}px "Chakra Petch", "IBM Plex Sans", system-ui, sans-serif`; };
+    font();
+    while (c.measureText(text).width > Wd * 0.84 && fs > 12 * dpr) { fs -= 2 * dpr; font(); }
+    const tw = c.measureText(text).width, bh = fs * 1.35, cy = (e.y + 3.5 * e.fx[1]) * S;
+    const fade = a > e.life - 10 ? Math.max(0, (e.life - a) / 10) : 1, slide = Math.min(1, a / 4), slam = a < 5 ? 1 + (5 - a) * 0.11 : 1;
+    const jx = a < 10 ? rnd(-1.5, 1.5) * dpr : 0;
+    c.save();
+    c.globalAlpha = fade;
+    // bande en biais, juste assez large pour le titre
+    const bw = (tw + fs * 2.2) * slide;
+    c.translate(Wd / 2, cy); c.transform(1, 0, -0.22, 1, 0, 0);
+    c.globalAlpha = fade * 0.9; c.fillStyle = P.band || "#000"; c.fillRect(-bw / 2, -bh / 2, bw, bh);
+    c.globalAlpha = fade; c.fillStyle = acc;
+    c.fillRect(-bw / 2, -bh / 2 - 3 * dpr, bw, 2 * dpr); c.fillRect(-bw / 2 + fs * 0.6, bh / 2 + dpr, bw, 2 * dpr);
+    c.fillRect(-bw / 2 - 6 * dpr, -bh / 2, 3 * dpr, bh);
+    // titre : ombre décalée de la couleur d'accent, contour, remplissage qui clignote au début
+    c.translate(jx, fs * 0.04); c.scale(slam, slam); c.transform(1, 0, 0.1, 1, 0, 0);
+    c.textAlign = "center"; c.textBaseline = "middle";
+    try { c.letterSpacing = `${Math.round(fs * 0.04)}px`; } catch { /* navigateur sans letterSpacing */ }
+    c.fillStyle = acc; c.fillText(text, 3 * dpr, 3 * dpr);
+    if (P.out !== null) { c.lineJoin = "round"; c.lineWidth = Math.max(3, fs * 0.14); c.strokeStyle = P.out || INK; c.strokeText(text, 0, 0); }
+    c.fillStyle = e.red ? ((a >> 2) % 2 ? fg : acc) : a < 14 && (a >> 1) % 2 ? acc : fg;
+    c.fillText(text, 0, 0);
+    c.restore();
   }
 
   /** Images d'impact : le monde s'inverse, éclairs noirs cerclés de rouge, boss en silhouette. */
