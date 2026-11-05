@@ -4,7 +4,6 @@ import { useApp, SECTIONS } from "../store/AppStore.jsx";
 import GaugeView from "../game/GaugeView.jsx";
 import { GAUGE_STYLES } from "../game/gfx/Gauge.js";
 import { pad } from "../lib/util.js";
-import { PACES, goalAt, baseGoal, defaultReduce } from "../lib/smoking.js";
 
 export const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
@@ -18,62 +17,19 @@ export function Group({ title, children, note }) {
   );
 }
 
-export function Toggle({ id, label, sub, checked, onChange, disabled }) {
+export function Toggle({ id, label, sub, checked, onChange }) {
   return (
-    <label className={`set-row${disabled ? " dim" : ""}`} htmlFor={id}>
+    <label className="set-row" htmlFor={id}>
       <span><b>{label}</b>{sub && <small>{sub}</small>}</span>
-      <input id={id} type="checkbox" className="switch" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+      <input id={id} type="checkbox" className="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     </label>
-  );
-}
-
-/** Réglage d'un nombre de clopes avec − et +. */
-function Stepper({ id, value, onChange, min = 0, max = 60 }) {
-  return (
-    <span className="stepper">
-      <button type="button" aria-label="Moins" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
-      <output id={id} aria-live="polite">{value}</output>
-      <button type="button" aria-label="Plus" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
-    </span>
-  );
-}
-
-/** Réglages de la Réduction : l'objectif du jour, automatique (il baisse tout seul) ou réglé à la main. */
-function ReductionSettings() {
-  const { S, state, patchState } = useApp();
-  const base = baseGoal(S.ev, { now: S.now, startAt: S.startAt, cpd: state.cpd });
-  const r = state.reduce || defaultReduce(base);
-  const setR = (p) => patchState({ reduce: { ...defaultReduce(base), ...r, ...p } });
-  return (
-    <Group title="Mon objectif" note="Ta moyenne des 7 derniers jours sert de point de départ quand tu notes tes clopes. Chaque jour tenu sous l'objectif compte dans tes stats.">
-      <div className="set-row col">
-        <span><b>Objectif par jour</b><small>{r.mode === "fixed" ? "Tu le règles toi-même." : "Il baisse tout seul, d'une clope à chaque palier."} Aujourd'hui : {goalAt(r, S.now) ?? "–"}.</small></span>
-        <div className="seg" role="radiogroup" aria-label="Type d'objectif">
-          <button type="button" role="radio" className="pick" aria-checked={r.mode !== "fixed"} aria-pressed={r.mode !== "fixed"} onClick={() => setR({ mode: "auto", start: goalAt(r, S.now) ?? base, from: new Date().toISOString() })}>Baisse automatique</button>
-          <button type="button" role="radio" className="pick" aria-checked={r.mode === "fixed"} aria-pressed={r.mode === "fixed"} onClick={() => setR({ mode: "fixed", fixed: goalAt(r, S.now) ?? base })}>Je le règle</button>
-        </div>
-      </div>
-      {r.mode === "fixed" ? (
-        <div className="set-row"><span><b>Clopes par jour, au plus</b></span><Stepper id="g-fixed" value={r.fixed ?? base} onChange={(v) => setR({ fixed: v })} /></div>
-      ) : (
-        <>
-          <div className="set-row"><span><b>Point de départ</b><small>Repart d'aujourd'hui</small></span><Stepper id="g-start" value={r.start ?? base} onChange={(v) => setR({ start: v, from: new Date().toISOString() })} /></div>
-          <div className="set-row col">
-            <span><b>Une clope de moins…</b></span>
-            <div className="seg three" role="radiogroup" aria-label="Rythme de baisse">
-              {PACES.map(([n, lab]) => <button key={n} type="button" role="radio" className="pick" aria-checked={(r.every || 7) === n} aria-pressed={(r.every || 7) === n} onClick={() => setR({ every: n, start: goalAt(r, S.now) ?? base, from: new Date().toISOString() })}>{lab}</button>)}
-            </div>
-          </div>
-        </>
-      )}
-    </Group>
   );
 }
 
 function SevrageSettings() {
   const { S, patchState } = useApp();
   return (
-    <Group note="Une clope notée remet le compteur à zéro, que tu la notes ici ou dans la Réduction.">
+    <Group>
       <label className="set-row" htmlFor="quit">
         <span><b>Dernière clope</b><small>Point de départ du compteur et de la récupération</small></span>
         <input
@@ -120,7 +76,7 @@ function JeuSettings() {
 }
 
 /** Réglages propres à une catégorie, ouverts par la roue crantée de son en-tête. */
-export const SECTION_SETTINGS = { sevrage: SevrageSettings, reduction: ReductionSettings, sport: SportSettings, joueur: JeuSettings };
+export const SECTION_SETTINGS = { sevrage: SevrageSettings, sport: SportSettings, joueur: JeuSettings };
 
 export function SettingsSheet({ section, onClose }) {
   const Body = SECTION_SETTINGS[section];

@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { useApp, sectionOn } from "../store/AppStore.jsx";
+import { useApp } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel } from "../components/ui.jsx";
 import { CRAV_XP } from "../data/rules.js";
 import CravingHost from "../components/CravingHost.jsx";
-import { SmokeSheet } from "./Clopes.jsx";
-import { durationText, pl } from "../lib/util.js";
+import { SmokeSheet } from "../components/SmokeSheet.jsx";
+import { durationText, fTime, pl } from "../lib/util.js";
 
 export default function Sevrage() {
-  const { S, state } = useApp();
+  const { S, undoSmoke } = useApp();
   const [confirm, setConfirm] = useState(false);
+  // une clope notée par erreur s'annule dans le quart d'heure
+  const lastEv = S.smokes[S.smokes.length - 1];
+  const canUndo = lastEv && S.now - new Date(lastEv.t) < 15 * 60e3;
 
   return (
     <Panel id="sevrage">
@@ -43,8 +46,9 @@ export default function Sevrage() {
 
       <section className="stack">
         <h2>Rechute</h2>
-        <p className="sub">Si tu as fumé, dis-le ici : ton sevrage repart de zéro, le reste est gardé.{sectionOn(state, "reduction") ? " Elle compte aussi dans ta Réduction." : ""}</p>
+        <p className="sub">Si tu as fumé, dis-le ici : ton sevrage repart de zéro, le reste est gardé.</p>
         <button className="btn danger" type="button" onClick={() => setConfirm(true)}>J'ai fumé une clope</button>
+        {canUndo && <button className="linkbtn" type="button" style={{ alignSelf: "flex-start" }} onClick={() => undoSmoke(lastEv)}>Annuler la clope notée à {fTime(new Date(lastEv.t))}</button>}
         {confirm && <SmokeSheet onClose={() => setConfirm(false)} />}
       </section>
     </Panel>

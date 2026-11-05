@@ -10,7 +10,7 @@ import { ivName } from "../data/rules.js";
 
 /**
  * Une envie en cours : le bouton « J'ai envie de fumer », la fiche de l'envie (force, déclencheur, façon de la tenir)
- * et le combat. Affiché dans Sevrage, ou dans Réduction quand Sevrage est masqué.
+ * et le combat, en haut de la page Envies du Sevrage.
  */
 export default function CravingHost() {
   const { S, state, flow, setFlow, startCraving, setCravingField, resetFlow, go, battle, startBattle } = useApp();

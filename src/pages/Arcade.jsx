@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useApp, cravingHome } from "../store/AppStore.jsx";
+import { useApp } from "../store/AppStore.jsx";
 import { Panel, Stat } from "../components/ui.jsx";
 import BossView from "../game/BossView.jsx";
 import FightScreen, { FightMenu } from "../game/FightScreen.jsx";
@@ -113,7 +113,7 @@ export default function Arcade() {
     <Panel id="arcade">
       <p className="sub">Ici tu t'entraînes sans toucher à tes envies. Ça rapporte de l'XP joueur pour tes talents, plafonnée à la journée.</p>
       {battle && (
-        <button className="linkcard" type="button" onClick={() => go(cravingHome(state))}>
+        <button className="linkcard" type="button" onClick={() => go("sevrage")}>
           <span className="px-name" style={{ gridColumn: "1 / -1" }}>Un boss t'attend : retourne au combat de ton envie</span>
         </button>
       )}
