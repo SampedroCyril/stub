@@ -9,7 +9,7 @@ export const GAUGE_STYLES = [["fluid", "Néon fluide"], ["katana", "Katana"], ["
 
 export class Gauge {
   constructor(canvas, style = "fluid") {
-    this.cv = canvas; this.style = style; this.note = null; this.fx = []; this.t = 0; this.streak = 0; this.streakFlash = 0; this.shake = 0;
+    this.cv = canvas; this.style = style; this.note = null; this.fx = []; this.t = 0; this.streak = 0; this.streakN = 5; this.streakFlash = 0; this.shake = 0;
     window.__gauge = this; // poignée de débogage (tests de bout en bout)
     this.resize();
     this.onResize = () => this.resize();
@@ -29,7 +29,7 @@ export class Gauge {
   }
   judge(kind) {
     for (const f of this.fx) if (f.age >= 0) f.age = Math.max(f.age, 26); // l'ancien mot s'efface aussitôt
-    if (kind === "perfect" && ++this.streak >= 5) { this.streak = 0; this.streakFlash = 40; this.fx.push({ kind: "streak", age: 0 }); }
+    if (kind === "perfect" && ++this.streak >= this.streakN) { this.streak = 0; this.streakFlash = 40; this.fx.push({ kind: "streak", age: 0 }); }
     else this.fx.push({ kind, age: 0 });
     if (kind !== "perfect" && kind !== "refused") this.streak = 0;
     if (kind === "miss" || kind === "took") this.shake = 6;
@@ -66,7 +66,7 @@ export class Gauge {
     c.restore();
   }
   pips(c, g) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < this.streakN; i++) {
       const on = i < this.streak || (this.streakFlash > 0 && (this.streakFlash >> 2) % 2);
       const x = g.x1 - i * 13, y = g.cy + 40;
       c.save(); c.translate(x, y); c.rotate(Math.PI / 4);

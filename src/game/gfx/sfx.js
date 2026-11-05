@@ -158,6 +158,123 @@ const RECIPES = {
     [0, 0.133, 0.266].forEach((t, i) => { hiss(a, d, t, { type: "highpass", f0: 3500, peak: 0.7, decay: 0.03, dist: 15 }); vbass(a, d, t, 110 - i * 15, 60, 0.08, 0.6, 0.18); });
     bigBoom(a, d, 0.76, 1.2);
   }, "long"],
+  // --- pack d'effets : ultimes (calés sur l'image d'impact de chaque effet) ---
+  // Foudre : pluie et grondement sourd, deux éclairs de chaleur, puis le claquement sec et l'orage qui roule
+  ult_thunder: [3.4, 0.45, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 3000, peak: 0.12, attack: 0.15, decay: 0.3 });
+    vbass(a, d, 0.1, 50, 40, 0.3, 0.25, 0.25);
+    const T = 0.27;
+    hiss(a, d, T, { type: "highpass", f0: 6000, peak: 1, decay: 0.04, dist: 30 });
+    crackle(a, d, T + 0.005, 12, 0.012);
+    bigBoom(a, d, T + 0.02, 1.2);
+    for (let i = 0; i < 4; i++) hiss(a, d, T + 0.35 + i * 0.22, { type: "lowpass", f0: 500, f1: 90, q: 0.6, peak: 0.35 - i * 0.06, attack: 0.05, decay: 0.4 });
+  }, "long"],
+  // Trou noir : tout est aspiré (souffle et grave qui montent), silence, puis l'explosion
+  ult_void: [3.6, 0.45, (a, d) => {
+    hiss(a, d, 0, { f0: 200, f1: 4000, q: 1.2, peak: 0.4, attack: 0.6, decay: 0.03 });
+    osc(a, d, 0, { type: "sawtooth", f0: 40, f1: 220, glide: 0.62, peak: 0.12, attack: 0.6, decay: 0.03 });
+    vbass(a, d, 0, 45, 90, 0.6, 0.3, 0.62);
+    bigBoom(a, d, 0.66, 1.4);
+    braam(a, d, 0.67, 41, 1.3, 0.5);
+  }, "long"],
+  // Encre : le pinceau fouette, le taiko frappe, les claquoirs de bois
+  ult_ink: [3, 0.4, (a, d) => {
+    hiss(a, d, 0.05, { f0: 900, f1: 3500, q: 1.4, peak: 0.5, attack: 0.1, decay: 0.08 });
+    const T = 0.22;
+    vbass(a, d, T, 95, 48, 0.12, 1, 0.55);
+    hiss(a, d, T, { type: "lowpass", f0: 700, f1: 120, q: 0.6, peak: 0.6, decay: 0.25 });
+    hiss(a, d, T, { type: "highpass", f0: 2500, peak: 0.5, decay: 0.03, dist: 10 });
+    [0.3, 0.42].forEach((t) => { osc(a, d, T + t, { type: "triangle", f0: 1800, f1: 1500, peak: 0.25, decay: 0.05 }); hiss(a, d, T + t, { f0: 2600, q: 3, peak: 0.3, decay: 0.02 }); });
+    braam(a, d, T + 0.01, 55, 0.9, 0.3);
+  }, "long"],
+  // Glitch : crépitements numériques hachés, puis tout repart d'un coup
+  ult_glitch: [2.6, 0.3, (a, d) => {
+    for (let i = 0; i < 22; i++) { const t = i * 0.024; if (Math.random() < 0.25) continue; osc(a, d, t, { type: "square", f0: 200 + Math.random() * 1800, peak: 0.12, decay: 0.012, dist: 20 }); }
+    hiss(a, d, 0.2, { type: "bandpass", f0: 3000, q: 8, peak: 0.25, decay: 0.15, dist: 30 });
+    osc(a, d, 0.45, { type: "square", f0: 1500, f1: 60, glide: 0.08, peak: 0.25, decay: 0.08 });
+    bigBoom(a, d, 0.53, 1.1);
+  }, "long"],
+  // Météore : sifflement qui tombe et grondement de feu, puis l'impact énorme et les débris
+  ult_meteor: [3.6, 0.45, (a, d) => {
+    osc(a, d, 0, { type: "sine", f0: 2400, f1: 300, glide: 0.46, peak: 0.12, attack: 0.05, decay: 0.42 });
+    hiss(a, d, 0, { type: "lowpass", f0: 300, f1: 2500, q: 0.7, peak: 0.45, attack: 0.44, decay: 0.03 });
+    const T = 0.47;
+    bigBoom(a, d, T, 1.5);
+    for (let i = 0; i < 18; i++) hiss(a, d, T + 0.1 + Math.random() * 0.8, { f0: 600 + Math.random() * 2500, q: 2, peak: 0.12, decay: 0.04 });
+  }, "long"],
+  // Mille lames : dix coups de lame qui sifflent et tintent, puis la croix
+  ult_blades: [3, 0.4, (a, d) => {
+    for (let i = 0; i < 11; i++) { const t = (2 + i * 2.6) / 60; hiss(a, d, t, { f0: 2000, f1: 8000, q: 1.5, peak: 0.35, decay: 0.035 }); osc(a, d, t + 0.01, { type: "sine", f0: 3000 + Math.random() * 1500, peak: 0.06, decay: 0.12 }); }
+    const T = 31 / 60;
+    hiss(a, d, T, { f0: 1500, f1: 9000, q: 1.2, peak: 0.7, decay: 0.1 });
+    osc(a, d, T, { type: "sine", f0: 3600, f1: 2900, peak: 0.15, decay: 0.4 });
+    bigBoom(a, d, T + 0.02, 1.2);
+  }, "long"],
+  // --- pack d'effets : K.O. ---
+  // Cendres : un coup sourd, la braise qui s'éteint, puis le vent qui emporte tout en crépitant
+  ko_ash: [3.4, 0.4, (a, d) => {
+    vbass(a, d, 0, 70, 30, 0.4, 0.8, 1);
+    hiss(a, d, 0.05, { type: "highpass", f0: 5000, f1: 2500, peak: 0.25, attack: 0.03, decay: 0.7 });
+    hiss(a, d, 0.3, { type: "bandpass", f0: 400, f1: 900, q: 0.8, peak: 0.3, attack: 0.6, decay: 1.6 });
+    for (let i = 0; i < 40; i++) hiss(a, d, 0.35 + Math.random() * 1.6, { f0: 2500 + Math.random() * 5000, q: 5, peak: 0.08, decay: 0.012 });
+    chime(a, d, 1.2, 330, 0.05, 1.2);
+  }, "long"],
+  // Écrasé : la botte qui tombe, l'écrasement, puis on tourne comme pour éteindre un mégot
+  ko_stomp: [3, 0.35, (a, d) => {
+    hiss(a, d, 0, { f0: 3000, f1: 400, q: 0.8, peak: 0.3, attack: 0.18, decay: 0.05 });
+    const T = 14 / 60;
+    heavy(a, d, T, 1.5);
+    bigBoom(a, d, T, 1.2);
+    for (let i = 0; i < 18; i++) hiss(a, d, T + Math.random() * 0.2, { f0: 2000 + Math.random() * 4000, q: 3, peak: 0.25, decay: 0.02, dist: 10 });
+    [0.33, 0.47, 0.6].forEach((t) => hiss(a, d, t, { f0: 500, f1: 300, q: 4, peak: 0.25, attack: 0.03, decay: 0.08, dist: 8 }));
+    hiss(a, d, 0.7, { f0: 6000, f1: 3000, q: 0.7, peak: 0.12, attack: 0.03, decay: 0.5 });
+  }, "long"],
+  // Feu d'artifice : la fusée monte en sifflant, puis quatre bouquets et leurs paillettes
+  ko_fireworks: [3.6, 0.45, (a, d) => {
+    heavy(a, d, 0, 1);
+    osc(a, d, 0.1, { type: "sine", f0: 600, f1: 2200, glide: 0.38, peak: 0.08, attack: 0.05, decay: 0.35 });
+    [[0.5, 1.1], [0.8, 0.8], [1.03, 0.8], [1.33, 1.3]].forEach(([t, s]) => {
+      hiss(a, d, t, { type: "highpass", f0: 2000, peak: 0.5 * s, decay: 0.04, dist: 10 });
+      vbass(a, d, t, 90, 40, 0.15, 0.6 * s, 0.4 * s);
+      for (let i = 0; i < 10 * s; i++) hiss(a, d, t + 0.35 + Math.random() * 0.4, { f0: 4000 + Math.random() * 4000, q: 6, peak: 0.1, decay: 0.01 });
+    });
+    [0, 4, 7, 12].forEach((st, i) => chime(a, d, 1.4 + i * 0.09, 523 * 2 ** (st / 12), 0.06, 0.7));
+  }, "long"],
+  // Extinction : grésillement, la télé qui s'éteint (le « tchiou »), puis le clic
+  ko_crt: [2.6, 0.3, (a, d) => {
+    hiss(a, d, 0, { type: "highpass", f0: 2000, peak: 0.3, decay: 0.2 });
+    vbass(a, d, 0, 70, 30, 0.3, 0.7, 0.6);
+    osc(a, d, 0.2, { type: "sine", f0: 1600, f1: 50, glide: 0.38, peak: 0.25, decay: 0.42 });
+    hiss(a, d, 0.2, { f0: 5000, f1: 300, q: 2, peak: 0.2, decay: 0.4 });
+    click(a, d, 0.95, 0.4, 1800);
+  }, "long"],
+  // Gel : cristaux qui chantent, la glace craque, puis éclate
+  ko_freeze: [3.4, 0.45, (a, d) => {
+    vbass(a, d, 0, 70, 34, 0.3, 0.6, 0.6);
+    for (let i = 0; i < 16; i++) chime(a, d, 0.05 + i * 0.045, 1800 + Math.random() * 2800, 0.025, 0.4);
+    crackle(a, d, 0.77, 8, 0.02);
+    const T = 56 / 60;
+    hiss(a, d, T, { type: "highpass", f0: 4000, f1: 2000, peak: 0.7, decay: 0.3, dist: 6 });
+    for (let i = 0; i < 26; i++) chime(a, d, T + Math.random() * 0.5, 2500 + Math.random() * 4500, 0.04, 0.15);
+    bigBoom(a, d, T, 1);
+  }, "long"],
+  // Envolé : le coup de poing, le boss qui s'éloigne en sifflant, et le « ting ! » de l'étoile
+  ko_sky: [2.6, 0.35, (a, d) => {
+    heavy(a, d, 0, 1.4);
+    bigBoom(a, d, 0, 0.8);
+    hiss(a, d, 0.08, { f0: 1500, f1: 7000, q: 2, peak: 0.3, attack: 0.05, decay: 0.6 });
+    osc(a, d, 0.08, { type: "sine", f0: 900, f1: 2400, glide: 0.6, peak: 0.06, decay: 0.6 });
+    chime(a, d, 0.75, 2637, 0.18, 0.9);
+    chime(a, d, 0.75, 3951, 0.08, 0.6);
+  }, "long"],
+  // --- signatures : une petite couche par-dessus le son du coup ---
+  sig_embers: [0.4, 0.1, (a, d) => { hiss(a, d, 0, { f0: 700, f1: 2600, q: 0.9, peak: 0.4, attack: 0.02, decay: 0.16 }); crackle(a, d, 0.02, 5, 0.025); }],
+  sig_ink: [0.35, 0.1, (a, d) => { hiss(a, d, 0, { type: "lowpass", f0: 1400, f1: 250, q: 1.2, peak: 0.6, decay: 0.09 }); kick(a, d, 0, 140, 60, 0.06, 0.4); hiss(a, d, 0.05, { f0: 3000, q: 4, peak: 0.12, decay: 0.02 }); }],
+  sig_neon: [0.35, 0.15, (a, d) => { osc(a, d, 0, { type: "square", f0: 2200, f1: 280, glide: 0.09, peak: 0.12, decay: 0.1 }); osc(a, d, 0.01, { type: "sine", f0: 3300, peak: 0.08, decay: 0.12 }); }],
+  sig_petals: [0.6, 0.2, (a, d) => { const f = [1046, 1175, 1319, 1568][(Math.random() * 4) | 0]; chime(a, d, 0, f, 0.12, 0.35); hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.06, attack: 0.03, decay: 0.2 }); }],
+  sig_gold: [0.4, 0.1, (a, d) => { osc(a, d, 0, { type: "square", f0: 988, peak: 0.07, decay: 0.05 }); osc(a, d, 0.06, { type: "square", f0: 1319, peak: 0.07, decay: 0.16 }); }],
+  sig_rainbow: [0.45, 0.15, (a, d) => [0, 4, 7, 12].forEach((st, i) => osc(a, d, i * 0.03, { type: "triangle", f0: 1046 * 2 ** (st / 12), peak: 0.08, decay: 0.12 }))],
+  sig_bd: [0.35, 0.1, (a, d) => { osc(a, d, 0, { type: "sine", f0: 900, f1: 180, glide: 0.07, peak: 0.35, decay: 0.09 }); click(a, d, 0, 0.3, 1800); }],
   // --- paliers 2 à 5 : de plus en plus lourds ---
   hit2: [0.45, 0.12, (a, d) => { impact(a, d, 0, { punch: 0.9, body: 0.1, snap: 2600 }); osc(a, d, 0.005, { type: "triangle", f0: 990, peak: 0.08, decay: 0.08 }); }],
   hit3: [0.6, 0.2, (a, d) => { heavy(a, d, 0, 0.7); hiss(a, d, 0, { f0: 2200, f1: 600, q: 0.8, peak: 0.25, decay: 0.15 }); }],
@@ -187,7 +304,7 @@ const RECIPES = {
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
-const LEVEL = { hit2: 0.6, hit3: 0.7, crit4: 0.8, crit5: 0.9, ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
+const LEVEL = { hit2: 0.6, hit3: 0.7, crit4: 0.8, crit5: 0.9, ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, sig_embers: 0.4, sig_ink: 0.45, sig_neon: 0.35, sig_petals: 0.35, sig_gold: 0.35, sig_rainbow: 0.35, sig_bd: 0.45, ult_thunder: 0.95, ult_void: 0.95, ult_ink: 0.95, ult_glitch: 0.9, ult_meteor: 0.95, ult_blades: 0.95, ko_ash: 0.9, ko_stomp: 0.95, ko_fireworks: 0.9, ko_crt: 0.85, ko_freeze: 0.92, ko_sky: 0.92, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
 function impulse(a, dur, pow = 5) {
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(2, n, a.sampleRate);
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** pow; }

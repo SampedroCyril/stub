@@ -42,8 +42,8 @@ export const HIT = { base: 100, fast: 140 };
 export const TIER_BONUS = [0, 0, 0, 150, 250, 400, 600, 1000, 1000, 1400];
 /** Multiplicateur de combo : ×1, ×1,25 dès le 2e seuil, ×1,5 dès le 4e, ×2 en transe. */
 export const COMBO_MULT = [1, 1.25, 1.5, 2];
-export function damageFor(tier, { fast = false, trance = false, combo = 0, ms, power = 1, crit = 1 } = {}) {
-  const mult = trance ? COMBO_MULT[3] : ms && combo >= ms[3] ? COMBO_MULT[2] : ms && combo >= ms[1] ? COMBO_MULT[1] : COMBO_MULT[0];
+export function damageFor(tier, { fast = false, trance = false, combo = 0, ms, power = 1, crit = 1, tranceMult = COMBO_MULT[3] } = {}) {
+  const mult = trance ? tranceMult : ms && combo >= ms[3] ? COMBO_MULT[2] : ms && combo >= ms[1] ? COMBO_MULT[1] : COMBO_MULT[0];
   const bonus = TIER_BONUS[tier] * (tier >= 3 ? crit : 1);
   return Math.round(((fast ? HIT.fast : HIT.base) * mult + bonus) * power);
 }
