@@ -8,6 +8,7 @@ import { grid } from "./sprite.js";
 import { SPRITES } from "../sprites.js";
 import { INK, BLOOD, PAPER, AIR, pline, bolts } from "./pix.js";
 import { fxMethods, ULT, KO, HIT_SKINS, DARK, CRIT_PAL, TITLES } from "./fxPack.js";
+import { AURAS, moreMethods } from "./fxMore.js";
 
 export const STAGE_W = 64, STAGE_H = 60;
 const FLOOR = 56;
@@ -277,7 +278,8 @@ export class BossStage {
     this.shakeEl?.classList.remove("trance");
   }
   drawTrance(b) {
-    const t = this.t - this.trance.t0, cx = STAGE_W / 2, cy = FLOOR - 16;
+    const t = this.t - this.trance.t0, cx = STAGE_W / 2, cy = FLOOR - 16, A = AURAS[this.aura];
+    if (A && A !== AURAS.rage) { A.back?.call(this, b, t); return; }
     for (let i = 0; i < 6; i++) {
       const r = (t * 0.7 + i * 12) % 72, a = Math.round((1 - r / 72) * 0.5 * 4) / 4;
       if (a <= 0) continue;
@@ -416,6 +418,7 @@ export class BossStage {
       const p = this.pos, st = this.art.steam, angry = this.hp / this.maxHp < 0.45;
       this.fx.add({ x: p.x + st.x + rnd(-3, 3), y: p.y + st.y, vy: rnd(-0.32, -0.18), life: rnd(50, 80) | 0, c: angry ? st.angry : st.c, fade: true, fadeIn: true, alpha: 0.75, wob: 0.12, size: 1, grow: 0.025 });
     }
+    if (this.trance && !this.dead) AURAS[this.aura]?.tick?.call(this, this.t - this.trance.t0);
     this.fx.update(); this.front.update();
     for (const st of this.stamps) st.age++;
     this.stamps = this.stamps.filter((st) => st.age < st.life);
@@ -472,6 +475,7 @@ export class BossStage {
     if (this.trance) this.drawTrance(b);
     this.fx.draw(b);
     if (this.koT <= 0 && !this.koHide) this.drawBoss(b, p);
+    if (this.trance && this.koT <= 0) AURAS[this.aura]?.front?.call(this, b, this.t - this.trance.t0);
     this.drawWeak(b);
     for (const r of this.rings) this.ring(b, r);
     for (const st of this.stamps) HIT_SKINS[st.k]?.stamp?.(b, st);
@@ -500,9 +504,9 @@ export class BossStage {
       b.globalAlpha = 1;
     }
     if (this.trance) {
-      const d = 1 + ((this.t >> 3) % 2);
+      const d = 1 + ((this.t >> 3) % 2), rim = sp.tinted ? sp.tinted(AURAS[this.aura]?.col || BLOOD) : sp.red;
       b.globalAlpha = 0.7;
-      for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d]]) b.drawImage(sp.red, x + dx, y + dy, w, h);
+      for (const [dx, dy] of [[-d, 0], [d, 0], [0, -d], [0, d]]) b.drawImage(rim, x + dx, y + dy, w, h);
       b.globalAlpha = 1;
     }
     b.drawImage(sp.img, x, y, w, h);
@@ -613,13 +617,13 @@ export class BossStage {
       b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
       b.fillStyle = k < 0.25 && (this.t >> 2) % 2 ? "#ffffff" : "#ffcd75"; b.fillRect(x, y + h + 2, Math.round(w * k), 2);
     }
-    if (this.combo >= 2) drawText(b, `x${this.combo}`, STAGE_W - 4, y + h + 3, { color: this.trance ? "#ff6b70" : this.combo >= 10 ? "#ffcd75" : "#c2c3c7", sc: 1, align: "right" });
+    if (this.combo >= 2 && (!this.counter || this.counter === "classic")) drawText(b, `x${this.combo}`, STAGE_W - 4, y + h + 3, { color: this.trance ? "#ff6b70" : this.combo >= 10 ? "#ffcd75" : "#c2c3c7", sc: 1, align: "right" });
   }
 
   // ---------- calque plein écran ----------
   drawOverlay() {
     const live = this.ovFx.filter((e) => !(e.delay > 0));
-    if (!live.length && !this.ovParts.list.length && !this.halves) { if (this.ov.style.display !== "none") this.ov.style.display = "none"; return; }
+    if (!live.length && !this.ovParts.list.length && !this.halves && !this.hudOn()) { if (this.ov.style.display !== "none") this.ov.style.display = "none"; return; }
     this.ov.style.display = "block";
     const o = this.ob, W = this.OW, H = this.OH;
     o.clearRect(0, 0, W, H);
@@ -633,6 +637,7 @@ export class BossStage {
     c.imageSmoothingEnabled = false;
     c.clearRect(0, 0, this.ov.width, this.ov.height);
     c.drawImage(this.ovBuf, 0, 0, this.ov.width, this.ov.height);
+    this.drawCounter(c);
     for (const e of top) this.title(c, e);
   }
 
@@ -972,4 +977,4 @@ export class BossStage {
   }
 }
 
-Object.assign(BossStage.prototype, fxMethods);
+Object.assign(BossStage.prototype, fxMethods, moreMethods);
