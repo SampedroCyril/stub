@@ -14,5 +14,5 @@ export function useShop() {
 /** Réserves d'effets équipés : ultimes et K.O. tirés à chaque coup, signature tirée par combat. */
 export function useArsenal() {
   const { owned, eq } = useShop();
-  return useMemo(() => ({ ult: poolOf("ult", eq, owned), ko: poolOf("ko", eq, owned), sig: poolOf("sig", eq, owned), tray: poolOf("tray", eq, owned) }), [owned, eq]);
+  return useMemo(() => Object.fromEntries(["ult", "ko", "sig", "tray", "aura", "counter"].map((k) => [k, poolOf(k, eq, owned)])), [owned, eq]);
 }

@@ -5,12 +5,12 @@ import BossView from "../game/BossView.jsx";
 import { useShop } from "../game/useArsenal.js";
 import { ITEMS, ITEM, SLOTS, EXPLOITS, EARN, canBuy } from "../game/shop.js";
 import { ULT, KO, HIT_SKINS } from "../game/gfx/fxPack.js";
-import { TRAYS } from "../game/gfx/fxMore.js";
+import { TRAYS, AURAS, COUNTERS } from "../game/gfx/fxMore.js";
 import { AshtrayScene } from "../game/gfx/Ashtray.js";
 import { BOSSES } from "../game/bosses.js";
 
-const FX = { ult: ULT, ko: KO, sig: HIT_SKINS, tray: TRAYS };
-const PLURAL = { ult: "Ultimes", ko: "K.O.", sig: "Signatures", tray: "Cendriers" };
+const FX = { ult: ULT, ko: KO, sig: HIT_SKINS, tray: TRAYS, aura: AURAS, counter: COUNTERS };
+const PLURAL = { ult: "Ultimes", ko: "K.O.", sig: "Signatures", tray: "Cendriers", aura: "Auras d'Éveil", counter: "Compteurs de combo" };
 const info = (it) => FX[it.slot][it.fx];
 const BOSS_IDS = Object.keys(BOSSES);
 
@@ -93,7 +93,7 @@ export default function Boutique() {
           <div><span>{shop.earn.n.days} jours sans fumer</span><b>{shop.earn.days}</b></div>
           <div><span>Arcade</span><b>{shop.earn.arcade}</b></div>
         </div>
-        <p className="tip">Les achats ne se perdent jamais, même après une rechute. Six pièces ne s'achètent pas : elles se gagnent par exploit.</p>
+        <p className="tip">Les achats ne se perdent jamais, même après une rechute. Sept pièces ne s'achètent pas : elles se gagnent par exploit.</p>
       </details>
 
       {open && <Preview id={open} shop={shop} onClose={() => setOpen(null)} onBuy={buy} onEquip={equip} />}
@@ -132,7 +132,13 @@ function Preview({ id, shop, onClose, onBuy, onEquip }) {
     if (!s || busy.current) return;
     busy.current = true;
     if (it.slot === "ult") { s.hit(800, { big: true, style: it.fx, charge: 16, label: "-800" }); setTimeout(() => { busy.current = false; }, 1600); }
-    else if (it.slot === "ko") s.ko(it.fx).then(() => setTimeout(() => { busy.current = false; setRun((r) => r + 1); }, 300));
+    else if (it.slot === "aura") { s.aura = it.fx; s.exitTrance(); s.enterTrance(); busy.current = false; }
+    else if (it.slot === "counter") {
+      s.counter = it.fx; s.combo = 0;
+      let i = 0;
+      const go = () => { const st = stage.current; if (!st) return; i++; if (i > 16) { st.combo = 0; st.breakCombo(); busy.current = false; return; } st.combo = i; st.tier(i % 5 === 0 ? 3 : i % 2 ? 1 : 2, 100 + i * 5, { combo: i, label: `-${100 + i * 5}` }); setTimeout(go, 260); };
+      go();
+    } else if (it.slot === "ko") s.ko(it.fx).then(() => setTimeout(() => { busy.current = false; setRun((r) => r + 1); }, 300));
     else {
       s.hitSkin = it.fx === "classic" ? null : it.fx;
       let i = 0;
