@@ -22,11 +22,16 @@ test("PV selon l'intensité et le niveau du boss", () => {
   assert.equal(createBattle({ at, intensity: 5, trigger: "cafe", victories: { cafe: 12 } }).maxHp, Math.round(HP_BASE[5] * 1.2 / 50) * 50);
 });
 
-test("épuisement lent puis rapide, mort assurée à 5 minutes", () => {
+test("pas d'épuisement : le boss ne perd des PV que sous les coups", () => {
   const b = createBattle({ at, intensity: 2 });
   assert.equal(hpAt(b, at), b.maxHp);
-  assert.equal(hpAt(b, later(BATTLE_MS / 2)), Math.round(b.maxHp * 0.75));
-  assert.equal(hpAt(b, later(BATTLE_MS)), 0);
+  assert.equal(hpAt(b, later(BATTLE_MS)), b.maxHp);
+  assert.equal(hpAt(b, later(BATTLE_MS * 10)), b.maxHp);
+});
+
+test("la pause du joueur est retirée du temps de combat", () => {
+  const b = { ...createBattle({ at, intensity: 2 }), pz: 30e3, mc: 40 };
+  assert.equal(rankOf(b, later(110e3)), "S");
 });
 
 test("dégâts et soins, PV plafonnés", () => {
@@ -38,12 +43,13 @@ test("dégâts et soins, PV plafonnés", () => {
   assert.equal(hit(b, "game", 0, at).dmg, 0);
 });
 
-test("rangs : S rapide avec un beau combo, A dans les temps, B abattu, C épuisé", () => {
+test("rangs : S rapide avec un beau combo, A dans les temps, B abattu, C très lent", () => {
   const b = createBattle({ at, intensity: 2 });
   assert.equal(rankOf({ ...b, mc: 40 }, later(80e3)), "S");
   assert.equal(rankOf({ ...b, mc: 5 }, later(80e3)), "A");
   assert.equal(rankOf(b, later(200e3)), "B");
   assert.equal(rankOf(b, later(BATTLE_MS)), "C");
+  assert.equal(rankOf(b, later(250e3)), "B");
 });
 
 test("victoire : événement avec boss, temps, rang et combo max", () => {

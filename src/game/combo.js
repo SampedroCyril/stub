@@ -71,16 +71,17 @@ export const pauseAfter = (shownTier) => (shownTier >= 7 ? 1500 : shownTier === 
 
 /**
  * PV d'un boss, calibrés par simulation au rythme de la jauge : un bon joueur (93 % de coups réussis, 45 % de parfaits,
- * la plupart des clopes refusées) le tue en targetOf(intensité) secondes, épuisement compris.
+ * la plupart des clopes refusées) le tue en targetOf(intensité) secondes, à la seule force de ses coups.
+ * (Valeurs de la 0.3.3 moins la part que faisait l'épuisement, (T / 5 min)², supprimé en 0.3.6.)
  * Un expert met environ les trois quarts de ce temps ; un robot parfait, un peu plus de la moitié (la jauge impose le rythme).
  */
-export const HP_BASE = { 1: 8500, 2: 14000, 3: 21000, 4: 32500, 5: 49500 };
+export const HP_BASE = { 1: 8150, 2: 12750, 3: 17650, 4: 24400, 5: 31700 };
 export const clickerHp = (intensity, lvl = 1) => Math.round((HP_BASE[intensity || 2] * (1 + 0.1 * (lvl - 1))) / 50) * 50;
 
-/** Rang : S rapide avec un beau combo, A dans les temps, B abattu avant l'épuisement, C épuisement. */
+/** Rang : S rapide avec un beau combo, A dans les temps, B abattu, C au-delà de trois fois le temps visé. */
 export function rankFor({ kt, intensity, maxCombo = 0, exhausted = false }) {
-  if (exhausted) return "C";
   const T = targetOf(intensity), ms = milestonesFor(intensity);
+  if (exhausted || kt > T * 3) return "C";
   if (kt <= T && maxCombo >= ms[3]) return "S";
   if (kt <= T * 1.5) return "A";
   return "B";

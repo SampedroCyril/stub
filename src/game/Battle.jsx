@@ -5,7 +5,7 @@ import FightScreen, { FightMenu } from "./FightScreen.jsx";
 import GaugeView from "./GaugeView.jsx";
 import { useClicker } from "./useClicker.js";
 import { BOSSES, traitsOf, traitList } from "./bosses.js";
-import { hpAt, elapsedMs, bestiary, BATTLE_MS, DMG } from "./battle.js";
+import { hpAt, elapsedMs, bestiary, DMG } from "./battle.js";
 import { perksOf } from "../data/skills.js";
 import { pad } from "../lib/util.js";
 
@@ -67,7 +67,7 @@ export default function Battle() {
     if (b && hpAt(b, new Date()) <= 0) setTimeout(w, 0);
   }, []);
 
-  // horloge : synchro des PV (épuisement) et K.O.
+  // horloge : synchro des PV et K.O.
   useEffect(() => {
     const id = setInterval(() => {
       setTick((x) => x + 1);
@@ -88,7 +88,7 @@ export default function Battle() {
 
   if (!battle) return null;
   const B = BOSSES[battle.boss];
-  const left = Math.max(0, Math.ceil((BATTLE_MS - elapsedMs(battle, clock())) / 1000));
+  const sec = Math.floor(elapsedMs(battle, clock()) / 1000);
   const known = (bestiary(S.ev)[battle.boss]?.wins || 0) > 0;
 
   const onTap = () => {
@@ -119,7 +119,7 @@ export default function Battle() {
   return (
     <FightScreen
       title={B.n}
-      right={`Niv. ${battle.lvl} · ${Math.floor(left / 60)}:${pad(left % 60)}`}
+      right={`Niv. ${battle.lvl} · ${Math.floor(sec / 60)}:${pad(sec % 60)}`}
       label={`Combat contre ${B.n}`}
       onTap={onTap}
       onBack={() => open("quit")}

@@ -181,7 +181,7 @@ export function AppProvider({ children }) {
   }, [commit, setBattle]);
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 
-  // Un boss s'épuise même app fermée : victoire automatique quand ses PV tombent à 0 (sauf attaque en cours).
+  // Victoire automatique si les PV sont à 0 hors de l'écran de combat (sauf attaque en cours).
   useEffect(() => {
     if (battle && !flow.attack && !battleView.current && hpAt(battle, now) <= 0) winBattle();
   }, [battle, now, flow.attack, winBattle]);

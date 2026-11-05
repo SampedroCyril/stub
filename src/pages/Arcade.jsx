@@ -107,7 +107,7 @@ export default function Arcade() {
   };
   const M = MODES.find((m) => m.id === mode);
   const boss = mode === "bossrun" ? RUN[idx] : "clope";
-  const elapsed = mode === "bossrun" && clicker.active ? Math.round((performance.now() - run.current.t0) / 1000) : 0;
+  const elapsed = mode === "bossrun" && clicker.active ? Math.round(((clicker.state()?.hold || performance.now()) - run.current.t0) / 1000) : 0;
 
   return (
     <Panel id="arcade">

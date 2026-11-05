@@ -3,14 +3,14 @@
  *
  * - Le combat est un clicker : chaque point faible touché inflige des dégâts selon le combo (voir combo.js).
  * - PV calibrés pour qu'un bon joueur tue le boss en 1 à 3 minutes selon l'intensité de l'envie, +10 % par niveau du boss.
- * - Le boss s'épuise tout seul et meurt au bout de 5 minutes, la durée réelle d'une envie.
- *   L'épuisement est lent au début et s'accélère à la fin : ce sont tes coups qui comptent.
+ * - Pas d'épuisement : seuls tes coups le font tomber. Le combat attend ton retour si tu le quittes.
  * - Il contre-attaque (tentation) : refuser le blesse, laisser passer le soigne et casse le combo.
  * - On ne perd qu'en déclarant une rechute.
  */
 import { bossFor } from "./bosses.js";
 import { clickerHp, rankFor } from "./combo.js";
 
+/** Durée réelle d'une envie (repère d'affichage, le boss ne meurt plus tout seul). */
 export const BATTLE_MS = 5 * 60 * 1000;
 
 /** Tentation : refuser lui retire 3 % de ses PV max, la laisser passer le soigne de 8 %. */
@@ -34,13 +34,9 @@ export function createBattle({ at = new Date(), intensity = null, trigger = null
 export const dealt = (b) => b.hits.reduce((a, h) => a + h.d, 0);
 /** Temps de combat écoulé, pauses du joueur déduites (pz, en ms). */
 export const elapsedMs = (b, now) => Math.max(0, now - new Date(b.at) - (b.pz || 0));
-/** Part des PV perdue par épuisement : (t / 5 min)². */
-export const decayOf = (b, now) => Math.min(1, elapsedMs(b, now) / BATTLE_MS) ** 2;
-
-/** PV restants, plafonnés aux PV max (les soins ne dépassent pas), et à 0 au bout de 5 minutes quoi qu'il arrive. */
-export function hpAt(b, now = new Date()) {
-  if (elapsedMs(b, now) >= BATTLE_MS) return 0;
-  return Math.max(0, Math.min(b.maxHp, Math.round(b.maxHp * (1 - decayOf(b, now)) - dealt(b))));
+/** PV restants : PV max moins les coups, plafonnés aux PV max (les soins ne dépassent pas). now est gardé pour l'appel. */
+export function hpAt(b, now = new Date()) { // eslint-disable-line no-unused-vars
+  return Math.max(0, Math.min(b.maxHp, Math.round(b.maxHp - dealt(b))));
 }
 
 /** Ajoute des dégâts (d > 0) ou un soin du boss (d < 0). Renvoie {battle, dmg}. */
@@ -53,7 +49,7 @@ export function hit(b, src, d, now = new Date()) {
 /** Rang de victoire (voir rankFor dans combo.js). */
 export function rankOf(b, now = new Date()) {
   const kt = elapsedMs(b, now) / 1000;
-  return rankFor({ kt, intensity: b.intensity, maxCombo: b.mc || 0, exhausted: kt >= BATTLE_MS / 1000 - 1 });
+  return rankFor({ kt, intensity: b.intensity, maxCombo: b.mc || 0 });
 }
 
 /** Événement « envie tenue » enregistré à la victoire : boss, niveau, temps, rang, combo max. */
@@ -62,7 +58,7 @@ export function victoryEvent(b, now = new Date()) {
     k: "craving", t: b.at, m: "game",
     ...(b.intensity ? { i: b.intensity } : {}),
     ...(b.trigger ? { tr: b.trigger } : {}),
-    b: b.boss, bl: b.lvl, kt: Math.round(Math.min(elapsedMs(b, now), BATTLE_MS) / 1000),
+    b: b.boss, bl: b.lvl, kt: Math.round(elapsedMs(b, now) / 1000),
     rk: rankOf(b, now), mc: b.mc || 0,
   };
 }
