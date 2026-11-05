@@ -8,6 +8,8 @@ import Records from "./pages/Records.jsx";
 import Bestiaire from "./pages/Bestiaire.jsx";
 import Talents from "./pages/Talents.jsx";
 import Boutique from "./pages/Boutique.jsx";
+import Symptomes from "./pages/Symptomes.jsx";
+import Risques from "./pages/Risques.jsx";
 import Victory from "./game/Victory.jsx";
 import BossThumb from "./game/BossThumb.jsx";
 import { BOSSES } from "./game/bosses.js";
@@ -62,6 +64,8 @@ function Shell() {
       <Respirer />
       <Arcade />
       <Sante />
+      <Symptomes />
+      <Risques />
       <Defis onRecap={open} />
       <Bestiaire />
       <Talents />

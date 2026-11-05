@@ -1,33 +1,12 @@
 import { useRef, useState } from "react";
 import { useApp, SECTIONS, sectionOn } from "../store/AppStore.jsx";
-import GaugeView from "../game/GaugeView.jsx";
-import { GAUGE_STYLES } from "../game/gfx/Gauge.js";
 import { Panel } from "../components/ui.jsx";
+import { Group, Toggle } from "../components/Settings.jsx";
+import { APP_NAME } from "../data/brand.js";
 import InstallCard from "../components/InstallCard.jsx";
 import { isStandalone } from "../lib/install.js";
 import { exportJson, parseImport, mergeDays } from "../lib/storage.js";
-import { dayKey, fDate, pad } from "../lib/util.js";
-
-const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
-function Group({ title, children, note }) {
-  return (
-    <section className="set-group">
-      <h2 className="set-title">{title}</h2>
-      <div className="set-box">{children}</div>
-      {note && <p className="set-note">{note}</p>}
-    </section>
-  );
-}
-
-function Toggle({ id, label, sub, checked, onChange }) {
-  return (
-    <label className="set-row" htmlFor={id}>
-      <span><b>{label}</b>{sub && <small>{sub}</small>}</span>
-      <input id={id} type="checkbox" className="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-    </label>
-  );
-}
+import { dayKey, fDate } from "../lib/util.js";
 
 export default function Reglages() {
   const { S, data, state, patchState, replaceData, wipe } = useApp();
@@ -43,7 +22,7 @@ export default function Reglages() {
     const blob = new Blob([exportJson(data)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `anti-clope-${dayKey(new Date())}.json`;
+    a.download = `stub-${dayKey(new Date())}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     setMsg({ ok: true, t: "Sauvegarde téléchargée." });
@@ -105,44 +84,11 @@ export default function Reglages() {
         {msg && <p className={`set-msg${msg.ok ? "" : " err"}`} role="status">{msg.t}</p>}
       </Group>
 
-      <Group title="Sevrage">
-        <label className="set-row" htmlFor="quit">
-          <span><b>Dernière clope</b><small>Point de départ du compteur et des caps santé</small></span>
-          <input
-            type="datetime-local" id="quit" value={toLocalInput(S.q)}
-            onChange={(e) => {
-              const d = new Date(e.target.value);
-              if (isNaN(d) || d > new Date()) return;
-              patchState({ quitAt: d.toISOString(), ...(S.smokes.length ? {} : { startAt: d.toISOString() }) });
-            }}
-          />
-        </label>
-      </Group>
-
       <Group title="Sections de l'app">
-        <p className="set-note">Garde seulement ce qui te parle. Tes données restent, même pour une section masquée.</p>
+        <p className="set-note">Garde seulement ce qui te parle. Tes données restent, même pour une section masquée. Les réglages propres à chaque catégorie sont dans sa roue crantée, en haut à droite.</p>
         {SECTIONS.filter((s) => s.optional).map((s) => (
           <Toggle key={s.id} id={`sec-${s.id}`} label={s.label} sub={s.d} checked={sectionOn(state, s.id)} onChange={(v) => patchState({ sections: { ...(state.sections || {}), [s.id]: v } })} />
         ))}
-      </Group>
-
-      <Group title="Jeu">
-        <Toggle id="gamesound" label="Bruitages des combats" sub="Coups, critiques, K.O., clope écrasée" checked={state.gameSound !== false} onChange={(v) => patchState({ gameSound: v })} />
-        <div className="set-row col">
-          <span><b>Style de la jauge</b><small>Le look de la jauge de rythme, en combat et dans l'Arcade</small></span>
-          <div className="gauge-pick" role="radiogroup" aria-label="Style de la jauge">
-            {GAUGE_STYLES.map(([id, n]) => (
-              <button key={id} type="button" role="radio" className="pick" aria-checked={(state.gaugeStyle || "fluid") === id} aria-pressed={(state.gaugeStyle || "fluid") === id} onClick={() => patchState({ gaugeStyle: id })}>{n}</button>
-            ))}
-          </div>
-          <div className="gauge-preview"><GaugeView style={state.gaugeStyle || "fluid"} demo /></div>
-        </div>
-        <Toggle id="intense" label="Effets intenses" sub="Flashs et écran inversé sur les gros coups. À couper si tu es sensible aux lumières clignotantes." checked={state.intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches} onChange={(v) => patchState({ intense: v })} />
-      </Group>
-
-      <Group title="Coach caméra">
-        <Toggle id="sound" label="Son" sub="Un bip à chaque rep" checked={state.sound} onChange={(v) => patchState({ sound: v })} />
-        <Toggle id="model" label="Détection précise" sub="Plus fiable, plus lourde pour le téléphone" checked={state.model === "full"} onChange={(v) => patchState({ model: v ? "full" : "lite" })} />
       </Group>
 
       <Group title="Aide">
@@ -165,7 +111,7 @@ export default function Reglages() {
       </Group>
 
       <footer className="app-version">
-        <b>Roulement anti-clope</b>
+        <b>{APP_NAME}</b>
         <span>Version {__APP_VERSION__}</span>
         <span>Mise à jour du {fDate(new Date(__BUILD_DATE__))} {new Date(__BUILD_DATE__).getFullYear()}{__COMMIT__ ? ` · ${__COMMIT__}` : ""}</span>
       </footer>
