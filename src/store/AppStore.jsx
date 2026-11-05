@@ -13,25 +13,9 @@ import { BOSSES } from "../game/bosses.js";
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
 
-/**
- * Navigation : les sections en bas de l'écran, chacune avec ses sous-onglets.
- * Les Réglages généraux ne sont pas dans la barre : on y va par la roue crantée de l'Accueil (nav: false).
- */
-export const SECTIONS = [
-  { id: "accueil", label: "Accueil", icon: "home", views: ["accueil"] },
-  { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "clopes", "respirer"] },
-  { id: "sante", label: "Santé", icon: "heart", views: ["sante", "symptomes", "risques"], optional: true, d: "Ton corps qui récupère, tes symptômes de sevrage, ce que fait la clope." },
-  { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "records", "exos"], optional: true, d: "Circuits, records caméra, exercices. Masquée : plus de « Bouger » quand tu notes une envie." },
-  { id: "joueur", label: "Joueur", icon: "gamepad", views: ["talents", "boutique", "arcade", "bestiaire"], optional: true, d: "Combats de boss, talents, boutique, Arcade, bestiaire. Masquée : plus de « Combat » quand tu notes une envie." },
-  { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "badges", "stats"], optional: true, d: "Défis de la semaine, badges, statistiques." },
-  { id: "reglages", label: "Réglages", icon: "gear", views: ["reglages"], nav: false },
-];
-export const SUB_LABELS = { sevrage: "Envies", clopes: "Clopes", respirer: "Respirer", sante: "Récupération", symptomes: "Symptômes", risques: "La clope", circuit: "Circuit", records: "Records", exos: "Exos", talents: "Talents", boutique: "Boutique", arcade: "Arcade", bestiaire: "Boss", defis: "Défis", badges: "Badges", stats: "Stats" };
-/** Sections de la barre du bas, selon les réglages (Accueil et Sevrage sont toujours là). */
-export const visibleSections = (state) => SECTIONS.filter((s) => s.nav !== false && (!s.optional || state?.sections?.[s.id] !== false));
-export const sectionOn = (state, id) => state?.sections?.[id] !== false;
-export const VIEWS = SECTIONS.flatMap((s) => s.views);
-export const sectionOf = (v) => SECTIONS.find((s) => s.views.includes(v)) || SECTIONS[0];
+export { SECTIONS, SUB_LABELS, sectionOn, visibleSections, CRAVING_VIEWS, cravingHome, VIEWS, sectionOf } from "../data/sections.js";
+import { sectionOn, CRAVING_VIEWS, cravingHome, VIEWS, sectionOf } from "../data/sections.js";
+
 const viewFromHash = () => {
   const v = location.hash.replace(/^#/, "");
   return VIEWS.includes(v) ? v : "accueil";
@@ -46,6 +30,8 @@ export function AppProvider({ children }) {
   dataRef.current = data;
   const [now, setNow] = useState(() => new Date());
   const [view, setView] = useState(viewFromHash);
+  const viewRef = useRef(view);
+  viewRef.current = view;
   const [toast, setToast] = useState(null);
   /**
    * flow.mode : "idle" | "craving" | "circuit" | "breath"
@@ -134,8 +120,11 @@ export function AppProvider({ children }) {
   /* ---- parcours d'une envie / d'un circuit ---- */
   const startCraving = useCallback(() => {
     const at = new Date();
-    setFlow({ mode: "craving", craving: { at, endsAt: +at + CRAVING_MS, intensity: null, trigger: null } });
-    go("sevrage");
+    // on reste sur la page si elle accueille déjà les envies, sinon on va à celle de la catégorie active
+    const cur = viewRef.current, st = dataRef.current.state;
+    const from = CRAVING_VIEWS.includes(cur) && sectionOn(st, sectionOf(cur, st).id) ? cur : cravingHome(st);
+    setFlow({ mode: "craving", craving: { at, endsAt: +at + CRAVING_MS, intensity: null, trigger: null, from } });
+    go(from);
   }, [go]);
   const setCravingField = useCallback((k, v) => {
     setFlow((f) => (f.craving ? { ...f, craving: { ...f.craving, [k]: f.craving[k] === v ? null : v } } : f));
@@ -157,7 +146,7 @@ export function AppProvider({ children }) {
     const victories = Object.fromEntries(Object.entries(bestiary(S.ev)).map(([k, v]) => [k, v.wins]));
     setBattle(createBattle({ at: new Date(c.at), iv: c.intensity, trigger: c.trigger, victories }));
     setFlow({ mode: "idle" });
-    go("sevrage");
+    go(c.from || cravingHome(dataRef.current.state));
   }, [flow.craving, S.ev, setBattle, go]);
   /** Attaque le boss en cours (dégâts en PV, négatifs pour un soin) ; renvoie les dégâts infligés. */
   const hitBattle = useCallback((src, d) => {
@@ -188,17 +177,19 @@ export function AppProvider({ children }) {
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 
   /**
-   * Une clope fumée : le sevrage repart de zéro (dans les deux modes). L'événement garde la date de la clope
+   * Une clope fumée : le sevrage repart de zéro (même s'il est masqué), et elle compte dans l'objectif de la Réduction. L'événement garde la date de la clope
    * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
    */
   const logSmoke = useCallback((tr = null) => {
     const cur = dataRef.current, t = new Date();
     const S0 = compute(cur.state, cur.days, t);
     const ev = { k: "smoked", t: t.toISOString(), ...(tr ? { tr } : {}), pq: cur.state.quitAt, pb: cur.state.best || 0 };
+    const sev = sectionOn(cur.state, "sevrage");
     let msg = "C'est noté. Le sevrage repart de zéro, ton sport et tes stats restent. La prochaine envie, tu la tiens.";
-    if (cur.state.goal === "reduce") {
+    if (sectionOn(cur.state, "reduction")) {
       const g = goalAt(cur.state.reduce, t), n = smokeStats([...S0.ev, ev], { now: t }).today;
       msg = g == null ? `Clope notée : ${n} aujourd'hui.` : n <= g ? `Clope notée : ${n} / ${g} aujourd'hui.` : `Clope notée : ${n} / ${g}. Objectif dépassé pour aujourd'hui, demain on repart.`;
+      if (sev) msg += " Le sevrage repart de zéro.";
     }
     setFlow({ mode: "idle" });
     commit([ev], [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });

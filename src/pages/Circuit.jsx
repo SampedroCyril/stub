@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { useApp } from "../store/AppStore.jsx";
+import { useApp, cravingHome } from "../store/AppStore.jsx";
 import { LevelCard, Panel } from "../components/ui.jsx";
 import Figure from "../art/Figure.jsx";
 import Icon from "../art/Icon.jsx";
@@ -62,7 +62,7 @@ export default function Circuit() {
     const events = [], msg = [`Circuit : +${xp} XP sport`];
     events.push({ k: "circuit", t: new Date().toISOString(), f, items });
     const patch = { adj: clamp(adj + f, -3, 5), ...(flow.override ? {} : advanceRotation(state, sportL)) };
-    if (fromCraving) { const c = flow.craving; go("sevrage"); holdCraving("sport", c, events, msg, patch); return; }
+    if (fromCraving) { const c = flow.craving; go(c?.from || cravingHome(state)); holdCraving("sport", c, events, msg, patch); return; }
     resetFlow();
     go("accueil");
     commit(events, msg, patch);
@@ -98,7 +98,7 @@ export default function Circuit() {
           <p className="tip">Enchaîne les deux, souffle 30 secondes, refais un tour si tu veux. Touche un exo pour voir comment le faire.</p>
           <div className="row2">
             <button className="btn" type="button" onClick={() => setFlow((f) => ({ ...f, override: randomPair(pair, sportL), results: {} }))}>Autre circuit au hasard</button>
-            <button className="btn" type="button" onClick={() => { resetFlow(); if (fromCraving) go("sevrage"); }}>Annuler</button>
+            <button className="btn" type="button" onClick={() => { const c = flow.craving; resetFlow(); if (fromCraving) go(c?.from || cravingHome(state)); }}>Annuler</button>
           </div>
           <div className="done">
             <span className="label">Terminé. C'était…</span>

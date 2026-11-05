@@ -23,6 +23,16 @@ export function goalAt(reduce, date) {
   const k = Math.floor(Math.max(0, daysBetween(reduce.from, date)) / (reduce.every || 7));
   return Math.max(0, reduce.start - k);
 }
+/**
+ * Objectif de départ quand on active la Réduction : ta moyenne des 7 derniers jours si tu notes tes clopes,
+ * sinon ta conso de départ, sinon 10. Baisse automatique d'une clope par semaine.
+ */
+export function baseGoal(ev, { now, startAt, cpd = 0 }) {
+  const avg = smokeStats(ev, { now, startAt }).avg7;
+  return avg ? Math.max(1, Math.ceil(avg)) : cpd || 10;
+}
+export const defaultReduce = (base, now = new Date()) => ({ mode: "auto", start: base, from: now.toISOString(), every: 7, fixed: base });
+
 /** Prochaine baisse automatique : dans combien de jours, et à combien. */
 export function nextDrop(reduce, now) {
   if (!reduce || reduce.mode !== "auto" || reduce.start == null || !reduce.from) return null;

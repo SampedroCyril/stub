@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useApp } from "../store/AppStore.jsx";
+import { useApp, cravingHome } from "../store/AppStore.jsx";
 import { Panel } from "../components/ui.jsx";
 import { PATTERNS, BREATH_DURS } from "../data/rules.js";
 import { mins, pad } from "../lib/util.js";
@@ -29,9 +29,9 @@ export default function Respirer() {
     const r = run;
     setRun(null);
     resetFlow();
-    if (!complete && sec < 60) { if (r.craving) go("sevrage"); return; }
+    if (!complete && sec < 60) { if (r.craving) go(r.craving.from || cravingHome(state)); return; }
     const ev = { k: "breath", t: new Date().toISOString(), sec, p: r.p };
-    if (r.craving) { go("sevrage"); holdCraving("breath", r.craving, [ev], [`Respiration : ${mins(sec)}`]); return; }
+    if (r.craving) { go(r.craving.from || cravingHome(state)); holdCraving("breath", r.craving, [ev], [`Respiration : ${mins(sec)}`]); return; }
     go("accueil");
     commit([ev], [`Respiration : ${mins(sec)}`]);
   };

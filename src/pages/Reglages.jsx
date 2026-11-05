@@ -6,6 +6,7 @@ import { APP_NAME } from "../data/brand.js";
 import InstallCard from "../components/InstallCard.jsx";
 import { isStandalone } from "../lib/install.js";
 import { exportJson, parseImport, mergeDays } from "../lib/storage.js";
+import { baseGoal, defaultReduce } from "../lib/smoking.js";
 import { dayKey, fDate } from "../lib/util.js";
 
 export default function Reglages() {
@@ -18,6 +19,13 @@ export default function Reglages() {
   const nEvents = Object.values(data.days).reduce((a, l) => a + l.length, 0);
   const firstDay = Object.keys(data.days).sort()[0];
 
+  /** Sevrage ou Réduction : jamais les deux coupés. Activer la Réduction pose un premier objectif. */
+  const setCore = (id, v) => {
+    const sections = { ...(state.sections || {}), [id]: v };
+    if (!v && !SECTIONS.some((x) => x.core && x.id !== id && sectionOn(state, x.id))) return;
+    const base = baseGoal(S.ev, { now: S.now, startAt: S.startAt, cpd: state.cpd });
+    patchState({ sections, ...(id === "reduction" && v && !state.reduce ? { reduce: defaultReduce(base) } : {}) });
+  };
   const download = () => {
     const blob = new Blob([exportJson(data)], { type: "application/json" });
     const a = document.createElement("a");
@@ -84,9 +92,16 @@ export default function Reglages() {
         {msg && <p className={`set-msg${msg.ok ? "" : " err"}`} role="status">{msg.t}</p>}
       </Group>
 
+      <Group title="Ton objectif" note="Sevrage ou Réduction : au moins une des deux reste active, c'est le cœur de l'app. Tu peux aussi suivre les deux.">
+        {SECTIONS.filter((s) => s.core).map((s) => {
+          const on = sectionOn(state, s.id), last = on && SECTIONS.filter((x) => x.core && sectionOn(state, x.id)).length === 1;
+          return <Toggle key={s.id} id={`sec-${s.id}`} label={s.label} sub={last ? `${s.d} Active l'autre pour pouvoir la couper.` : s.d} checked={on} disabled={last} onChange={(v) => setCore(s.id, v)} />;
+        })}
+      </Group>
+
       <Group title="Sections de l'app">
         <p className="set-note">Garde seulement ce qui te parle. Tes données restent, même pour une section masquée. Les réglages propres à chaque catégorie sont dans sa roue crantée, en haut à droite.</p>
-        {SECTIONS.filter((s) => s.optional).map((s) => (
+        {SECTIONS.filter((s) => s.optional && !s.core).map((s) => (
           <Toggle key={s.id} id={`sec-${s.id}`} label={s.label} sub={s.d} checked={sectionOn(state, s.id)} onChange={(v) => patchState({ sections: { ...(state.sections || {}), [s.id]: v } })} />
         ))}
       </Group>
