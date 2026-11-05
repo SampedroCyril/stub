@@ -818,3 +818,4 @@ details.fold[open]>summary::after{content:"–"}
 .shop-lock{color:#ffcd75 !important;font-weight:600}
 .shop-card.s-tray::before{background:#3b5dc9}
 .shop-ash{width:100%;display:flex;justify-content:center;padding:18px 0 10px}
+.shop-card.s-aura::before{background:#ff1f3d}.shop-card.s-counter::before{background:#ffcd75}

@@ -26,7 +26,8 @@ export default function BossView({ stageRef, boss, maxHp, hp, lvl = 1, training 
     // Arsenal : réserves d'ultimes et de K.O., signature tirée pour tout le combat
     const a = ars.current;
     s.ultPool = a.ult; s.koPool = a.ko;
-    s.hitSkin = a.sig[(Math.random() * a.sig.length) | 0];
+    const one = (l) => l[(Math.random() * l.length) | 0];
+    s.hitSkin = one(a.sig); s.aura = one(a.aura); s.counter = one(a.counter);
     stageRef.current = s;
     return () => { s.destroy(); if (stageRef.current === s) stageRef.current = null; };
     // la scène n'est recréée que pour un autre boss ou un autre combat

@@ -18,6 +18,8 @@ export const SLOTS = [
   { id: "ko", n: "K.O.", d: "La mise à mort du boss." },
   { id: "sig", n: "Signature", d: "Ce qui gicle à chaque coup ordinaire." },
   { id: "tray", n: "Cendrier", d: "Là où la clope finit écrasée, à chaque victoire." },
+  { id: "aura", n: "Aura d'Éveil", d: "Ce qui entoure le boss pendant l'Éveil (palier 9)." },
+  { id: "counter", n: "Compteur", d: "Le style du compteur de combo." },
 ];
 
 const BOSS_N = Object.keys(BOSSES).length;
@@ -31,6 +33,7 @@ export const EXPLOITS = {
   "u:void": { n: "Finir un Boss Run (les 11 boss)", prog: (c) => [c.runDone ? 1 : 0, 1] },
   "s:bd": { n: "50 envies tenues", prog: (c) => [Math.min(50, c.held), 50] },
   "t:pot": { n: "14 jours d'affilée sans fumer", prog: (c) => [Math.min(14, c.best), 14] },
+  "a:halo": { n: "25 boss vaincus au rang S", prog: (c) => [Math.min(25, c.sCount), 25] },
   "t:trophy": { n: "30 jours d'affilée sans fumer", prog: (c) => [Math.min(30, c.best), 30] },
 };
 
@@ -66,6 +69,19 @@ export const ITEMS = [
   { id: "t:neon", slot: "tray", fx: "neon", price: 100 },
   { id: "t:pot", slot: "tray", fx: "pot", price: null, exploit: true },
   { id: "t:trophy", slot: "tray", fx: "trophy", price: null, exploit: true },
+  { id: "a:rage", slot: "aura", fx: "rage", price: null },
+  { id: "a:vortex", slot: "aura", fx: "vortex", price: 150 },
+  { id: "a:flame", slot: "aura", fx: "flame", price: 150 },
+  { id: "a:spark", slot: "aura", fx: "spark", price: 150 },
+  { id: "a:frost", slot: "aura", fx: "frost", price: 150 },
+  { id: "a:shadow", slot: "aura", fx: "shadow", price: 180 },
+  { id: "a:halo", slot: "aura", fx: "halo", price: null, exploit: true },
+  { id: "c:classic", slot: "counter", fx: "classic", price: null },
+  { id: "c:arcade", slot: "counter", fx: "arcade", price: 60 },
+  { id: "c:lcd", slot: "counter", fx: "lcd", price: 60 },
+  { id: "c:neon", slot: "counter", fx: "neon", price: 80 },
+  { id: "c:manga", slot: "counter", fx: "manga", price: 80 },
+  { id: "c:flames", slot: "counter", fx: "flames", price: 100 },
 ];
 export const ITEM = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
 
@@ -99,6 +115,7 @@ export function exploitCtx(ev, best = 0) {
   return {
     best,
     sBosses: new Set(crav.filter((e) => e.b && e.rk === "S").map((e) => e.b)).size,
+    sCount: crav.filter((e) => e.rk === "S").length,
     runDone: ev.some((e) => e.k === "game" && e.g === "bossrun" && e.n >= BOSS_N),
     held: crav.length,
   };
@@ -113,7 +130,7 @@ export function ownedItems(bought = [], ctx) {
 export const balance = (earned, bought = []) => earned - bought.reduce((a, id) => a + (ITEM[id]?.price || 0), 0);
 export const canBuy = (id, bal, owned) => !!ITEM[id]?.price && !owned.includes(id) && bal >= ITEM[id].price;
 
-export const DEFAULT_EQ = { ult: "random", ko: "random", sig: "s:classic", tray: "random" };
+export const DEFAULT_EQ = { ult: "random", ko: "random", sig: "s:classic", tray: "random", aura: "random", counter: "c:classic" };
 /** Effets à utiliser en combat pour un emplacement : l'objet équipé (s'il est possédé) ou tous les objets possédés. */
 export function poolOf(slot, eq = DEFAULT_EQ, owned = []) {
   const mine = ITEMS.filter((i) => i.slot === slot && owned.includes(i.id));

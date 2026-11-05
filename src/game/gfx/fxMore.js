@@ -224,7 +224,7 @@ export const moreMethods = {
     if (brk) brk.age++;
     if (n < 2 && !brk) return;
     const r = this.cv.getBoundingClientRect(), dpr = this.ov.width / (parseFloat(this.ov.style.width) || this.ov.width);
-    const H = Math.round(Math.max(24, r.width * 0.1) * dpr), X = (r.right - r.width * 0.035) * dpr, Y = (r.top + r.height * 0.17) * dpr + H;
+    const H = Math.round(Math.max(24, r.width * 0.1) * dpr), X = (r.right - r.width * 0.035) * dpr, Y = (r.top + r.height * 0.25) * dpr + H;
     const pop = this._pop > 0 ? 1 + this._pop * 0.03 : 1;
     if (this._pop > 0) this._pop--;
     const val = String(brk ? brk.n : n), hot = tierCol(n, this.trance), dead = "#566c86";
