@@ -191,6 +191,7 @@ export function useClicker(stageRef, opts) {
     if (on) {
       if (s.hold) return 0;
       s.hold = now; s.note = null;
+      if (stg) stg.frozenAt = now;
       clearTimeout(s.timer);
       if (gg) gg.note = null;
       if (s.end) { clearTimeout(s.end); s.endLeft = s.endAt - now; }
@@ -200,6 +201,7 @@ export function useClicker(stageRef, opts) {
     const d = now - s.hold;
     s.hold = 0; s.start += d;
     if (stg?.frenzy) stg.frenzy.start += d;
+    if (stg) stg.frozenAt = 0;
     if (s.endLeft != null) { s.endAt = now + s.endLeft; s.end = setTimeout(() => stop(false), s.endLeft); s.endLeft = null; }
     next(500);
     return d;

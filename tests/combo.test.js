@@ -50,6 +50,7 @@ test("rang selon le temps visé de l'intensité", () => {
   assert.equal(targetOf(1), 60);
   assert.equal(rankFor({ kt: 50, intensity: 1, maxCombo: 30 }), "S");
   assert.equal(rankFor({ kt: 80, intensity: 1, maxCombo: 30 }), "A");
-  assert.equal(rankFor({ kt: 200, intensity: 1 }), "B");
+  assert.equal(rankFor({ kt: 170, intensity: 1 }), "B");
+  assert.equal(rankFor({ kt: 200, intensity: 1 }), "C");
   assert.equal(rankFor({ kt: 300, intensity: 1, exhausted: true }), "C");
 });
