@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { AshtrayScene } from "./gfx/Ashtray.js";
+import { useArsenal } from "./useArsenal.js";
 import { BOSSES } from "./bosses.js";
 import { CRAV_XP, METHOD_NAME, playerXpOf } from "../data/rules.js";
 import { RANK_XP } from "./battle.js";
@@ -12,11 +13,12 @@ export default function Victory() {
   const btn = useRef(null), cv = useRef(null);
   const [count, setCount] = useState(0);
   const total = S.cravAll.length;
+  const trays = useArsenal().tray;
 
   useEffect(() => {
     if (!victory) return;
     setCount(Math.max(0, total - 1));
-    const scene = new AshtrayScene(cv.current, { count: Math.max(0, total - 1), onCount: setCount });
+    const scene = new AshtrayScene(cv.current, { count: Math.max(0, total - 1), onCount: setCount, style: trays[(Math.random() * trays.length) | 0] });
     btn.current?.focus({ preventScroll: true });
     return () => scene.destroy();
   }, [victory]); // eslint-disable-line react-hooks/exhaustive-deps

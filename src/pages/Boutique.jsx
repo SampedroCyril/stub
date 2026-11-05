@@ -5,9 +5,12 @@ import BossView from "../game/BossView.jsx";
 import { useShop } from "../game/useArsenal.js";
 import { ITEMS, ITEM, SLOTS, EXPLOITS, EARN, canBuy } from "../game/shop.js";
 import { ULT, KO, HIT_SKINS } from "../game/gfx/fxPack.js";
+import { TRAYS } from "../game/gfx/fxMore.js";
+import { AshtrayScene } from "../game/gfx/Ashtray.js";
 import { BOSSES } from "../game/bosses.js";
 
-const FX = { ult: ULT, ko: KO, sig: HIT_SKINS };
+const FX = { ult: ULT, ko: KO, sig: HIT_SKINS, tray: TRAYS };
+const PLURAL = { ult: "Ultimes", ko: "K.O.", sig: "Signatures", tray: "Cendriers" };
 const info = (it) => FX[it.slot][it.fx];
 const BOSS_IDS = Object.keys(BOSSES);
 
@@ -50,7 +53,7 @@ export default function Boutique() {
 
       {tab === "vitrine" && SLOTS.map((sl) => (
         <section key={sl.id} className="shop-sec">
-          <h3>{sl.n === "Ultime" ? "Ultimes" : sl.n === "Signature" ? "Signatures" : sl.n}<small>{sl.d}</small></h3>
+          <h3>{PLURAL[sl.id]}<small>{sl.d}</small></h3>
           <div className="shop-grid">
             {ITEMS.filter((it) => it.slot === sl.id).map((it) => <Card key={it.id} it={it} shop={shop} onOpen={() => setOpen(it.id)} />)}
           </div>
@@ -90,7 +93,7 @@ export default function Boutique() {
           <div><span>{shop.earn.n.days} jours sans fumer</span><b>{shop.earn.days}</b></div>
           <div><span>Arcade</span><b>{shop.earn.arcade}</b></div>
         </div>
-        <p className="tip">Les achats ne se perdent jamais, même après une rechute. Quatre pièces ne s'achètent pas : elles se gagnent par exploit.</p>
+        <p className="tip">Les achats ne se perdent jamais, même après une rechute. Six pièces ne s'achètent pas : elles se gagnent par exploit.</p>
       </details>
 
       {open && <Preview id={open} shop={shop} onClose={() => setOpen(null)} onBuy={buy} onEquip={equip} />}
@@ -122,7 +125,9 @@ function Preview({ id, shop, onClose, onBuy, onEquip }) {
   const has = shop.owned.includes(id), ex = it.exploit && EXPLOITS[id], eqd = shop.eq[it.slot] === id;
   const busy = useRef(false);
 
+  const ashCv = useRef(null), ash = useRef(null);
   const play = () => {
+    if (it.slot === "tray") { ash.current?.destroy(); ash.current = new AshtrayScene(ashCv.current, { count: 5, style: it.fx }); return; }
     const s = stage.current;
     if (!s || busy.current) return;
     busy.current = true;
@@ -135,7 +140,7 @@ function Preview({ id, shop, onClose, onBuy, onEquip }) {
       go();
     }
   };
-  useEffect(() => { const t = setTimeout(play, 500); return () => clearTimeout(t); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const t = setTimeout(play, it.slot === "tray" ? 50 : 500); return () => { clearTimeout(t); ash.current?.destroy(); }; }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const k = (e) => { if (e.key === "Escape") onClose(); };
     addEventListener("keydown", k);
@@ -146,7 +151,7 @@ function Preview({ id, shop, onClose, onBuy, onEquip }) {
     <div className="modal shop-modal" role="dialog" aria-modal="true" aria-label={I.n} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sheet shop-sheet">
         <div className="arena shop-arena">
-          <BossView key={run} stageRef={stage} boss={boss} maxHp={9999} hp={9999} />
+          {it.slot === "tray" ? <div className="v-ash shop-ash"><canvas ref={ashCv} className="ash-canvas" aria-label="Le cendrier" /></div> : <BossView key={run} stageRef={stage} boss={boss} maxHp={9999} hp={9999} />}
         </div>
         <div className="shop-sheet-b">
           <h3>{I.n}</h3>

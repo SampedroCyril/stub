@@ -84,5 +84,8 @@ export function compile(g, pal, { outline = OUTLINE } = {}) {
     tc.fillRect(0, 0, W, H);
     return t;
   };
-  return { img: cv, white: tint("#fff"), black: tint("#0a0006"), red: tint("#ff1f3d"), cyan: tint("#3ae0ff"), pixels, w: W, h: H };
+  const tints = new Map();
+  /** Silhouette d'une couleur quelconque (auras), gardée en cache. */
+  const tinted = (col) => { if (!tints.has(col)) tints.set(col, tint(col)); return tints.get(col); };
+  return { img: cv, white: tint("#fff"), black: tint("#0a0006"), red: tint("#ff1f3d"), cyan: tint("#3ae0ff"), tinted, pixels, w: W, h: H };
 }

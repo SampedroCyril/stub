@@ -3,6 +3,7 @@ import { Particles, rnd } from "./particles.js";
 import { drawText } from "./font.js";
 import { play } from "./sfx.js";
 import { C, cigSpec, linePts, drawStick, old } from "./stick.js";
+import { TRAYS } from "./fxMore.js";
 
 export const ASH_W = 48, ASH_H = 34;
 const STEP = 1000 / 60;
@@ -10,8 +11,10 @@ const CX = 24;
 const CONTACT = { x: 18, y: 24 };
 const FLOOR = 25;
 const T_IN = 36, T_TOUCH = 50, T_STEP = 11, STEPS = 6, T_END = T_TOUCH + T_STEP * STEPS;
+/** Repères de la scène, pour le décor des cendriers (fxMore.js). */
+const SCENE = { CONTACT, FLOOR, T_END };
 
-function ashtraySprite() {
+function ashtraySprite(pal = TRAYS.classic.pal) {
   const g = grid(40, 14);
   g.ellipse(20, 11.4, 14, 2.4, "b");
   g.ellipse(20, 7, 19.6, 6.4, "a");
@@ -19,24 +22,25 @@ function ashtraySprite() {
   g.ellipse(20, 6.7, 13.6, 2.7, "h");
   g.rect(18, 0, 4, 1, ".").rect(19, 1, 2, 1, "i");
   g.rect(0, 6, 1, 2, ".").rect(39, 6, 1, 2, ".");
-  return compile(g, { a: { r: ["#1f3b7a", "#3b5dc9", "#73a6f6"], cyl: true }, b: { r: ["#151d3b", "#29366f", "#3b5dc9"] }, i: "#1b2550", h: "#25336a" });
+  return compile(g, pal);
 }
 const EMBER_FADE = (t) => (t < 0.25 ? "#ffcd75" : t < 0.5 ? "#ef7d57" : t < 0.75 ? "#b13e53" : "#3a3340");
 const TOBACCO = ["#8a5a2b", "#6b3a1f", "#a8743a"];
 
 /** Scène de victoire : la clope s'écrase, se tord, crache sa braise et s'éteint dans le cendrier. */
 export class AshtrayScene {
-  constructor(canvas, { count = 0, onCount, onDone } = {}) {
+  constructor(canvas, { count = 0, onCount, onDone, style = "classic" } = {}) {
     this.cv = canvas; this.count = count; this.onCount = onCount; this.onDone = onDone;
+    this.style = TRAYS[style] || TRAYS.classic;
     this.buf = document.createElement("canvas"); this.buf.width = ASH_W; this.buf.height = ASH_H;
     this.b = this.buf.getContext("2d");
-    this.tray = ashtraySprite();
+    this.tray = ashtraySprite(this.style.pal);
     this.fx = new Particles(); this.ground = new Particles(); this.front = new Particles(); this.floats = [];
     let seed = 11;
     const r = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
     this.pile = [];
     for (let i = 0; i < Math.min(count, 4); i++) this.pile.push({ x: [27, 30, 26, 31][i], y: [23, 21, 21, 24][i], a: [0.15, -0.25, 0.4, 0.05][i], spec: old(cigSpec({ ember: -1, ash: 0, burnt: 1, paper: 2 + (i % 2), filter: 5 })) });
-    this.ash = Array.from({ length: Math.min(16, 4 + count) }, () => ({ x: 9 + r() * 30 | 0, y: 20 + r() * 6 | 0, c: r() < 0.5 ? "#4a4655" : "#6d6875" }));
+    this.ash = Array.from({ length: Math.min(16, 4 + count) }, () => ({ x: 9 + r() * 30 | 0, y: 20 + r() * 6 | 0, c: (this.style.ash || ["#4a4655", "#6d6875"])[r() < 0.5 ? 0 : 1] }));
     this.smear = [];
     this.t = 0; this.stop = 0; this.shake = 0;
     this.resize();
@@ -131,6 +135,7 @@ export class AshtrayScene {
       this.count++;
       this.floats.push({ text: "+1", x: CONTACT.x + 16, y: CONTACT.y - 12, age: 0 });
       play("coin");
+      this.style.count?.(this);
       this.onCount?.(this.count);
     }
     if (t === T_END + 140) this.onDone?.();
@@ -151,7 +156,8 @@ export class AshtrayScene {
     if (this.shake) b.translate(Math.round(rnd(-1, 1) * this.shake), Math.round(rnd(-1, 1) * this.shake));
     b.fillStyle = "rgba(0,0,0,.3)";
     b.fillRect(CX - 15, 30, 30, 2);
-    b.drawImage(this.tray.img, CX - 21, 16);
+    this.style.back?.(b, this.t, SCENE);
+    if (this.style.alpha !== 0) { b.globalAlpha = this.style.alpha ?? 1; b.drawImage(this.tray.img, CX - 21, 16); b.globalAlpha = 1; }
     for (const a of this.ash) { b.fillStyle = a.c; b.fillRect(a.x, a.y, 1, 1); }
     b.fillStyle = "#2b2530";
     for (const [x, y] of this.smear) b.fillRect(x, y, 1, 1);
@@ -166,6 +172,7 @@ export class AshtrayScene {
       b.fillRect(Math.round(sh.tip[0]) - 1, Math.round(sh.tip[1]) - 1, 3, 3);
       b.globalAlpha = 1;
     }
+    this.style.front?.(b, this.t, SCENE);
     this.fx.draw(b);
     this.front.draw(b);
     for (const f of this.floats) { if (f.age > 55 && (f.age >> 1) % 2) continue; drawText(b, f.text, f.x, f.y - f.age * 0.25, { color: "#ffcd75", sc: f.age < 4 ? 3 : 2 }); }
