@@ -15,45 +15,139 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ease = (k) => 1 - (1 - k) * (1 - k);
 const FIRE = ["#b13e53", "#ef7d57", "#ffcd75", "#fff6c8"];
 
+/**
+ * Palette des calques communs d'un effet : titre (band, acc, fg, out), vignette, anneaux et lignes de vitesse.
+ * Le rouge et noir (DARK) est réservé à l'impact noir et à ce qui s'en réclame.
+ */
+export const DARK = { band: "#000", acc: BLOOD, fg: PAPER, vig: BLOOD, ring: BLOOD, lines: PAPER };
+export const CRIT_PAL = { 4: { band: "#1a1205", acc: "#ffcd75", fg: PAPER, vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" }, 5: { band: "#0d0618", acc: "#b55dff", fg: PAPER, vig: "#5d275d", ring: "#b55dff", lines: PAPER } };
+
 /** Ultimes : nom, ligne de description, D = image où tombent titre et lignes de vitesse, life = durée (images). */
 export const ULT = {
-  fracture: { n: "Fracture", d: "L'écran se fissure puis vole en éclats.", D: 31, life: 75 },
-  nova: { n: "Supernova", d: "Une lumière avale l'écran, le boss en ombre chinoise.", D: 28, life: 52 },
-  thunder: { n: "Foudre", d: "L'orage gronde, puis l'éclair tombe pile sur le boss.", D: 18, life: 66 },
-  void: { n: "Trou noir", d: "Tout est aspiré dans un point… qui explose.", D: 42, life: 74 },
-  ink: { n: "Encre", d: "Un coup de pinceau géant, et le sceau rouge.", D: 16, life: 68 },
-  glitch: { n: "Glitch", d: "L'image bugue, se déchire, et redémarre.", D: 34, life: 60 },
-  meteor: { n: "Météore", d: "Une pluie de feu, un seul impact.", D: 30, life: 72 },
-  blades: { n: "Mille lames", d: "Dix coupes en une seconde, puis la croix.", D: 34, life: 62 },
+  fracture: { n: "Fracture", d: "L'écran se fend comme du verre, puis vole en éclats.", D: 31, life: 75, pal: { band: "#0b1f33", acc: "#7fd8f0", fg: PAPER, vig: "#3b5dc9", ring: "#bfefff", lines: "#dff6ff" } },
+  nova: { n: "Supernova", d: "Un soleil avale l'écran, le boss en ombre chinoise.", D: 28, life: 52, pal: { band: "#2a1400", acc: "#ffcd75", fg: "#fff6c8", vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" } },
+  thunder: { n: "Foudre", d: "L'orage gronde, puis l'éclair tombe pile sur le boss.", D: 18, life: 66, pal: { band: "#05081a", acc: AIR, fg: PAPER, vig: "#3b5dc9", ring: AIR, lines: "#cfe9ff" } },
+  void: { n: "Trou noir", d: "Tout est aspiré dans un point… qui explose.", D: 42, life: 74, pal: { band: "#1a0a2e", acc: "#ff5fd2", fg: PAPER, vig: "#5d275d", ring: "#b55dff", lines: "#ffd1e8" } },
+  ink: { n: "Encre", d: "Un coup de pinceau géant, et le sceau rouge.", D: 16, life: 68, pal: { band: "#efe6d0", acc: BLOOD, fg: INK, out: null, vig: "#3a2a1a", ring: INK, lines: INK } },
+  glitch: { n: "Glitch", d: "L'image bugue, se déchire, et redémarre.", D: 34, life: 60, pal: { band: "#0b0b14", acc: "#00ffd5", fg: "#ff2bd6", vig: "#ff2bd6", ring: "#00ffd5", lines: "#00ffd5" } },
+  meteor: { n: "Météore", d: "Une boule de feu, un seul impact.", D: 30, life: 72, pal: { band: "#1a0505", acc: "#ef7d57", fg: "#ffcd75", vig: "#ef7d57", ring: "#ffcd75", lines: "#fff6c8" } },
+  blades: { n: "Mille lames", d: "Dix coupes en une seconde, puis la croix. Rouge et noir.", D: 34, life: 62, pal: DARK },
 };
-/** K.O. : stop = images de gel de la scène avant la fin, life = durée de l'effet. */
+/** K.O. : stop = images de gel de la scène avant la fin, life = durée de l'effet, pal = couleurs du « K.O. ». */
 export const KO = {
-  cut: { n: "Tranche", d: "Écran noir, un trait, le boss coupé en deux." },
-  manga: { n: "Manga", d: "Trois cases qui claquent." },
-  ash: { n: "Cendres", d: "Le boss s'éteint et part en cendres avec le vent.", stop: 72, life: 156 },
-  stomp: { n: "Écrasé", d: "Une botte géante. Écrasé comme un mégot.", stop: 60, life: 132 },
-  fireworks: { n: "Feu d'artifice", d: "Envoyé en l'air, il explose en bouquet final.", stop: 40, life: 168 },
-  crt: { n: "Extinction", d: "Comme une vieille télé qu'on éteint.", stop: 56, life: 106 },
-  freeze: { n: "Gel", d: "Pris dans la glace, puis brisé en mille éclats.", stop: 74, life: 134 },
-  sky: { n: "Envolé", d: "Expédié dans le ciel. Ting !", stop: 30, life: 132 },
+  cut: { n: "Tranche", d: "Écran noir, un trait, le boss coupé en deux.", pal: DARK },
+  manga: { n: "Manga", d: "Trois cases qui claquent.", pal: { band: PAPER, acc: INK, fg: INK, out: null } },
+  ash: { n: "Cendres", d: "Le boss s'éteint et part en cendres avec le vent.", stop: 72, life: 156, pal: { band: INK, acc: "#ef7d57", fg: "#c2c3c7" } },
+  stomp: { n: "Écrasé", d: "Une botte géante. Écrasé comme un mégot.", stop: 60, life: 132, pal: { band: "#2a1d1d", acc: "#ffcd75", fg: PAPER } },
+  fireworks: { n: "Feu d'artifice", d: "Envoyé en l'air, il explose en bouquet final.", stop: 40, life: 168, pal: { band: "#0b0d24", acc: "#ff5fd2", fg: "#ffcd75" } },
+  crt: { n: "Extinction", d: "Comme une vieille télé qu'on éteint.", stop: 56, life: 106, pal: { band: "#000", acc: AIR, fg: PAPER } },
+  freeze: { n: "Gel", d: "Pris dans la glace, puis brisé en mille éclats.", stop: 74, life: 134, pal: { band: "#0b1f33", acc: "#7fd8f0", fg: "#dff6ff" } },
+  sky: { n: "Envolé", d: "Expédié dans le ciel. Ting !", stop: 30, life: 132, pal: { band: "#3b5dc9", acc: "#ffcd75", fg: PAPER } },
 };
 
-/** Signatures de coups : ce qui gicle à chaque coup ordinaire. p(x, y, force, i) → particule. */
+// ---------- signatures ----------
 const RAINBOW = ["#ff1f3d", "#ef7d57", "#ffcd75", "#a7f070", "#3ae0ff", "#3b5dc9", "#b55dff"];
+const WORDS = ["pow", "bam", "paf", "krak", "boum", "vlan", "pif", "tchak"];
+/** Étoile pixel (contour irrégulier) : remplie et cernée, sans flou. */
+function star(b, x, y, R, r, n, seed, fill, line) {
+  const lim = (dx, dy) => {
+    const t = ((Math.atan2(dy, dx) / (Math.PI * 2)) * n * 2 + n * 2) % (n * 2), i = Math.floor(t), f = t - i;
+    const rad = (k) => (k % 2 ? r : R * (0.8 + 0.4 * hash(seed + (k % (n * 2)))));
+    return rad(i) + (rad(i + 1) - rad(i)) * f;
+  };
+  const M = Math.ceil(R * 1.3) + 1;
+  for (let dy = -M; dy <= M; dy++) for (let dx = -M; dx <= M; dx++) {
+    const d = Math.hypot(dx, dy), L = lim(dx, dy);
+    if (d <= L) { b.fillStyle = fill; b.fillRect(Math.round(x) + dx, Math.round(y) + dy, 1, 1); }
+    else if (d <= L + 1.2) { b.fillStyle = line; b.fillRect(Math.round(x) + dx, Math.round(y) + dy, 1, 1); }
+  }
+}
+/**
+ * Signatures de coups : à chaque coup ordinaire, un tampon sur le boss (stamp, life images), une gerbe de particules (p, n),
+ * la couleur des dégâts (col, out, cycle) et un petit son par-dessus l'impact (sfx).
+ */
 export const HIT_SKINS = {
   classic: { n: "Étincelles", d: "Le classique." },
-  embers: { n: "Braises", d: "Des braises qui montent en dansant.",
-    p: (x, y, v) => ({ x, y, vx: rnd(-1, 1) * v, vy: rnd(-2.2, -0.6) * v, g: -0.02, drag: 0.94, wob: 0.25, life: rnd(26, 46) | 0, c: SPARK, blink: true, size: Math.random() < 0.3 ? 2 : 1 }) },
-  ink: { n: "Encre", d: "Des giclées d'encre qui tachent le sol.", ring: INK,
-    p: (x, y, v) => ({ x, y, vx: rnd(-2.6, 2.6) * v, vy: rnd(-2.4, -0.2) * v, g: 0.2, drag: 0.97, floor: FLOOR, bounce: 0, life: rnd(40, 70) | 0, c: Math.random() < 0.15 ? BLOOD : INK, size: Math.random() < 0.4 ? 2 : 1, blink: true }) },
-  neon: { n: "Néon", d: "Rose et cyan, façon salle d'arcade.", ring: AIR,
-    p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), s = rnd(1.4, 3.6) * v; return { x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, drag: 0.88, life: rnd(14, 26) | 0, c: i % 2 ? "#ff5fd2" : AIR }; } },
-  petals: { n: "Pétales", d: "Des pétales qui retombent doucement.", ring: "#ffd1e8",
-    p: (x, y, v, i) => ({ x, y, vx: rnd(-1.6, 1.6) * v, vy: rnd(-2, -0.5) * v, g: 0.035, drag: 0.96, wob: 0.35, life: rnd(60, 90) | 0, c: ["#ff9ecf", "#ffd1e8", "#ffffff", "#ff6fb5"][i % 4], size: i % 3 ? 1 : 2, fade: true }) },
-  gold: { n: "Pièces d'or", d: "Ça rapporte : des pièces qui rebondissent.", ring: "#ffcd75",
-    p: (x, y, v) => ({ x, y, vx: rnd(-2, 2) * v, vy: rnd(-3.2, -1.4) * v, g: 0.18, floor: FLOOR, bounce: 0.5, life: rnd(50, 70) | 0, c: (t) => ((t * 40) | 0) % 3 ? "#ffcd75" : "#fff6c8", size: 2, blink: true }) },
-  rainbow: { n: "Arc-en-ciel", d: "Toutes les couleurs à chaque coup.", ring: "#b55dff",
-    p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), s = rnd(1.2, 3.2) * v; return { x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 0.4, g: 0.05, drag: 0.9, life: rnd(18, 32) | 0, c: RAINBOW[i % 7], size: Math.random() < 0.3 ? 2 : 1 }; } },
+  embers: {
+    n: "Braises", d: "Une flamme jaillit à chaque coup, les braises montent.", col: "#ffcd75", out: "#5a0a18", ring: "#ef7d57", sfx: "sig_embers", life: 18, cnt: 14,
+    p: (x, y, v) => ({ x: x + rnd(-3, 3), y, vx: rnd(-1, 1) * v, vy: rnd(-2.4, -0.8) * v, g: -0.03, drag: 0.94, wob: 0.3, life: rnd(30, 55) | 0, c: SPARK, blink: true, size: Math.random() < 0.35 ? 2 : 1 }),
+    stamp(b, s) {
+      const k = s.age / s.life, h = Math.round(19 - k * 7), y0 = s.y + 5 - s.age * 0.7;
+      [[1, "#b13e53"], [0.72, "#ef7d57"], [0.46, "#ffcd75"], [0.22, "#fff6c8"]].forEach(([m, c]) => {
+        b.fillStyle = c;
+        for (let i = 0; i < h * m + 1; i++) {
+          const t = i / h, w = Math.round((Math.sin(Math.PI * Math.min(1, (1 - t) * 1.1)) * 7.5 * (1 - k * 0.4) + (hash(s.r + i + s.age * 3) - 0.5) * 2) * m);
+          if (w > 0) b.fillRect(Math.round(s.x - w + (t > 0.5 ? Math.round(Math.sin(s.age * 0.9 + i) * 1.2) : 0)), Math.round(y0 - i), w * 2, 1);
+        }
+      });
+    },
+  },
+  ink: {
+    n: "Encre", d: "Une tache d'encre éclate et reste un moment sur le boss.", col: INK, out: PAPER, ring: INK, sfx: "sig_ink", life: 46, cnt: 14,
+    p: (x, y, v) => ({ x, y, vx: rnd(-2.8, 2.8) * v, vy: rnd(-2.6, -0.3) * v, g: 0.22, drag: 0.97, floor: FLOOR, bounce: 0, life: rnd(50, 80) | 0, c: Math.random() < 0.12 ? BLOOD : INK, size: Math.random() < 0.5 ? 2 : 1 }),
+    stamp(b, s) {
+      if (s.age > s.life - 12 && (s.age >> 1) % 2) return;
+      const pop = s.age < 3 ? 1.5 - s.age * 0.17 : 1;
+      b.fillStyle = INK; disc(b, s.x, s.y, 3.6 * pop);
+      for (let i = 0; i < 8; i++) { const a = hash(s.r + i) * Math.PI * 2, L = (3 + hash(s.r + i + 9) * 5) * pop; pline(b, s.x, s.y, s.x + Math.cos(a) * L, s.y + Math.sin(a) * L, 2); b.fillRect(Math.round(s.x + Math.cos(a) * (L + 2)), Math.round(s.y + Math.sin(a) * (L + 2)), 1, 1); }
+      if (s.age > 4) { const L = Math.min(7, (s.age - 4) * 0.35); pline(b, s.x - 2, s.y + 3, s.x - 2, s.y + 3 + L, 1); pline(b, s.x + 2, s.y + 2, s.x + 2, s.y + 2 + L * 0.6, 1); }
+      b.fillStyle = BLOOD; b.fillRect(Math.round(s.x) + 1, Math.round(s.y) - 1, 1, 1);
+    },
+  },
+  neon: {
+    n: "Néon", d: "Une croix de lumière et un anneau rose et cyan.", col: AIR, out: "#2a0a3a", alt: "#ff5fd2", ring: "#ff5fd2", sfx: "sig_neon", life: 13, cnt: 16,
+    p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), sp = rnd(1.6, 4) * v; return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, drag: 0.86, life: rnd(14, 26) | 0, c: i % 2 ? "#ff5fd2" : AIR, size: i % 4 ? 1 : 2 }; },
+    stamp(b, s) {
+      const k = s.age / s.life, L = Math.round(16 * (1 - k) + 3), M = Math.round(L * 0.6);
+      b.fillStyle = AIR; b.fillRect(Math.round(s.x - L), Math.round(s.y), L * 2 + 1, 1);
+      b.fillStyle = "#ff5fd2"; b.fillRect(Math.round(s.x), Math.round(s.y - M), 1, M * 2 + 1);
+      b.fillStyle = (s.age >> 1) % 2 ? "#ff5fd2" : AIR; circle(b, s.x, s.y, 2 + s.age * 1.3);
+      b.fillStyle = PAPER; b.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 3, 3);
+    },
+  },
+  petals: {
+    n: "Pétales", d: "Une fleur éclot sur le coup, ses pétales s'envolent.", col: "#ff9ecf", out: "#5d275d", ring: "#ffd1e8", sfx: "sig_petals", life: 22, cnt: 14,
+    p: (x, y, v, i) => ({ x, y, vx: rnd(-1.8, 1.8) * v, vy: rnd(-2.2, -0.6) * v, g: 0.03, drag: 0.96, wob: 0.35, life: rnd(60, 95) | 0, c: ["#ff9ecf", "#ffd1e8", "#ffffff", "#ff6fb5"][i % 4], size: 2, fade: true }),
+    stamp(b, s) {
+      const open = s.age < 10 ? 2 + s.age * 0.25 : 4.5 + (s.age - 10) * 1.1, rot = s.r + s.age * 0.08;
+      if (s.age > 16 && s.age % 2) return;
+      for (let i = 0; i < 5; i++) { const a = rot + (i * Math.PI * 2) / 5; b.fillStyle = i % 2 ? "#ff9ecf" : "#ffd1e8"; disc(b, s.x + Math.cos(a) * open, s.y + Math.sin(a) * open, 2); }
+      if (s.age < 12) { b.fillStyle = "#ffcd75"; b.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 2, 2); }
+    },
+  },
+  gold: {
+    n: "Pièces d'or", d: "Un éclat doré et une pluie de pièces qui rebondissent.", col: "#ffcd75", out: "#5a3a10", ring: "#ffcd75", sfx: "sig_gold", life: 14, cnt: 14,
+    p: (x, y, v) => ({ x, y, vx: rnd(-2.2, 2.2) * v, vy: rnd(-3.4, -1.6) * v, g: 0.2, floor: FLOOR, bounce: 0.55, life: rnd(55, 75) | 0, c: (t) => (((t * 40) | 0) % 3 ? "#ffcd75" : "#fff6c8"), size: Math.random() < 0.5 ? 3 : 2, blink: true }),
+    stamp(b, s) {
+      const L = [4, 9, 13, 12, 11, 10, 9, 8, 6, 5, 4, 3, 2, 1][s.age] ?? 1, D = Math.round(L * 0.5);
+      b.fillStyle = "#ffcd75"; pline(b, s.x - L, s.y, s.x + L, s.y, 2); pline(b, s.x, s.y - L, s.x, s.y + L, 2);
+      b.fillStyle = "#fff6c8"; pline(b, s.x - D, s.y - D, s.x + D, s.y + D, 1); pline(b, s.x - D, s.y + D, s.x + D, s.y - D, 1);
+      b.fillStyle = PAPER; b.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 3, 3);
+    },
+  },
+  rainbow: {
+    n: "Arc-en-ciel", d: "Un arc-en-ciel jaillit, les dégâts changent de couleur.", cycle: RAINBOW, out: "#140c1c", ring: "#b55dff", sfx: "sig_rainbow", life: 15, cnt: 16,
+    p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), sp = rnd(1.4, 3.4) * v; return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.5, g: 0.06, drag: 0.9, life: rnd(20, 36) | 0, c: RAINBOW[i % 7], size: Math.random() < 0.4 ? 2 : 1 }; },
+    stamp(b, s) {
+      const r0 = 2 + s.age * 0.7;
+      for (let i = 0; i < 7; i++) {
+        b.fillStyle = RAINBOW[i]; const r = r0 + (6 - i);
+        for (let a = Math.PI; a <= Math.PI * 2 + 0.01; a += 0.6 / r) b.fillRect(Math.round(s.x + Math.cos(a) * r), Math.round(s.y + 2 + Math.sin(a) * r), 1, 1);
+      }
+    },
+  },
+  bd: {
+    n: "Onomatopées", d: "POW ! BAM ! KRAK ! Chaque coup, sa bulle de BD.", col: PAPER, out: INK, ring: "#ffcd75", sfx: "sig_bd", life: 20, cnt: 8,
+    p: (x, y, v, i) => { const a = rnd(0, Math.PI * 2), sp = rnd(1.4, 3) * v; return { x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, drag: 0.86, life: rnd(12, 20) | 0, c: i % 2 ? "#ffcd75" : PAPER, size: 2 }; },
+    stamp(b, s) {
+      if (s.age > s.life - 6 && s.age % 2) return;
+      const pop = s.age < 3 ? 1.35 - s.age * 0.12 : 1, j = s.age < 4 ? Math.round(rnd(-1, 1)) : 0, w = WORDS[Math.floor(s.r * 7) % WORDS.length];
+      const R = Math.max(9, w.length * 2 + 6) * pop;
+      star(b, s.x + j, s.y - 4 + j, R, R * 0.66, 9, s.r, "#ffcd75", INK);
+      star(b, s.x + j, s.y - 4 + j, R * 0.62, R * 0.45, 9, s.r + 3, "#e43b44", "#e43b44");
+      drawText(b, w, s.x + j, s.y - 6 + j, { color: PAPER, outline: INK, sc: 1 });
+    },
+  },
 };
 
 /** Ligne brisée d'un point à un autre (éclair, fissure). */

@@ -267,6 +267,14 @@ const RECIPES = {
     chime(a, d, 0.75, 2637, 0.18, 0.9);
     chime(a, d, 0.75, 3951, 0.08, 0.6);
   }, "long"],
+  // --- signatures : une petite couche par-dessus le son du coup ---
+  sig_embers: [0.4, 0.1, (a, d) => { hiss(a, d, 0, { f0: 700, f1: 2600, q: 0.9, peak: 0.4, attack: 0.02, decay: 0.16 }); crackle(a, d, 0.02, 5, 0.025); }],
+  sig_ink: [0.35, 0.1, (a, d) => { hiss(a, d, 0, { type: "lowpass", f0: 1400, f1: 250, q: 1.2, peak: 0.6, decay: 0.09 }); kick(a, d, 0, 140, 60, 0.06, 0.4); hiss(a, d, 0.05, { f0: 3000, q: 4, peak: 0.12, decay: 0.02 }); }],
+  sig_neon: [0.35, 0.15, (a, d) => { osc(a, d, 0, { type: "square", f0: 2200, f1: 280, glide: 0.09, peak: 0.12, decay: 0.1 }); osc(a, d, 0.01, { type: "sine", f0: 3300, peak: 0.08, decay: 0.12 }); }],
+  sig_petals: [0.6, 0.2, (a, d) => { const f = [1046, 1175, 1319, 1568][(Math.random() * 4) | 0]; chime(a, d, 0, f, 0.12, 0.35); hiss(a, d, 0, { type: "highpass", f0: 5000, peak: 0.06, attack: 0.03, decay: 0.2 }); }],
+  sig_gold: [0.4, 0.1, (a, d) => { osc(a, d, 0, { type: "square", f0: 988, peak: 0.07, decay: 0.05 }); osc(a, d, 0.06, { type: "square", f0: 1319, peak: 0.07, decay: 0.16 }); }],
+  sig_rainbow: [0.45, 0.15, (a, d) => [0, 4, 7, 12].forEach((st, i) => osc(a, d, i * 0.03, { type: "triangle", f0: 1046 * 2 ** (st / 12), peak: 0.08, decay: 0.12 }))],
+  sig_bd: [0.35, 0.1, (a, d) => { osc(a, d, 0, { type: "sine", f0: 900, f1: 180, glide: 0.07, peak: 0.35, decay: 0.09 }); click(a, d, 0, 0.3, 1800); }],
   // --- paliers 2 à 5 : de plus en plus lourds ---
   hit2: [0.45, 0.12, (a, d) => { impact(a, d, 0, { punch: 0.9, body: 0.1, snap: 2600 }); osc(a, d, 0.005, { type: "triangle", f0: 990, peak: 0.08, decay: 0.08 }); }],
   hit3: [0.6, 0.2, (a, d) => { heavy(a, d, 0, 0.7); hiss(a, d, 0, { f0: 2200, f1: 600, q: 0.8, peak: 0.25, decay: 0.15 }); }],
@@ -296,7 +304,7 @@ const RECIPES = {
 };
 
 /** Niveau de crête visé pour chaque son (les gros impacts dominent, les petits bruits restent discrets). */
-const LEVEL = { hit2: 0.6, hit3: 0.7, crit4: 0.8, crit5: 0.9, ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, ult_thunder: 0.95, ult_void: 0.95, ult_ink: 0.95, ult_glitch: 0.9, ult_meteor: 0.95, ult_blades: 0.95, ko_ash: 0.9, ko_stomp: 0.95, ko_fireworks: 0.9, ko_crt: 0.85, ko_freeze: 0.92, ko_sky: 0.92, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
+const LEVEL = { hit2: 0.6, hit3: 0.7, crit4: 0.8, crit5: 0.9, ult_fracture: 0.95, ult_nova: 0.95, ko_cut: 0.95, ko_manga: 0.95, sig_embers: 0.4, sig_ink: 0.45, sig_neon: 0.35, sig_petals: 0.35, sig_gold: 0.35, sig_rainbow: 0.35, sig_bd: 0.45, ult_thunder: 0.95, ult_void: 0.95, ult_ink: 0.95, ult_glitch: 0.9, ult_meteor: 0.95, ult_blades: 0.95, ko_ash: 0.9, ko_stomp: 0.95, ko_fireworks: 0.9, ko_crt: 0.85, ko_freeze: 0.92, ko_sky: 0.92, crit_e: 0.95, crit_f: 0.95, crit_g: 0.95, crit_h: 0.95, hit: 0.55, weakhit: 0.5, black: 0.95, charge: 0.4, ultimate: 0.95, ko: 0.9, slam: 0.7, refuse: 0.7, miss: 0.22, weak: 0.25, combo: 0.35, heal: 0.4, tap: 0.4, touch: 0.3, crush: 0.35, psch: 0.3, coin: 0.35 };
 function impulse(a, dur, pow = 5) {
   const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(2, n, a.sampleRate);
   for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** pow; }

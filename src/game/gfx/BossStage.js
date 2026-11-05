@@ -7,7 +7,7 @@ import { C, cigSpec, linePts, drawStick } from "./stick.js";
 import { grid } from "./sprite.js";
 import { SPRITES } from "../sprites.js";
 import { INK, BLOOD, PAPER, AIR, pline, bolts } from "./pix.js";
-import { fxMethods, ULT, KO, HIT_SKINS } from "./fxPack.js";
+import { fxMethods, ULT, KO, HIT_SKINS, DARK, CRIT_PAL } from "./fxPack.js";
 
 export const STAGE_W = 64, STAGE_H = 60;
 const FLOOR = 56;
@@ -49,7 +49,7 @@ export class BossStage {
     this.buf = document.createElement("canvas");
     this.buf.width = STAGE_W; this.buf.height = STAGE_H;
     this.b = this.buf.getContext("2d");
-    this.fx = new Particles(); this.front = new Particles(); this.floats = []; this.rings = [];
+    this.fx = new Particles(); this.front = new Particles(); this.floats = []; this.rings = []; this.stamps = [];
     this.cache = new Map();
     this.t = 0; this.shake = 0; this.stop = 0; this.flash = 0; this.slow = 0; this.chroma = 0;
     this.kb = 0; this.kbv = 0; this.sq = 0; this.sqv = 0;
@@ -180,22 +180,27 @@ export class BossStage {
       const a = rnd(-Math.PI, 0), v = rnd(0.8, big ? 4.6 : crit ? 3.4 : 2.4);
       return { x, y, vx: Math.cos(a) * v - dir * 0.4, vy: Math.sin(a) * v - 0.6, g: 0.14, life: rnd(35, 80) | 0, c: cols[(Math.random() * cols.length) | 0], size: Math.random() < 0.35 ? 2 : 1, floor: FLOOR, bounce: 0.45, blink: true };
     });
-    const skin = !refuse && HIT_SKINS[this.hitSkin]?.p;
-    if (skin) this.front.burst(big ? 24 : crit ? 16 : 7, (i) => skin(x, y, big ? 1.4 : crit ? 1.2 : 1, i));
-    else this.front.burst(big ? 24 : crit ? 16 : 5, () => {
+    const SK = !refuse && this.hitSkin && HIT_SKINS[this.hitSkin]?.p ? HIT_SKINS[this.hitSkin] : null;
+    const bigStyle = big ? opts.style ?? pick(this.ultStyle, ["fracture", "nova"]) : null, P = big ? ULT[bigStyle]?.pal || DARK : DARK;
+    if (SK) {
+      this.front.burst(big ? 30 : crit ? 22 : SK.cnt, (i) => SK.p(x, y, big ? 1.4 : crit ? 1.2 : 1, i));
+      if (!big) this.stamps.push({ k: this.hitSkin, x, y, age: 0, life: SK.life, r: Math.random() * 100 });
+    } else this.front.burst(big ? 24 : crit ? 16 : 5, () => {
       const a = rnd(0, Math.PI * 2), v = rnd(1.2, big ? 4.2 : 3.2);
       return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, drag: 0.86, life: rnd(10, 20) | 0, c: refuse ? (Math.random() < 0.5 ? AIR : "#ffffff") : crit || big ? (Math.random() < 0.5 ? BLOOD : INK) : SPARK, size: crit || big || refuse ? 2 : 1 };
     });
-    this.rings.push({ x, y, r: 2, max: big ? 22 : crit ? 15 : refuse ? 14 : 7, c: refuse ? AIR : crit || big ? BLOOD : HIT_SKINS[this.hitSkin]?.ring || "#ffffff" });
-    this.float(label ?? `-${dmg}`, x, y - 4, { color: opts.color ?? "#ffffff", sc: opts.sc ?? (big ? 3 : crit || refuse ? 2 : 1), alt: refuse ? AIR : crit || big ? BLOOD : null });
+    this.rings.push({ x, y, r: 2, max: big ? 22 : crit ? 15 : refuse ? 14 : 7, c: refuse ? AIR : big ? P.ring : crit ? BLOOD : SK?.ring || "#ffffff" });
+    const fl = SK && !big && !crit ? { color: SK.col, out: SK.out, alt: SK.alt, cycle: SK.cycle } : {};
+    this.float(label ?? `-${dmg}`, x, y - 4, { color: fl.color ?? opts.color ?? "#ffffff", sc: opts.sc ?? (big ? 3 : crit || refuse ? 2 : 1), alt: refuse ? AIR : big ? P.acc : crit ? BLOOD : fl.alt ?? null, out: fl.out, cycle: fl.cycle });
+    if (SK && !big) play(SK.sfx);
     const o = this.ovPos(), ix = o.ox + x, iy = o.oy + y;
     if (refuse) {
       this.ovFx.push({ k: "flash", age: 0, life: 16, delay: 0, col: AIR, a: 0.3 });
       this.ovFx.push({ k: "lines", age: 0, life: 22, x: ix, y: iy, delay: 0, col: AIR });
       for (let i = 0; i < 2; i++) this.ovFx.push({ k: "ring", age: 0, life: 34, delay: i * 5, x: ix, y: iy, col: AIR });
     } else if (crit || big) {
-      const style = opts.style ?? pick(this.ultStyle, ["fracture", "nova"]);
-      const U = ULT[style] || ULT.fracture;
+      const style = bigStyle ?? "fracture";
+      const U = ULT[style] || ULT.fracture, pal = big ? P : DARK;
       const D = big ? U.D : 9;
       if (big) {
         if (style === "nova") this.ovFx.push({ k: "nova", age: 0, life: 52, x: ix, y: iy });
@@ -204,10 +209,10 @@ export class BossStage {
         this.slow = 70;
       } else if (this.intense) this.ovFx.push({ k: "strobe", age: 0, life: 9, x: ix, y: iy, reach: 100, n: 8 });
       else this.ovFx.push({ k: "flash", age: 0, life: 12, delay: 0, col: BLOOD, a: 0.35 });
-      this.ovFx.push({ k: "lines", age: 0, life: big ? 34 : 24, x: ix, y: iy, delay: D, col: "#ffffff" });
-      this.ovFx.push({ k: "vignette", age: 0, life: big ? 50 : 34, delay: D });
-      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: D, text: title ?? (big ? "ultime" : "critique"), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50) });
-      if (big) for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: D + i * 5, x: ix, y: iy });
+      this.ovFx.push({ k: "lines", age: 0, life: big ? 34 : 24, x: ix, y: iy, delay: D, col: pal.lines });
+      this.ovFx.push({ k: "vignette", age: 0, life: big ? 50 : 34, delay: D, col: pal.vig });
+      this.ovFx.push({ k: "text", age: 0, life: big ? 70 : 52, delay: D, text: title ?? (big ? "ultime" : "critique"), fx: big ? [2, 3] : [1, 2], y: Math.max(14, iy - 50), pal });
+      if (big) for (let i = 0; i < 3; i++) this.ovFx.push({ k: "ring", age: 0, life: 40, delay: D + i * 5, x: ix, y: iy, col: pal.ring, col2: pal.fg === INK ? INK : PAPER });
       play(opts.sfx ?? (big ? `ult_${ULT[style] ? style : "fracture"}` : "crit_h"));
     } else {
       this.ovFx.push({ k: "lines", age: 0, life: 8, x: ix, y: iy, delay: 0, col: "#ffffff", few: true });
@@ -245,8 +250,9 @@ export class BossStage {
     }
     if (t >= 4) {
       this.shake = Math.max(this.shake, 3.2); this.chroma = Math.max(this.chroma, 8); this.kbv += x < p.x + p.w / 2 ? 1.2 : -1.2;
-      this.ovFx.push({ k: "vignette", age: 0, life: 22, delay: 0 });
-      this.ovFx.push({ k: "text", age: 0, life: t >= 5 ? 40 : 32, delay: 0, text: t >= 5 ? "critique noir" : "critique", fx: t >= 5 ? [1, 2] : [1, 1], y: Math.max(12, iy - 42) });
+      const cp = CRIT_PAL[t >= 5 ? 5 : 4];
+      this.ovFx.push({ k: "vignette", age: 0, life: 22, delay: 0, col: cp.vig });
+      this.ovFx.push({ k: "text", age: 0, life: t >= 5 ? 40 : 32, delay: 0, text: t >= 5 ? "critique noir" : "critique", fx: t >= 5 ? [1, 2] : [1, 1], y: Math.max(12, iy - 42), pal: cp });
     }
     if (t >= 5) {
       this.stop = Math.max(this.stop, 6);
@@ -336,6 +342,7 @@ export class BossStage {
     this.hp = 0; this.hurtT = 999; this.flash = 16; this.shake = 3; this.koT = 0; this.chroma = 30;
     const p = this.pos, o = this.ovPos(), ix = o.ox + p.x + p.w / 2, iy = o.oy + p.y + p.h / 2;
     const st = style ?? pick(this.koStyle, ["cut", "manga"]), K = KO[st];
+    this.koPal = K?.pal || DARK;
     if (st === "manga") { this.stop = 46; this.ovFx.push({ k: "manga", age: 0, life: 52, x: ix, y: iy }); play("ko_manga"); }
     else if (K?.stop) {
       // K.O. du pack d'effets : l'effet dessine lui-même le boss, la scène le cache et ne le fait pas exploser
@@ -361,8 +368,8 @@ export class BossStage {
     this.shake = 8; this.slow = 70;
   }
 
-  float(text, x, y, { color = "#fff", sc = 1, alt = null } = {}) {
-    this.floats.push({ text: String(text), x, y, vy: -1.3, age: 0, life: 50, color, sc, alt });
+  float(text, x, y, { color = "#fff", sc = 1, alt = null, out, cycle } = {}) {
+    this.floats.push({ text: String(text), x, y, vy: -1.3, age: 0, life: 50, color, sc, alt, out, cycle });
   }
   setHp(hp) { this.hp = hp; if (this.ghost < hp) this.ghost = hp; }
 
@@ -383,7 +390,7 @@ export class BossStage {
     this.t++;
     if (this.koT > 0) {
       this.koT++;
-      if (this.koT === 20) { this.ovFx.push({ k: "text", age: 0, life: 120, delay: 0, text: "k.o.", fx: [3, 4], y: Math.max(12, this.ovPos().y - 14), red: true }); this.shake = 5; play("slam"); }
+      if (this.koT === 20) { this.ovFx.push({ k: "text", age: 0, life: 120, delay: 0, text: "k.o.", fx: [3, 4], y: Math.max(12, this.ovPos().y - 14), red: true, pal: this.koPal }); this.shake = 5; play("slam"); }
       if (this.koT === 110) this.koDone?.();
     }
     if (--this.nextBlink <= 0) { this.blinkT = 7; this.nextBlink = rnd(90, 220) | 0; }
@@ -406,6 +413,8 @@ export class BossStage {
       this.fx.add({ x: p.x + st.x + rnd(-3, 3), y: p.y + st.y, vy: rnd(-0.32, -0.18), life: rnd(50, 80) | 0, c: angry ? st.angry : st.c, fade: true, fadeIn: true, alpha: 0.75, wob: 0.12, size: 1, grow: 0.025 });
     }
     this.fx.update(); this.front.update();
+    for (const st of this.stamps) st.age++;
+    this.stamps = this.stamps.filter((st) => st.age < st.life);
     for (const r of this.rings) r.r += 1.6;
     this.rings = this.rings.filter((r) => r.r < r.max);
     this.tickFloats();
@@ -429,10 +438,10 @@ export class BossStage {
     let filt = "";
     if (this.intense && this.fxRoot) for (const e of this.ovFx) {
       if (e.delay > 0) continue;
-      if (e.k === "fracture") { if (e.age < 4) filt = "invert(1) contrast(1.8)"; else if (e.age >= 30 && e.age < 34) filt = "brightness(2) contrast(1.4)"; }
+      if (e.k === "fracture") { if (e.age < 4) filt = "brightness(1.8) saturate(.3) hue-rotate(170deg)"; else if (e.age >= 30 && e.age < 34) filt = "brightness(2) contrast(1.4)"; else if (e.age < 30) filt = "saturate(.5) hue-rotate(170deg) brightness(.9)"; }
       const f = this[`flt_${e.k}`]?.(e);
       if (f) filt = f;
-      if (e.k === "nova") filt = e.age < 3 ? "invert(1) contrast(2)" : e.age < 30 ? "grayscale(1) contrast(1.7) brightness(.75)" : filt;
+      if (e.k === "nova") filt = e.age < 3 ? "brightness(2.2)" : e.age < 30 ? "sepia(1) saturate(2.6) brightness(.85) contrast(1.3)" : filt;
     }
     if (this.fxRoot && filt !== this._filt) { this.fxRoot.style.filter = filt; this._filt = filt; }
     this.ovParts.update();
@@ -461,6 +470,7 @@ export class BossStage {
     if (this.koT <= 0 && !this.koHide) this.drawBoss(b, p);
     this.drawWeak(b);
     for (const r of this.rings) this.ring(b, r);
+    for (const st of this.stamps) HIT_SKINS[st.k]?.stamp?.(b, st);
     this.front.draw(b);
     for (const f of this.floats) this.drawFloat(b, f);
     b.restore();
@@ -569,8 +579,8 @@ export class BossStage {
     const t = f.age / f.life;
     if (t > 0.75 && (f.age >> 1) % 2) return;
     const sc = f.age < 4 ? f.sc + 1 : f.sc;
-    const color = f.alt && (f.age >> 2) % 2 ? f.alt : f.color;
-    drawText(b, f.text, f.x, f.y - (sc * 5) / 2, { color, sc });
+    const color = f.cycle ? f.cycle[(f.age >> 1) % f.cycle.length] : f.alt && (f.age >> 2) % 2 ? f.alt : f.color;
+    drawText(b, f.text, f.x, f.y - (sc * 5) / 2, f.out ? { color, sc, outline: f.out } : { color, sc });
   }
 
   drawHp(b) {
@@ -666,7 +676,7 @@ export class BossStage {
     const k = 1 - e.age / e.life;
     [0.55, 0.35, 0.2, 0.1].forEach((a, i) => {
       o.globalAlpha = Math.round(a * k * 8) / 8;
-      o.fillStyle = BLOOD;
+      o.fillStyle = e.col || BLOOD;
       const d = i * 3;
       o.fillRect(d, d, W - 2 * d, 3); o.fillRect(d, H - d - 3, W - 2 * d, 3);
       o.fillRect(d, d, 3, H - 2 * d); o.fillRect(W - d - 3, d, 3, H - 2 * d);
@@ -687,7 +697,7 @@ export class BossStage {
     o.globalAlpha = k > 0.5 ? 1 : 0.5;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2, x = e.x + Math.cos(a) * r, y = e.y + Math.sin(a) * r;
-      o.fillStyle = PAPER; o.fillRect(Math.round(x), Math.round(y), 2, 2);
+      o.fillStyle = e.col2 || PAPER; o.fillRect(Math.round(x), Math.round(y), 2, 2);
       o.fillStyle = e.col || BLOOD; o.fillRect(Math.round(e.x + Math.cos(a) * (r - 2)), Math.round(e.y + Math.sin(a) * (r - 2)), 1, 1);
     }
     o.globalAlpha = 1;
@@ -751,52 +761,51 @@ export class BossStage {
   }
   ov_fracture(o, e, W, H) {
     const a = e.age, net = e.net;
-    const crackLine = (p, q) => { o.fillStyle = INK; pline(o, p[0] + 1, p[1] + 1, q[0] + 1, q[1] + 1, 1); o.fillStyle = PAPER; pline(o, p[0], p[1], q[0], q[1], 1); };
-    if (a < 3) { o.fillStyle = a % 2 ? PAPER : INK; o.fillRect(0, 0, W, H); }
+    const crackLine = (p, q) => { o.fillStyle = "#16365a"; pline(o, p[0] + 1, p[1] + 1, q[0] + 1, q[1] + 1, 1); o.fillStyle = "#dff6ff"; pline(o, p[0], p[1], q[0], q[1], 1); };
+    if (a < 3) { o.fillStyle = a % 2 ? PAPER : "#7fd8f0"; o.fillRect(0, 0, W, H); }
     if (a < 30) {
       const L = Math.min(420, (a - 1) * 16);
-      o.globalAlpha = 0.14; o.fillStyle = PAPER; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
+      o.globalAlpha = 0.2; o.fillStyle = "#7fd8f0"; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
       for (const r of net.rad) for (let i = 1; i < r.length && r[i][2] <= L; i++) crackLine(r[i - 1], r[i]);
       net.ringSegs.forEach((segs, k) => { if (L >= net.rings[k] * 1.3) for (const [p, q] of segs) crackLine(p, q); });
-      o.fillStyle = BLOOD; o.fillRect(Math.round(e.x) - 2, Math.round(e.y) - 2, 5, 5);
+      o.fillStyle = "#3b5dc9"; o.fillRect(Math.round(e.x) - 2, Math.round(e.y) - 2, 5, 5);
       o.fillStyle = PAPER; o.fillRect(Math.round(e.x) - 1, Math.round(e.y) - 1, 3, 3);
       return;
     }
     const k = a - 30;
-    o.globalAlpha = Math.max(0, Math.round((1 - k / 14) * 6) / 6); o.fillStyle = PAPER; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
+    o.globalAlpha = Math.max(0, Math.round((1 - k / 14) * 6) / 6); o.fillStyle = "#dff6ff"; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
     for (const sh of net.shards) {
       const c = Math.cos(sh.ang), s = Math.sin(sh.ang);
       o.beginPath();
       sh.poly.forEach(([px, py], i) => { const dx = px - sh.cx, dy = py - sh.cy, X = sh.cx + sh.ox + dx * c - dy * s, Y = sh.cy + sh.oy + dx * s + dy * c; if (i) o.lineTo(X, Y); else o.moveTo(X, Y); });
       o.closePath();
-      o.fillStyle = "rgba(30,0,14,.6)"; o.fill();
-      o.strokeStyle = PAPER; o.lineWidth = 1; o.stroke();
+      o.fillStyle = "rgba(60,140,200,.45)"; o.fill();
+      o.strokeStyle = "#dff6ff"; o.lineWidth = 1; o.stroke();
     }
   }
 
   // ---------- ultime : SUPERNOVA (une lumière avale l'écran, le boss en ombre chinoise) ----------
   ov_nova(o, e, W, H) {
     const a = e.age;
-    if (a < 3) { o.fillStyle = a === 1 ? INK : PAPER; o.fillRect(0, 0, W, H); return; }
+    if (a < 3) { o.fillStyle = a === 1 ? "#ffcd75" : PAPER; o.fillRect(0, 0, W, H); return; }
     if (a < 28) {
       const k = (a - 3) / 25, R = k ** 1.7 * Math.hypot(W, H);
-      o.fillStyle = PAPER;
+      o.fillStyle = "#fff6c8";
       for (let y = Math.max(0, Math.floor(e.y - R)); y < Math.min(H, e.y + R); y++) { const dx = Math.sqrt(Math.max(0, R * R - (y - e.y) ** 2)); o.fillRect(Math.round(e.x - dx), y, Math.round(dx * 2), 1); }
       const n = Math.max(24, Math.round(R * 4));
       for (let i = 0; i < n; i++) {
         const t = (i / n) * Math.PI * 2;
-        o.fillStyle = BLOOD; o.fillRect(Math.round(e.x + Math.cos(t) * R), Math.round(e.y + Math.sin(t) * R), 2, 2);
-        o.fillStyle = INK; o.fillRect(Math.round(e.x + Math.cos(t) * (R + 2)), Math.round(e.y + Math.sin(t) * (R + 2)), 1, 1);
+        o.fillStyle = "#ef7d57"; o.fillRect(Math.round(e.x + Math.cos(t) * R), Math.round(e.y + Math.sin(t) * R), 2, 2);
+        o.fillStyle = "#ffcd75"; o.fillRect(Math.round(e.x + Math.cos(t) * (R + 2)), Math.round(e.y + Math.sin(t) * (R + 2)), 1, 1);
       }
-      o.fillStyle = INK;
+      o.fillStyle = "#ef7d57";
       for (let i = 0; i < 18; i++) { const t = (i / 18) * Math.PI * 2 + a * 0.02; pline(o, e.x + Math.cos(t) * 10, e.y + Math.sin(t) * 10, e.x + Math.cos(t) * Math.min(R, 200), e.y + Math.sin(t) * Math.min(R, 200), 1); }
       const sp = this.sprite(), q = this.ovPos();
-      for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) o.drawImage(sp.red, q.x + dx, q.y + dy);
       o.drawImage(sp.black, q.x, q.y);
       return;
     }
     const k = (a - 28) / (e.life - 28);
-    o.globalAlpha = Math.round((1 - k) * 6) / 6; o.fillStyle = PAPER; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
+    o.globalAlpha = Math.round((1 - k) * 6) / 6; o.fillStyle = "#fff6c8"; o.fillRect(0, 0, W, H); o.globalAlpha = 1;
   }
 
   // ---------- K.O. : TRANCHE (écran noir, un trait, le boss coupé en deux) ----------
@@ -913,14 +922,14 @@ export class BossStage {
     const th = (sy + k) * 7, y = Math.round(e.y - k * 3);
     const slide = Math.min(1, a / 4), fade = e.life - a < 10;
     if (fade && (a >> 1) % 2) return;
-    const bw = Math.round(W * slide);
-    o.fillStyle = "#000"; o.fillRect(0, y - 4, bw, th + 8);
-    o.fillStyle = e.cyan ? AIR : BLOOD; o.fillRect(0, y - 5, bw, 1); o.fillRect(0, y + th + 4, bw, 1);
+    const bw = Math.round(W * slide), P = e.pal || (e.cyan ? { band: "#000", acc: AIR, fg: PAPER } : DARK);
+    const acc = P.acc, fg = P.fg || PAPER;
+    o.fillStyle = P.band || "#000"; o.fillRect(0, y - 4, bw, th + 8);
+    o.fillStyle = acc; o.fillRect(0, y - 5, bw, 1); o.fillRect(0, y + th + 4, bw, 1);
     const jx = a < 12 ? Math.round(rnd(-1, 1)) : 0, jy = a < 12 ? Math.round(rnd(-1, 1)) : 0;
-    const acc = e.cyan ? AIR : BLOOD;
-    const col = e.red ? ((a >> 2) % 2 ? "#ffffff" : BLOOD) : (a >> 2) % 2 && a < 24 ? acc : "#ffffff";
+    const col = e.red ? ((a >> 2) % 2 ? fg : acc) : (a >> 2) % 2 && a < 24 ? acc : fg;
     drawBig(o, e.text, W / 2 + 2 + jx, y + 2 + jy, { color: acc, sx: sx + kx, sy: sy + k, outline: null });
-    drawBig(o, e.text, W / 2 + jx, y + jy, { color: col, sx: sx + kx, sy: sy + k, outline: INK });
+    drawBig(o, e.text, W / 2 + jx, y + jy, { color: col, sx: sx + kx, sy: sy + k, outline: P.out === undefined ? INK : P.out });
   }
 }
 
