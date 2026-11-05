@@ -3,12 +3,12 @@ import { pl, mins } from "../lib/util.js";
 export const TIER_NAMES = ["Bronze", "Argent", "Or", "Émeraude", "Saphir", "Améthyste", "Rubis", "Diamant", "Légende"];
 export const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"];
 
-/** g = "quit" : remis à zéro à chaque rechute. Les autres sont définitifs. */
+/** Tous les badges sont acquis pour de bon, même après une rechute (« Sans fumer » suit le record de jours). */
 export const BADGES = [
   { id: "streak", g: "quit", n: "Sans fumer", tiers: [1, 3, 7, 14, 30, 60, 90, 180, 365], f: (v) => pl(v, "jour") },
   { id: "res", g: "quit", n: "Envies tenues", tiers: [1, 10, 25, 50, 100, 250, 500], f: (v) => pl(v, "envie") },
   { id: "ressport", g: "quit", n: "Envies tuées au sport", tiers: [1, 5, 15, 30, 60, 120, 250], f: (v) => pl(v, "envie") },
-  { id: "lvlq", g: "quit", n: "Niveau sevrage", tiers: [2, 3, 5, 7, 10, 15, 20], f: (v) => `niveau ${v}`, lvl: true },
+  { id: "lvlq", g: "quit", n: "Niveau sevrage", tiers: [5, 15, 30, 50, 100, 200, 370, 620, 999], f: (v) => `niveau ${v}`, lvl: true },
   { id: "circ", g: "sport", n: "Circuits", tiers: [1, 10, 25, 50, 100, 250, 500, 1000], f: (v) => pl(v, "circuit") },
   { id: "pompes", g: "sport", n: "Pompes", tiers: [50, 100, 250, 500, 1000, 2500, 5000, 10000], f: (v) => pl(v, "pompe") },
   { id: "squats", g: "sport", n: "Squats", tiers: [50, 100, 250, 500, 1000, 2500, 5000, 10000], f: (v) => pl(v, "squat") },

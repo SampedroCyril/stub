@@ -31,8 +31,8 @@ export default function RecapModal({ ws, onClose }) {
   const prevWs = addDays(ws, -7);
   const P = S.weeks.some((w) => +w.ws === +prevWs) ? weekData(S, state, prevWs) : null;
   const end = addDays(W.we, -1);
-  const verdict = W.smokes === 0 && W.counted === 7 ? "Semaine parfaite : 7 jours sans une clope."
-    : W.smokes === 0 ? `${pl(W.clean, "jour")} sans clope, aucune rechute. Continue comme ça.`
+  const verdict = W.smokes === 0 && W.counted === 7 ? "Semaine parfaite : 7 jours sans une cigarette."
+    : W.smokes === 0 ? `${pl(W.clean, "jour")} sans cigarette, aucune rechute. Continue comme ça.`
       : `${pl(W.smokes, "rechute")} cette semaine, et tu es toujours là. La semaine prochaine se joue maintenant.`;
   const totM = W.crav || 1;
   const lvl = (lab, [a, b]) => (b > a ? <div className="r-line"><span>{lab}</span><b>niv. {a} → {b}</b></div> : null);
@@ -48,7 +48,7 @@ export default function RecapModal({ ws, onClose }) {
         </header>
         <div className="r-body">
           <div className="r-tiles">
-            <div className="r-tile"><span className="label">Jours sans clope</span><b>{W.clean}<small style={{ fontSize: 14 }}> / {W.counted || 7}</small></b>{W.smokes > 0 && <span className="delta bad">{pl(W.smokes, "rechute")}</span>}</div>
+            <div className="r-tile"><span className="label">Jours sans cigarette</span><b>{W.clean}<small style={{ fontSize: 14 }}> / {W.counted || 7}</small></b>{W.smokes > 0 && <span className="delta bad">{pl(W.smokes, "rechute")}</span>}</div>
             <div className="r-tile"><span className="label">Envies tenues</span><b>{W.crav}</b>{P && <Delta cur={W.crav} prev={P.crav} lowerIsBetter />}</div>
             <div className="r-tile"><span className="label">Intensité moy.</span><b>{W.avgI != null ? fmt1(W.avgI) : "–"}</b>{P && P.avgI != null && W.avgI != null ? <Delta cur={W.avgI} prev={P.avgI} lowerIsBetter fmt={fmt1} /> : <small>{W.withI ? "sur 10" : "non notée"}</small>}</div>
             <div className="r-tile"><span className="label">XP sport</span><b>{W.xpS}</b>{P && <Delta cur={W.xpS} prev={P.xpS} />}</div>

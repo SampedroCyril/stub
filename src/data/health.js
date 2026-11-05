@@ -19,10 +19,10 @@ export const SOURCES = {
  * flag : affiche le rappel des signaux d'urgence quand c'est coché.
  */
 export const SYMPTOMS = [
-  { id: "envie", n: "Envies de fumer", ic: "🚬", dur: "Très fréquentes les 2 à 3 premiers jours, puis elles diminuent", why: "Le cerveau réclame sa nicotine, et les habitudes (café, pause, soirée) rappellent la clope.", tip: "Une envie ne dure que quelques minutes : respire, bouge, ou lance un combat.", src: "msd" },
+  { id: "envie", n: "Envies de fumer", ic: "🚬", dur: "Très fréquentes les 2 à 3 premiers jours, puis elles diminuent", why: "Le cerveau réclame sa nicotine, et les habitudes (café, pause, soirée) rappellent la cigarette.", tip: "Une envie ne dure que quelques minutes : respire, bouge, ou lance un combat.", src: "msd" },
   { id: "irrit", n: "Irritabilité, nervosité", ic: "😤", dur: "2 à 4 semaines", why: "C'est l'un des signes les plus courants du manque de nicotine.", tip: "Préviens ton entourage, et garde la respiration à portée de main.", src: "msd" },
   { id: "moral", n: "Moral en baisse", ic: "🌧️", dur: "1 à 2 semaines", why: "Tristesse, impression de perte : arrêter, c'est aussi quitter une habitude qui comptait.", warn: "Si c'est intense ou que ça ne passe pas, parles-en à un médecin. Idées noires : appelle le 3114, jour et nuit.", src: "aus" },
-  { id: "concentr", n: "Difficulté à se concentrer", ic: "🌀", dur: "Quelques semaines", why: "Le cerveau se réhabitue à fonctionner sans nicotine.", tip: "Découpe les tâches et fais des pauses qui ne sont pas des pauses clope.", src: "msd" },
+  { id: "concentr", n: "Difficulté à se concentrer", ic: "🌀", dur: "Quelques semaines", why: "Le cerveau se réhabitue à fonctionner sans nicotine.", tip: "Découpe les tâches et fais des pauses qui ne sont pas des pauses cigarette.", src: "msd" },
   { id: "faim", n: "Faim, grignotage", ic: "🍪", dur: "Jusqu'à plusieurs semaines", why: "On mange parfois à la place de fumer, et la nourriture a plus de goût et d'odeur.", tip: "Prévois de quoi grignoter léger, et bois de l'eau.", src: "aus" },
   { id: "sommeil", n: "Mal dormir", ic: "🌙", dur: "Environ une semaine", why: "Le sommeil se réorganise sans nicotine.", tip: "Évite le café en fin de journée.", src: "msd" },
   { id: "fatigue", n: "Fatigue", ic: "🥱", dur: "2 à 4 jours", why: "Le corps s'adapte à l'absence de nicotine, qui est un stimulant.", src: "msd" },

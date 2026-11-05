@@ -152,7 +152,7 @@ export function AppProvider({ children }) {
   }, [setBattle]);
   /** Met à jour des infos du combat en cours (combo max…). */
   const patchBattle = useCallback((p) => { const b = battleRef.current; if (b) setBattle({ ...b, ...p }); }, [setBattle]);
-  /** Envie tenue sans combat (respiration, circuit) : on l'enregistre et on écrase la clope au cendrier. */
+  /** Envie tenue sans combat (respiration, circuit) : on l'enregistre et on écrase la cigarette au cendrier. */
   const holdCraving = useCallback((m, craving, extraEvents = [], msg = [], patch) => {
     const ev = cravingEvent(m, craving);
     setFlow({ mode: "idle" });
@@ -171,18 +171,18 @@ export function AppProvider({ children }) {
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 
   /**
-   * Une clope fumée : le sevrage repart de zéro. L'événement garde la date de la clope
+   * Une cigarette fumée : la série (et son multiplicateur) repart de zéro, l'XP reste. L'événement garde la date de la cigarette
    * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
    */
   const logSmoke = useCallback((tr = null) => {
     const cur = dataRef.current, t = new Date();
     const S0 = compute(cur.state, cur.days, t);
     const ev = { k: "smoked", t: t.toISOString(), ...(tr ? { tr } : {}), pq: cur.state.quitAt, pb: cur.state.best || 0 };
-    const msg = "C'est noté. Le sevrage repart de zéro, ton sport et tes stats restent. La prochaine envie, tu la tiens.";
+    const msg = "C'est noté. Ta série repart de zéro, ton XP et ton niveau restent. La prochaine envie, tu la tiens.";
     setFlow({ mode: "idle" });
     commit([ev], [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });
   }, [commit]);
-  /** Annule une clope notée par erreur : l'événement disparaît, la date de dernière clope et le record reviennent. */
+  /** Annule une cigarette notée par erreur : l'événement disparaît, la date de dernière cigarette et le record reviennent. */
   const undoSmoke = useCallback((ev) => {
     const cur = dataRef.current, k = dayKey(new Date(ev.t));
     const days = { ...cur.days, [k]: (cur.days[k] || []).filter((e) => !(e.k === "smoked" && e.t === ev.t)) };
@@ -192,7 +192,7 @@ export function AppProvider({ children }) {
     dataRef.current = next;
     setData(next);
     setNow(new Date());
-    flash(["Clope retirée."]);
+    flash(["Cigarette retirée."]);
   }, [flash]);
 
   // Victoire automatique si les PV sont à 0 hors de l'écran de combat (sauf attaque en cours).

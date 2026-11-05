@@ -40,7 +40,7 @@ export default function Reglages() {
     const { d } = pending;
     if (mode === "replace") replaceData(d);
     else {
-      // fusion : historique combiné ; dernière clope = la plus récente si une rechute a été notée ici, sinon celle importée
+      // fusion : historique combiné ; dernière cigarette = la plus récente si une rechute a été notée ici, sinon celle importée
       const localSmoked = S.smokes.length > 0;
       const quitAt = localSmoked && data.state.quitAt > d.state.quitAt ? data.state.quitAt : d.state.quitAt;
       const keep = { sound: data.state.sound, model: data.state.model, bp: data.state.bp, bd: data.state.bd };

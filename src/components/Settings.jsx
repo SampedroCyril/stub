@@ -31,7 +31,7 @@ function SevrageSettings() {
   return (
     <Group>
       <label className="set-row" htmlFor="quit">
-        <span><b>Dernière clope</b><small>Point de départ du compteur et de la récupération</small></span>
+        <span><b>Dernière cigarette</b><small>Point de départ du compteur et de la récupération</small></span>
         <input
           type="datetime-local" id="quit" value={toLocalInput(S.q)}
           onChange={(e) => {
@@ -60,7 +60,7 @@ function JeuSettings() {
   const style = state.gaugeStyle || "fluid";
   return (
     <Group title="Jeu">
-      <Toggle id="gamesound" label="Bruitages des combats" sub="Coups, critiques, K.O., clope écrasée" checked={state.gameSound !== false} onChange={(v) => patchState({ gameSound: v })} />
+      <Toggle id="gamesound" label="Bruitages des combats" sub="Coups, critiques, K.O., cigarette écrasée" checked={state.gameSound !== false} onChange={(v) => patchState({ gameSound: v })} />
       <div className="set-row col">
         <span><b>Style de la jauge</b><small>Le look de la jauge de rythme, en combat et dans l'Arcade</small></span>
         <div className="gauge-pick" role="radiogroup" aria-label="Style de la jauge">

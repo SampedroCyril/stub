@@ -27,7 +27,7 @@ function ashtraySprite(pal = TRAYS.classic.pal) {
 const EMBER_FADE = (t) => (t < 0.25 ? "#ffcd75" : t < 0.5 ? "#ef7d57" : t < 0.75 ? "#b13e53" : "#3a3340");
 const TOBACCO = ["#8a5a2b", "#6b3a1f", "#a8743a"];
 
-/** Scène de victoire : la clope s'écrase, se tord, crache sa braise et s'éteint dans le cendrier. */
+/** Scène de victoire : la cigarette s'écrase, se tord, crache sa braise et s'éteint dans le cendrier. */
 export class AshtrayScene {
   constructor(canvas, { count = 0, onCount, onDone, style = "classic" } = {}) {
     this.cv = canvas; this.count = count; this.onCount = onCount; this.onDone = onDone;
@@ -66,7 +66,7 @@ export class AshtrayScene {
     this.draw();
   }
 
-  /** Forme de la clope à l'instant t : points et couleurs. */
+  /** Forme de la cigarette à l'instant t : points et couleurs. */
   shape() {
     const t = this.t;
     const ease = (k) => 1 - (1 - k) ** 3;

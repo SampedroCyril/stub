@@ -23,7 +23,7 @@ export default function Defis({ onRecap }) {
           const D = DEFIS[d.id], won = d.doneAt && d.doneAt <= S.now;
           const pct = clamp((d.v / D.target) * 100, 0, 100);
           let meta = won ? `Réussi le ${DOW[d.doneAt.getDay()]} ${fDate(d.doneAt)}` : `${fmtDefi(d.id, d.v)} / ${fmtDefi(d.id, D.target)}`;
-          if (d.id === "clean7" && !won) meta = d.broken ? "Raté cette semaine, la prochaine est à toi" : d.v === 0 && S.q > cw.ws ? "Compte à partir d'une semaine qui démarre sans clope" : `${d.v} / 7 jours`;
+          if (d.id === "clean7" && !won) meta = d.broken ? "Raté cette semaine, la prochaine est à toi" : d.v === 0 && S.q > cw.ws ? "Compte à partir d'une semaine qui démarre sans cigarette" : `${d.v} / 7 jours`;
           return (
             <div className={`defi ${D.g}${won ? " won" : ""}`} key={d.id}>
               <Icon name={won ? "trophy" : D.ic} col={won ? "gold" : D.g === "quit" ? "quit" : "accent"} />

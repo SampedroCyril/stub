@@ -68,7 +68,7 @@ export default function Respirer() {
 
   return (
     <Panel id="respirer">
-      {fromCraving && <div className="banner teal"><span>Respire au moins une minute : l'envie est tenue et sa clope finit au cendrier.</span></div>}
+      {fromCraving && <div className="banner teal"><span>Respire au moins une minute : l'envie est tenue et sa cigarette finit au cendrier.</span></div>}
       <section className="breath-stage">
         <svg viewBox="0 0 240 240" aria-hidden="true">
           <defs>

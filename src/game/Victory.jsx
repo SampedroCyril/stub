@@ -7,7 +7,7 @@ import { CRAV_XP, METHOD_NAME, playerXpOf } from "../data/rules.js";
 import { RANK_XP } from "./battle.js";
 import { pad, pl } from "../lib/util.js";
 
-/** Écran de victoire : la clope de l'envie s'écrase et s'éteint dans le cendrier. */
+/** Écran de victoire : la cigarette de l'envie s'écrase et s'éteint dans le cendrier. */
 export default function Victory() {
   const { victory, setVictory, S } = useApp();
   const btn = useRef(null), cv = useRef(null);
@@ -38,8 +38,8 @@ export default function Victory() {
           <p className="v-death">{B ? B.death : `Tenue ${METHOD_NAME[ev.m]}. Elle finit au cendrier.`}</p>
         </div>
         <div className="v-ash">
-          <canvas ref={cv} className="ash-canvas" aria-label="La clope s'écrase et s'éteint dans le cendrier" />
-          <p className="v-count"><b key={count}>{count}</b> {pl(count, "clope").replace(/^\d+ /, "")} écrasée{count > 1 ? "s" : ""}</p>
+          <canvas ref={cv} className="ash-canvas" aria-label="La cigarette s'écrase et s'éteint dans le cendrier" />
+          <p className="v-count"><b key={count}>{count}</b> {pl(count, "cigarette").replace(/^\d+ /, "")} écrasée{count > 1 ? "s" : ""}</p>
         </div>
         <div className="v-stats">
           {B ? <div><span className="label">Temps</span><b>{Math.floor(ev.kt / 60)}:{pad(ev.kt % 60)}</b></div> : null}

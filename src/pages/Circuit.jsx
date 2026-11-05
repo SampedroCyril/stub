@@ -81,7 +81,7 @@ export default function Circuit() {
 
       {active && (
         <section className={`card${fromCraving ? " quit" : ""}`}>
-          {fromCraving && <div className="banner"><span>Fais le circuit : l'envie est tenue et sa clope finit au cendrier.</span></div>}
+          {fromCraving && <div className="banner"><span>Fais le circuit : l'envie est tenue et sa cigarette finit au cendrier.</span></div>}
           <div className="card-head">
             <h2>{flow.override ? "Circuit au hasard" : "Ton circuit"}</h2>
             <span className="timer">+{totalXp} XP</span>

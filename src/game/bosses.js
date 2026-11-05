@@ -8,7 +8,7 @@ export const BOSSES = {
   cafe: {
     n: "Le Café Maudit", sprite: "cafe", trig: "cafe",
     traits: { weak: "crit", res: "spot" },
-    taunts: ["Un petit café sans clope ? Sois pas ridicule.", "Je suis noir, amer, et je te manque.", "Le combo café-clope, c'est sacré, non ?"],
+    taunts: ["Un petit café sans cigarette ? Sois pas ridicule.", "Je suis noir, amer, et je te manque.", "Le combo café-cigarette, c'est sacré, non ?"],
     death: "Le Café Maudit refroidit. Pour toujours.",
   },
   spectre: {
@@ -20,13 +20,13 @@ export const BOSSES = {
   ennui: {
     n: "L'Ennui Éternel", sprite: "ennui", trig: "ennui",
     traits: { weak: "spot", res: "crit" },
-    taunts: ["Baaah… Rien à faire… Une clope, au moins ?", "Tu t'ennuies ? Moi, j'ai une idée…", "Zzz… Allume-en une, ça passera le temps."],
+    taunts: ["Baaah… Rien à faire… Une cigarette, au moins ?", "Tu t'ennuies ? Moi, j'ai une idée…", "Zzz… Allume-en une, ça passera le temps."],
     death: "L'Ennui s'est ennuyé de perdre. Il part.",
   },
   repas: {
     n: "Le Repas Traître", sprite: "repas", trig: "repas",
     traits: { weak: "tempt", res: "size" },
-    taunts: ["Le dessert, c'est la clope. Tout le monde sait ça.", "Bien mangé ? Il manque juste un truc…", "Je suis le digestif que tu mérites."],
+    taunts: ["Le dessert, c'est la cigarette. Tout le monde sait ça.", "Bien mangé ? Il manque juste un truc…", "Je suis le digestif que tu mérites."],
     death: "Le Repas Traître est digéré. Bon appétit.",
   },
   stress: {
@@ -38,19 +38,19 @@ export const BOSSES = {
   alcool: {
     n: "La Pinte Perfide", sprite: "alcool", trig: "alcool",
     traits: { weak: "spot", res: "tempt" },
-    taunts: ["Une bière sans clope, c'est comme une soirée sans musique.", "Allez, c'est la fête ! Juste ce soir…", "Santé ! Enfin… façon de parler."],
+    taunts: ["Une bière sans cigarette, c'est comme une soirée sans musique.", "Allez, c'est la fête ! Juste ce soir…", "Santé ! Enfin… façon de parler."],
     death: "La Pinte Perfide est vidée. Cul sec.",
   },
   ecran: {
     n: "Le Glitch", sprite: "ecran", trig: "ecran",
     traits: { weak: "tempt", res: "spot" },
-    taunts: ["Pause clope entre deux parties ? Classique.", "ERREUR 404 : volonté introuvable.", "Je mets le jeu en pause, toi tu sors fumer."],
+    taunts: ["Pause cigarette entre deux parties ? Classique.", "ERREUR 404 : volonté introuvable.", "Je mets le jeu en pause, toi tu sors fumer."],
     death: "Le Glitch a été patché.",
   },
   reveil: {
     n: "Le Réveil Grognon", sprite: "reveil", trig: "reveil",
     traits: { weak: "size", res: "crit" },
-    taunts: ["DRIIING ! La clope du matin, c'est la meilleure !", "Debout ! Café, clope, et c'est parti.", "Tu commences pas la journée sans moi, si ?"],
+    taunts: ["DRIIING ! La cigarette du matin, c'est la meilleure !", "Debout ! Café, cigarette, et c'est parti.", "Tu commences pas la journée sans moi, si ?"],
     death: "Le Réveil Grognon est en mode silencieux.",
   },
   potes: {
@@ -62,7 +62,7 @@ export const BOSSES = {
   fatigue: {
     n: "Le Zombie Pâteux", sprite: "fatigue", trig: "fatigue",
     traits: { weak: "spot", res: "size" },
-    taunts: ["Brrraaains… Euh… Clooope…", "T'es crevé ? Une clope, ça réveille.", "Ta volonté est fatiguée, elle aussi."],
+    taunts: ["Brrraaains… Euh… Cigaaarette…", "T'es crevé ? Une cigarette, ça réveille.", "Ta volonté est fatiguée, elle aussi."],
     death: "Le Zombie Pâteux est enfin allé se coucher.",
   },
   clope: {
@@ -88,7 +88,7 @@ export const TRAITS = {
   spot: { v: { weak: 1.2, res: 0.85 }, weak: ["Lent", "Ses cercles arrivent moins vite"], res: ["Vif", "Ses cercles arrivent plus vite"] },
   size: { v: { weak: 1.25, res: 0.8 }, weak: ["Large", "La fenêtre pour le toucher est plus large"], res: ["Fuyant", "La fenêtre pour le toucher est plus étroite"] },
   crit: { v: { weak: 1.5, res: 0.6 }, weak: ["Fragile", "Les gros paliers lui font 50 % de dégâts en plus"], res: ["Blindé", "Les gros paliers lui font 40 % de dégâts en moins"] },
-  tempt: { v: { weak: 1.4, res: 0.7 }, weak: ["Patient", "Il glisse moins de clopes dans la jauge"], res: ["Insistant", "Il glisse plus de clopes dans la jauge"] },
+  tempt: { v: { weak: 1.4, res: 0.7 }, weak: ["Patient", "Il glisse moins de cigarettes dans la jauge"], res: ["Insistant", "Il glisse plus de cigarettes dans la jauge"] },
 };
 /** Multiplicateurs du boss : spot (durée des points), size (zone de toucher), crit (bonus des paliers), tempt (délai des tentations). */
 export function traitsOf(id) {

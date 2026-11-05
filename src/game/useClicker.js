@@ -10,7 +10,7 @@ const NO_TRAITS = { spot: 1, size: 1, crit: 1, tempt: 1 };
  * Moteur du combat en rythme, partagé par le combat de boss et l'Arcade.
  * - Jauge : deux cercles partent des bords et se rejoignent au centre ; on touche l'écran quand ils y sont.
  *   Parfait ou bon : le combo monte et le boss encaisse (neuf paliers d'impact). Trop tôt, trop tard : combo à zéro.
- * - De temps en temps, ce sont deux clopes qui arrivent : il ne faut PAS toucher. Elles s'écrasent au centre et le boss
+ * - De temps en temps, ce sont deux cigarettes qui arrivent : il ne faut PAS toucher. Elles s'écrasent au centre et le boss
  *   encaisse un refus ; toucher, c'est la prendre : le boss se soigne et le combo casse.
  * Options : intensity, skills, traits, duration (ms), lives, ramp (accélère avec le temps), unit (« - » ou « + »).
  * onHit({dmg, tier, shown, fast, combo, maxCombo}) applique les dégâts et peut renvoyer les dégâts réels.
@@ -102,7 +102,7 @@ export function useClicker(stageRef, opts) {
     const n = s.note;
     clearTimeout(s.timer);
     if (n.kind === "cig") {
-      // toucher la clope, c'est la prendre
+      // toucher la cigarette, c'est la prendre
       endNote("took");
       stg.miss(32, 30);
       o.current.onCig?.(true);
@@ -137,7 +137,7 @@ export function useClicker(stageRef, opts) {
     return true;
   }, [stageRef, next]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /** Rien n'a été touché à temps : raté pour les cercles, refus réussi pour une clope. */
+  /** Rien n'a été touché à temps : raté pour les cercles, refus réussi pour une cigarette. */
   const expire = () => {
     const s = st.current, stg = stageRef.current;
     if (!s || !s.note || !stg) return;

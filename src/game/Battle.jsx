@@ -126,7 +126,7 @@ export default function Battle() {
       onPause={started ? () => open("pause") : undefined}
       menu={menu && menus[menu]}
       top={<>{!started && <ModChips boss={battle.boss} known={known} />}<p className="bubble" key={taunt}>« {B.taunts[taunt % B.taunts.length]} »</p></>}
-      footer={!started && <p className="fight-hint"><b>Touche l'écran quand les notes arrivent au centre.</b> Si ce sont des clopes, ne touche pas : laisse-les s'écraser.</p>}
+      footer={!started && <p className="fight-hint"><b>Touche l'écran quand les notes arrivent au centre.</b> Si ce sont des cigarettes, ne touche pas : laisse-les s'écraser.</p>}
     >
       <BossView stageRef={stage} boss={battle.boss} maxHp={battle.maxHp} hp={startHp} lvl={battle.lvl} />
       <GaugeView gaugeRef={gauge} style={state.gaugeStyle || "fluid"} />

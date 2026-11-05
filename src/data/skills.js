@@ -15,7 +15,7 @@ export const SKILLS = [
   { id: "root", br: "root", x: 260, y: 268, k: "key", ic: "★", n: "Départ", d: "Le point de départ : tout part d'ici." },
   { id: "p1", br: "power", x: 192, y: 322, k: "small", ic: "✦", n: "Poigne", d: "+10 % de dégâts." },
   { id: "p2", br: "power", x: 128, y: 376, k: "big", ic: "»", n: "Élan", d: "Les paliers arrivent 10 % plus tôt dans le combo." },
-  { id: "p3", br: "power", x: 200, y: 423, k: "small", ic: "✕", n: "Refus cinglant", d: "Refuser une clope fait deux fois plus mal au boss." },
+  { id: "p3", br: "power", x: 200, y: 423, k: "small", ic: "✕", n: "Refus cinglant", d: "Refuser une cigarette fait deux fois plus mal au boss." },
   { id: "p4", br: "power", x: 70, y: 440, k: "small", ic: "✦", n: "Poigne d'acier", d: "+20 % de dégâts en plus." },
   { id: "p5", br: "power", x: 130, y: 492, k: "key", ic: "☠", n: "Coup de grâce", d: "Sous 5 % de PV, ton coup suivant l'achève." },
   { id: "t1", br: "tech", x: 328, y: 322, k: "small", ic: "◎", n: "Réflexes", d: "La fenêtre « parfait » est plus large." },
