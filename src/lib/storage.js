@@ -28,6 +28,8 @@ export const DEFAULT_STATE = {
   skills: [],
   sympt: {},
   cpd: 0,
+  goal: "quit",
+  reduce: null,
   packPrice: 0,
   shop: { bought: [], eq: { ult: "random", ko: "random", sig: "s:classic" } },
   gaugeStyle: "fluid",

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useApp, sectionOn } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, useCountdown } from "../components/ui.jsx";
-import { CRAV_XP, TRIGGERS, ivName } from "../data/rules.js";
+import { CRAV_XP, ivName } from "../data/rules.js";
+import TriggerPicker from "../components/TriggerPicker.jsx";
+import { SmokeSheet } from "./Clopes.jsx";
 import Battle from "../game/Battle.jsx";
 import BossThumb from "../game/BossThumb.jsx";
 import { BOSSES, bossFor } from "../game/bosses.js";
@@ -16,13 +18,7 @@ export default function Sevrage() {
   const craving = flow.mode === "craving" ? flow.craving : null;
   const countdown = useCountdown(craving?.endsAt);
 
-  const smoked = () => {
-    const t = new Date().toISOString();
-    setConfirm(false);
-    resetFlow();
-    go("accueil");
-    commit([{ k: "smoked", t }], ["C'est noté. Le sevrage repart de zéro, ton sport et tes stats restent. La prochaine envie, tu la tiens."], { best: Math.max(state.best || 0, S.streak), quitAt: t });
-  };
+
 
   return (
     <Panel id="sevrage">
@@ -48,11 +44,7 @@ export default function Sevrage() {
           </div>
           <div className="stack">
             <span className="label">Qu'est-ce qui la déclenche ?</span>
-            <div className="chiprow">
-              {TRIGGERS.map(([k, n]) => (
-                <button key={k} className="pick" type="button" aria-pressed={craving.trigger === k} onClick={() => setCravingField("trigger", k)}>{n}</button>
-              ))}
-            </div>
+            <TriggerPicker value={craving.trigger} onChange={(v) => setCravingField("trigger", v)} />
           </div>
           <div className="stack">
             <span className="label">Comment tu la fais passer ?</span>
@@ -103,19 +95,10 @@ export default function Sevrage() {
       </details>
 
       <section className="stack">
-        <h2>Rechute</h2>
-        <p className="sub">Si tu as fumé, dis-le ici : ton sevrage repart de zéro, le reste est gardé.</p>
-        {!confirm && <button className="btn danger" type="button" onClick={() => setConfirm(true)}>J'ai fumé</button>}
-        {confirm && (
-          <div className="confirm">
-            <p><strong>Ton sevrage repart de zéro.</strong> Ton niveau, ton XP et tes badges sevrage sont remis à zéro. Tes stats, ton historique et toute ta progression sport restent.</p>
-            <p className="tip">Une rechute fait partie du sevrage pour beaucoup de gens. Le record de ta tentative est gardé.</p>
-            <div className="row2">
-              <button className="btn" type="button" onClick={() => setConfirm(false)}>Annuler</button>
-              <button className="btn danger-fill" type="button" onClick={smoked}>Confirmer</button>
-            </div>
-          </div>
-        )}
+        <h2>{state.goal === "reduce" ? "Une clope fumée" : "Rechute"}</h2>
+        <p className="sub">{state.goal === "reduce" ? "Note-la : elle compte dans ton objectif du jour, et tes stats sont dans l'onglet Clopes." : "Si tu as fumé, dis-le ici : ton sevrage repart de zéro, le reste est gardé."}</p>
+        <button className={`btn ${state.goal === "reduce" ? "blue" : "danger"}`} type="button" onClick={() => setConfirm(true)}>J'ai fumé une clope</button>
+        {confirm && <SmokeSheet onClose={() => setConfirm(false)} />}
       </section>
     </Panel>
   );

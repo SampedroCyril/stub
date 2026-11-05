@@ -4,6 +4,7 @@ import { useApp, sectionOf } from "../store/AppStore.jsx";
 import GaugeView from "../game/GaugeView.jsx";
 import { GAUGE_STYLES } from "../game/gfx/Gauge.js";
 import { pad } from "../lib/util.js";
+import { PACES, goalAt, smokeStats } from "../lib/smoking.js";
 
 export const toLocalInput = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
@@ -26,9 +27,67 @@ export function Toggle({ id, label, sub, checked, onChange }) {
   );
 }
 
+/** Réglage d'un nombre de clopes avec − et +. */
+function Stepper({ id, value, onChange, min = 0, max = 60 }) {
+  return (
+    <span className="stepper">
+      <button type="button" aria-label="Moins" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
+      <output id={id} aria-live="polite">{value}</output>
+      <button type="button" aria-label="Plus" onClick={() => onChange(Math.min(max, value + 1))}>+</button>
+    </span>
+  );
+}
+
+function GoalSettings() {
+  const { S, state, patchState } = useApp();
+  const reduce = state.goal === "reduce";
+  const r = state.reduce || {};
+  // point de départ : ta moyenne des 7 derniers jours si tu notes tes clopes, sinon ta conso de départ
+  const avg = smokeStats(S.ev, { now: S.now, startAt: S.startAt }).avg7;
+  const base = avg ? Math.max(1, Math.ceil(avg)) : state.cpd || 10;
+  const setR = (p) => patchState({ reduce: { mode: "auto", every: 7, start: base, from: new Date().toISOString(), fixed: base, ...r, ...p } });
+  const toReduce = () => patchState({ goal: "reduce", reduce: state.reduce || { mode: "auto", start: base, from: new Date().toISOString(), every: 7, fixed: base } });
+  return (
+    <Group title="Mon objectif" note={reduce ? "Une clope fumée remet toujours le sevrage à zéro. En mode Réduction, tu suis en plus tes clopes du jour face à ton objectif, et ta baisse par rapport à ton départ." : "Un sevrage complet. Tu préfères baisser petit à petit ? Choisis Réduire."}>
+      <div className="set-row col">
+        <div className="seg" role="radiogroup" aria-label="Objectif">
+          <button type="button" role="radio" aria-checked={!reduce} className="pick" aria-pressed={!reduce} onClick={() => patchState({ goal: "quit" })}>Arrêter</button>
+          <button type="button" role="radio" aria-checked={reduce} className="pick" aria-pressed={reduce} onClick={toReduce}>Réduire</button>
+        </div>
+      </div>
+      {reduce && (
+        <>
+          <div className="set-row col">
+            <span><b>Objectif par jour</b><small>{r.mode === "fixed" ? "Tu le règles toi-même." : "Il baisse tout seul, d'une clope à chaque palier."} Aujourd'hui : {goalAt(r, S.now) ?? "–"}.</small></span>
+            <div className="seg" role="radiogroup" aria-label="Type d'objectif">
+              <button type="button" role="radio" className="pick" aria-checked={r.mode !== "fixed"} aria-pressed={r.mode !== "fixed"} onClick={() => setR({ mode: "auto", start: goalAt(r, S.now) ?? base, from: new Date().toISOString() })}>Baisse automatique</button>
+              <button type="button" role="radio" className="pick" aria-checked={r.mode === "fixed"} aria-pressed={r.mode === "fixed"} onClick={() => setR({ mode: "fixed", fixed: goalAt(r, S.now) ?? base })}>Je le règle</button>
+            </div>
+          </div>
+          {r.mode === "fixed" ? (
+            <div className="set-row"><span><b>Clopes par jour, au plus</b></span><Stepper id="g-fixed" value={r.fixed ?? base} onChange={(v) => setR({ fixed: v })} /></div>
+          ) : (
+            <>
+              <div className="set-row"><span><b>Point de départ</b><small>Repart d'aujourd'hui</small></span><Stepper id="g-start" value={r.start ?? base} onChange={(v) => setR({ start: v, from: new Date().toISOString() })} /></div>
+              <div className="set-row col">
+                <span><b>Une clope de moins…</b></span>
+                <div className="seg three" role="radiogroup" aria-label="Rythme de baisse">
+                  {PACES.map(([n, lab]) => <button key={n} type="button" role="radio" className="pick" aria-checked={(r.every || 7) === n} aria-pressed={(r.every || 7) === n} onClick={() => setR({ every: n, start: goalAt(r, S.now) ?? base, from: new Date().toISOString() })}>{lab}</button>)}
+                </div>
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </Group>
+  );
+}
+
 function SevrageSettings() {
   const { S, patchState } = useApp();
   return (
+    <>
+    <GoalSettings />
     <Group>
       <label className="set-row" htmlFor="quit">
         <span><b>Dernière clope</b><small>Point de départ du compteur et de la récupération</small></span>
@@ -42,6 +101,7 @@ function SevrageSettings() {
         />
       </label>
     </Group>
+    </>
   );
 }
 

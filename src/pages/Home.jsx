@@ -3,7 +3,10 @@ import { Bar, Panel } from "../components/ui.jsx";
 import Icon from "../art/Icon.jsx";
 import { healthState } from "../lib/compute.js";
 import { HEALTH, Q_TITLES, S_TITLES, P_TITLES, titleOf } from "../data/rules.js";
-import { DOW, DAY, fDate, fTime, pl, durationText } from "../lib/util.js";
+import { DOW, fDate, fTime, pl, durationText } from "../lib/util.js";
+import { savings, smokeStats } from "../lib/smoking.js";
+import { SmokeSheet } from "./Clopes.jsx";
+import { useState } from "react";
 
 const eur = (v) => v.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: v >= 100 ? 0 : 2 });
 
@@ -15,7 +18,11 @@ export default function Home() {
   const { S, go, startCraving, state } = useApp();
   const on = (id) => sectionOn(state, id);
   const hs = healthState(S);
-  const cpd = state.cpd || 0, perCig = state.packPrice ? state.packPrice / (state.packSize || 20) : 0, days = S.elapsed / DAY;
+  const cpd = state.cpd || 0;
+  const sv = savings(S.ev, { now: S.now, startAt: S.startAt, cpd, price: state.packPrice || 0, pack: state.packSize || 20 });
+  const reduce = state.goal === "reduce";
+  const st = reduce ? smokeStats(S.ev, { now: S.now, startAt: S.startAt, reduce: state.reduce }) : null;
+  const [sheet, setSheet] = useState(false);
   const levels = [
     { k: "quit", n: "Sevrage", lv: S.quit, t: Q_TITLES, to: "sevrage", show: true },
     { k: "sport", n: "Sport", lv: S.sport, t: S_TITLES, to: "circuit", show: on("sport") },
@@ -34,10 +41,22 @@ export default function Home() {
         <button className="hero-cta" type="button" onClick={startCraving}>J'ai envie de fumer</button>
       </section>
 
+      {reduce && (
+        <section className={`box home-reduce${st.goalToday != null && st.today > st.goalToday ? " over" : ""}`}>
+          <button type="button" className="hr-info" onClick={() => go("clopes")}>
+            <span className="label">Aujourd'hui</span>
+            <b>{st.today}{st.goalToday != null && <small> / {st.goalToday} clopes</small>}</b>
+            {st.goalToday != null && <Bar pct={st.goalToday ? Math.min(100, (st.today / st.goalToday) * 100) : st.today ? 100 : 0} color={st.today > st.goalToday ? "var(--danger)" : "var(--accent)"} />}
+          </button>
+          <button className="btn blue hr-add" type="button" onClick={() => setSheet(true)}>J'ai fumé</button>
+          {sheet && <SmokeSheet onClose={() => setSheet(false)} />}
+        </section>
+      )}
+
       <section className="gains" aria-label="Ce que tu as gagné">
         <div><b>{S.cravAll.length}</b><span>{S.cravAll.length > 1 ? "envies tenues" : "envie tenue"}</span></div>
-        {cpd > 0
-          ? <><div><b>{Math.round(cpd * days).toLocaleString("fr-FR")}</b><span>clopes évitées</span></div>{perCig > 0 && <div><b>{eur(cpd * days * perCig)}</b><span>économisés</span></div>}</>
+        {sv
+          ? <><div><b>{sv.avoided.toLocaleString("fr-FR")}</b><span>clopes évitées</span></div>{sv.saved > 0 && <div><b>{eur(sv.saved)}</b><span>économisés</span></div>}</>
           : on("sante") && <button type="button" className="gains-set" onClick={() => go("risques")}>Indique ta conso pour voir tes économies ›</button>}
       </section>
 

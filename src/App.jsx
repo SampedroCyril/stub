@@ -10,6 +10,7 @@ import Talents from "./pages/Talents.jsx";
 import Boutique from "./pages/Boutique.jsx";
 import Symptomes from "./pages/Symptomes.jsx";
 import Risques from "./pages/Risques.jsx";
+import Clopes from "./pages/Clopes.jsx";
 import Victory from "./game/Victory.jsx";
 import BossThumb from "./game/BossThumb.jsx";
 import { BOSSES } from "./game/bosses.js";
@@ -99,6 +100,7 @@ function Shell() {
       <Toast />
       <Home />
       <Sevrage />
+      <Clopes />
       <Circuit />
       <Respirer />
       <Arcade />

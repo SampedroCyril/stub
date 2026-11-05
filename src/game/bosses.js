@@ -1,3 +1,4 @@
+import { TRIG_BOSS } from "../data/triggers.js";
 /**
  * Boss d'envie : un par déclencheur, plus un sbire quand aucun déclencheur n'est choisi.
  * Ton volontairement décalé : le boss se moque de toi, tu lui réponds en le démolissant.
@@ -74,11 +75,12 @@ export const BOSSES = {
 
 /** Boss d'une envie : selon le déclencheur, le Spectre la nuit (1h–5h) sans déclencheur, sinon Clopinette. */
 export function bossFor(trigger, at = new Date()) {
-  const byTrig = Object.entries(BOSSES).find(([, b]) => b.trig && b.trig === trigger);
-  if (byTrig) return byTrig[0];
   const h = at.getHours();
-  if (!trigger || trigger === "autre") return h >= 1 && h < 5 ? "spectre" : "clope";
-  return "clope";
+  if (h >= 1 && h < 5 && (!trigger || trigger === "autre" || trigger === "coucher")) return "spectre";
+  const id = TRIG_BOSS[trigger];
+  if (id && id !== "spectre" && BOSSES[id]) return id;
+  const byTrig = Object.entries(BOSSES).find(([, b]) => b.trig && b.trig === trigger);
+  return byTrig ? byTrig[0] : "clope";
 }
 
 /** Traits de combat : chaque boss a une faiblesse (weak) et une résistance (res). */
