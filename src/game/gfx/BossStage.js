@@ -609,7 +609,7 @@ export class BossStage {
   }
   drawFrenzyHud(b, x, y, w, h) {
     if (this.frenzy) {
-      const k = Math.max(0, 1 - (performance.now() - this.frenzy.start) / this.frenzy.dur);
+      const k = Math.max(0, 1 - ((this.frozenAt || performance.now()) - this.frenzy.start) / this.frenzy.dur); // figé en pause
       b.fillStyle = OUTLINE; b.fillRect(x - 1, y + h + 1, w + 2, 4);
       b.fillStyle = k < 0.25 && (this.t >> 2) % 2 ? "#ffffff" : "#ffcd75"; b.fillRect(x, y + h + 2, Math.round(w * k), 2);
     }

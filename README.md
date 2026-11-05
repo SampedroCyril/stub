@@ -23,17 +23,17 @@ Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Le récap de la semaine s'ouvre tout seul le dimanche à partir de 18h (ou à la prochaine ouverture si tu l'as raté).
 
-## Le jeu (0.3.5)
+## Le jeu (0.3.6)
 
 - **Trois façons de tenir une envie** : **Combat** (le boss de l'envie, en clicker), **Respirer** (le cercle guidé, au moins une minute) ou **Bouger** (un circuit). Les trois écrasent la clope au cendrier et rapportent de l'XP sevrage.
 - **Boss d'envie** : un par déclencheur (Le Café Maudit, Le Repas Traître, La Pinte Perfide, Le Glitch…, le Spectre de 2h du mat' la nuit, Clopinette sinon). Chacun a un trait faible et un trait fort (points faibles plus lents ou plus vifs, plus ou moins faciles à toucher, sensible ou blindé aux gros paliers, tentations plus ou moins fréquentes), révélés après la première victoire.
 - **Combat en rythme, plein écran** : sous le boss, une jauge ; deux cercles partent des bords et se rejoignent au centre. Touche l'écran (n'importe où) quand ils y sont : parfait ou bon, le combo monte ; trop tôt, trop tard ou pas du tout, il retombe à zéro. Les cercles vont de plus en plus vite avec le combo.
-- **Pause et sortie** : en haut à gauche, la flèche retour (pause puis confirmation : le boss attend ton retour, le score d'Arcade est gardé) ; en haut à droite, la pause. L'appli passée en arrière-plan se met en pause. La pause fige tout le combat (PV, épuisement, chrono) ; « Fausse alerte » est dans le menu pause.
+- **Pause et sortie** : en haut à gauche, la flèche retour (pause puis confirmation : le boss attend ton retour, le score d'Arcade est gardé) ; en haut à droite, la pause. L'appli passée en arrière-plan se met en pause. La pause fige tout le combat (PV, chrono, barre de temps de l'Arcade) ; « Fausse alerte » est dans le menu pause.
 - **Neuf paliers d'impact** : coup, coup sûr, coup net, critique, critique noir, impact noir, fracture, supernova, transe. Les paliers 3 à 9 tombent à des combos précis, plus espacés pour les grosses envies ; la transe double les dégâts jusqu'au prochain raté. K.O. en *Tranche* ou en *Manga*.
-- **Durée** : PV calibrés par simulation pour qu'un bon joueur gagne en 1 min (envie à 1) à 3 min (envie à 5). Le boss s'épuise tout seul et meurt au bout de 5 minutes (épuisement lent puis rapide) : on ne perd qu'en déclarant une rechute.
+- **Durée** : PV calibrés par simulation pour qu'un bon joueur gagne en 1 min (envie à 1) à 3 min (envie à 5). Pas d'épuisement : seuls tes coups font tomber le boss, et il t'attend si tu quittes le combat. On ne perd qu'en déclarant une rechute.
 - **Jauge à thèmes** : Néon fluide, Katana ou Arcade LED, au choix dans les réglages (aperçu animé). Parfait (±90 ms), bien (±210 ms), 40 ms de retard pardonnés. Cinq parfaits d'affilée : une série, avec un coup bonus.
 - **Tentation** : de temps en temps, ce sont deux clopes qui glissent dans la jauge. Ne touche pas : elles s'écrasent au centre et le boss perd 3 % de PV, combo intact. Toucher, c'est la prendre : il se soigne de 8 % et le combo casse.
-- **Rang** : S (dans le temps visé avec un beau combo), A (moins de 1,5 × le temps visé), B (abattu avant l'épuisement), C (épuisement).
+- **Rang** : S (dans le temps visé avec un beau combo), A (moins de 1,5 × le temps visé), B (moins de 3 ×), C (au-delà).
 - **Niveau joueur et talents** : chaque combat rapporte de l'XP joueur (victoire, combo max, rang), l'Arcade aussi (plafonnée par jour). Un point par niveau dans un arbre à trois branches : *Puissance* (dégâts, paliers plus tôt, refus cinglant, coup de grâce), *Technique* (fenêtres « parfait » et « bon » plus larges, cercles plus lents, ratés pardonnés), *Spectacle* (débloque les paliers 6 à 9 et le K.O. Manga). Réinitialisable.
 - **Arcade** : Entraînement (30 s), Sans fin (trois vies, ça accélère), Boss Run (les 11 boss à la suite, chrono), chacun avec son record. Rien n'y touche aux envies.
 - **Victoire** : la clope de l'envie s'écrase dans le cendrier, crache sa braise et s'éteint. Le bocal de l'accueil compte toutes les clopes écrasées.
