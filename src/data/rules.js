@@ -59,7 +59,7 @@ export const HEALTH = [
   { ms: 270 * DAY, lab: "9 mois", t: "Les poumons se réparent", d: "La toux et l'essoufflement diminuent, la capacité pulmonaire peut augmenter jusqu'à 10 %.", ic: "lungsStar", col: "pink" },
   { ms: 365 * DAY, lab: "1 an", t: "Cœur protégé", d: "Le risque de crise cardiaque est environ deux fois plus faible que celui d'un fumeur.", ic: "heartShield", col: "heart" },
   { ms: 3652 * DAY, lab: "10 ans", t: "Cancer du poumon divisé par deux", d: "Le risque de cancer du poumon tombe à environ la moitié de celui d'un fumeur.", ic: "lungsShield", col: "pink" },
-  { ms: 5479 * DAY, lab: "15 ans", t: "Comme un non-fumeur", d: "Le risque de crise cardiaque redevient celui de quelqu'un qui n'a jamais fumé.", ic: "trophy", col: "quit" },
+  { ms: 5479 * DAY, lab: "15 ans", t: "Comme un non-fumeur", d: "Entre 10 et 15 ans après l'arrêt, l'espérance de vie redevient celle d'une personne qui n'a jamais fumé.", ic: "trophy", col: "quit" },
 ];
 
 /* ---------------- Respiration ---------------- */

@@ -44,7 +44,7 @@ export default function InstallCard({ dismissible = false }) {
         ) : p === "android" ? (
           <span>Dans le menu <b>⋮</b> du navigateur, choisis <b>Installer l'application</b> ou <b>Ajouter à l'écran d'accueil</b>.</span>
         ) : (
-          <span>Dans Chrome ou Edge, clique sur l'icône d'installation dans la barre d'adresse, ou menu → <b>Installer Roulement anti-clope</b>.</span>
+          <span>Dans Chrome ou Edge, clique sur l'icône d'installation dans la barre d'adresse, ou menu → <b>Installer Stub</b>.</span>
         )}
         {p.startsWith("ios") && (
           <p className="install-warn">Sur iPhone, l'app installée a sa propre mémoire, séparée de Safari. Installe-la d'abord, puis importe tes données dedans (Réglages → Mes données).</p>

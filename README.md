@@ -1,4 +1,4 @@
-# Roulement anti-clope
+# Stub
 
 App web pour arrêter de fumer, gamifiée : chaque envie de fumer se tient au combat (un boss en pixel art à abattre au clicker), en respirant ou en bougeant. Deux progressions séparées (sevrage et sport), des défis hebdo, des badges à paliers, le suivi des bénéfices santé, et un **coach caméra** qui compte tes répétitions et vérifie ta forme.
 
@@ -6,7 +6,15 @@ Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne qui
 
 ## Fonctionnalités
 
-Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer, santé), **Sport** (circuit, records, exos), **Joueur** (talents, boutique, arcade, boss), **Progrès** (défis, badges, stats) et **Réglages**. Sport, Joueur et Progrès peuvent être masqués dans les réglages : l'app ne montre que ce qui te parle.
+Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer), **Santé** (récupération, symptômes, la clope), **Sport** (circuit, records, exos), **Joueur** (talents, boutique, arcade, boss) et **Progrès** (défis, badges, stats). Santé, Sport, Joueur et Progrès peuvent être masqués : l'app ne montre que ce qui te parle.
+
+Chaque catégorie a ses réglages derrière la roue crantée de son en-tête (Sevrage : dernière clope ; Sport : coach caméra ; Joueur : bruitages, jauge, effets intenses). La roue crantée de l'Accueil ouvre les réglages généraux : sections affichées, installation, données, aide.
+
+L'Accueil ne garde que l'essentiel : depuis quand, le bouton « J'ai envie de fumer », envies tenues, clopes évitées et euros économisés, le niveau de chaque catégorie affichée et le prochain cap santé.
+
+**Santé** : la frise de récupération (sources Vidal et NHS) ; le suivi des symptômes du sevrage (on coche ce qu'on ressent, une courbe sur 14 jours, la durée habituelle de chaque symptôme et quand consulter, d'après le MSD Manual et le ministère australien de la Santé ; signaux d'urgence et 15, Tabac Info Service 39 89, 3114) ; « La clope » : ce que représente sa consommation (semaine, mois, an, euros) et les risques même à petite dose (Hackshaw et al., BMJ 2018 ; Bjartveit et Tverdal, Tobacco Control 2005 ; Santé publique France).
+
+Aucune animation ne tourne pour rien : les boucles de dessin ne vivent que pendant un combat ou une scène, le cendrier de victoire s'arrête une fois la clope éteinte, et le réglage « réduire les animations » du téléphone est respecté partout.
 
 | Écran | Contenu |
 |---|---|

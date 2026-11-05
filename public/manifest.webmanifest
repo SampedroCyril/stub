@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Roulement anti-clope",
-  "short_name": "Anti-clope",
-  "description": "Chaque envie de fumer devient un circuit de sport. Coach caméra, défis, badges et suivi santé.",
+  "name": "Stub",
+  "short_name": "Stub",
+  "description": "Arrête de fumer : chaque envie tenue, une clope écrasée. Santé, symptômes, sport, jeu.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

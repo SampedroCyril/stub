@@ -45,7 +45,8 @@ export class AshtrayScene {
     this.t = 0; this.stop = 0; this.shake = 0;
     this.resize();
     this.last = performance.now(); this.acc = 0;
-    const loop = (now) => { this.frame(now); this.raf = requestAnimationFrame(loop); };
+    // la boucle s'arrête d'elle-même une fois la scène finie (dernière fumée dissipée) : plus rien ne bouge
+    const loop = (now) => { this.frame(now); if (this.t < T_END + 240) this.raf = requestAnimationFrame(loop); };
     this.raf = requestAnimationFrame(loop);
   }
   destroy() { cancelAnimationFrame(this.raf); }

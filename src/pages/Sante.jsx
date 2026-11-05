@@ -3,6 +3,7 @@ import { Panel, Bar } from "../components/ui.jsx";
 import Icon, { LUNG_L, LUNG_R } from "../art/Icon.jsx";
 import { healthState } from "../lib/compute.js";
 import { HEALTH } from "../data/rules.js";
+import { SOURCES } from "../data/health.js";
 import { fDate, fTime, durationText } from "../lib/util.js";
 
 export default function Sante() {
@@ -52,7 +53,8 @@ export default function Sante() {
           );
         })}
       </div>
-      <p className="tip">Repères généraux publiés par les services de santé publics (NHS britannique notamment). Les délais varient d'une personne à l'autre. La vapoteuse avec nicotine compte aussi : le compteur part de ta dernière nicotine.</p>
+      <p className="tip">Repères généraux : les délais varient d'une personne à l'autre. La vapoteuse avec nicotine compte aussi : le compteur part de ta dernière nicotine.</p>
+      <p className="srcs">Sources : <a href={SOURCES.vidal.u} target="_blank" rel="noreferrer">{SOURCES.vidal.n}</a> · <a href={SOURCES.nhs.u} target="_blank" rel="noreferrer">{SOURCES.nhs.n}</a></p>
     </Panel>
   );
 }
