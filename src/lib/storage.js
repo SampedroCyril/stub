@@ -26,6 +26,7 @@ export const DEFAULT_STATE = {
   sound: true,
   gameSound: true,
   skills: [],
+  shop: { bought: [], eq: { ult: "random", ko: "random", sig: "s:classic" } },
   gaugeStyle: "fluid",
   sections: { sport: true, joueur: true, progres: true },
   intense: null,

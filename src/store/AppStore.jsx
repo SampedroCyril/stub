@@ -3,6 +3,7 @@ import { compute } from "../lib/compute.js";
 import { load, save, DEFAULT_STATE } from "../lib/storage.js";
 import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
+import { EARN } from "../game/shop.js";
 import { DEFIS } from "../data/defis.js";
 import { DEFI_XP, Q_TITLES, S_TITLES, P_TITLES, CRAV_XP, METHOD_NAME, titleOf } from "../data/rules.js";
 import { createBattle, hit, hpAt, victoryEvent, bestiary, RANK_XP } from "../game/battle.js";
@@ -16,11 +17,11 @@ export const SECTIONS = [
   { id: "accueil", label: "Accueil", icon: "home", views: ["accueil"] },
   { id: "sevrage", label: "Sevrage", icon: "leaf", views: ["sevrage", "respirer", "sante"] },
   { id: "sport", label: "Sport", icon: "dumbbell", views: ["circuit", "records", "exos"], optional: true, d: "Circuits, records caméra, exercices. Masquée : plus de « Bouger » quand tu notes une envie." },
-  { id: "joueur", label: "Joueur", icon: "gamepad", views: ["talents", "arcade", "bestiaire"], optional: true, d: "Combats de boss, talents, Arcade, bestiaire. Masquée : plus de « Combat » quand tu notes une envie." },
+  { id: "joueur", label: "Joueur", icon: "gamepad", views: ["talents", "boutique", "arcade", "bestiaire"], optional: true, d: "Combats de boss, talents, boutique, Arcade, bestiaire. Masquée : plus de « Combat » quand tu notes une envie." },
   { id: "progres", label: "Progrès", icon: "trophy", views: ["defis", "badges", "stats"], optional: true, d: "Défis de la semaine, badges, statistiques." },
   { id: "reglages", label: "Réglages", icon: "gear", views: ["reglages"] },
 ];
-export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", sante: "Santé", circuit: "Circuit", records: "Records", exos: "Exos", talents: "Talents", arcade: "Arcade", bestiaire: "Boss", defis: "Défis", badges: "Badges", stats: "Stats" };
+export const SUB_LABELS = { sevrage: "Envies", respirer: "Respirer", sante: "Santé", circuit: "Circuit", records: "Records", exos: "Exos", talents: "Talents", boutique: "Boutique", arcade: "Arcade", bestiaire: "Boss", defis: "Défis", badges: "Badges", stats: "Stats" };
 /** Sections affichées selon les réglages (Accueil, Sevrage et Réglages sont toujours là). */
 export const visibleSections = (state) => SECTIONS.filter((s) => !s.optional || state?.sections?.[s.id] !== false);
 export const sectionOn = (state, id) => state?.sections?.[id] !== false;
@@ -168,7 +169,7 @@ export function AppProvider({ children }) {
     const ev = cravingEvent(m, craving);
     setFlow({ mode: "idle" });
     setVictory({ battle: null, ev });
-    commit([...extraEvents, ev], [`Envie tenue ${METHOD_NAME[m]} : +${CRAV_XP[m]} XP sevrage`, ...msg], patch);
+    commit([...extraEvents, ev], [`Envie tenue ${METHOD_NAME[m]} : +${CRAV_XP[m]} XP sevrage · +${EARN.craving} mégots`, ...msg], patch);
   }, [cravingEvent, commit]);
   const winBattle = useCallback(() => {
     const b = battleRef.current;
@@ -177,7 +178,7 @@ export function AppProvider({ children }) {
     setBattle(null);
     setFlow({ mode: "idle" });
     setVictory({ battle: b, ev });
-    commit([ev], [`${BOSSES[b.boss].n} vaincu${ev.rk ? ` (rang ${ev.rk})` : ""} : +${CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0)} XP sevrage`]);
+    commit([ev], [`${BOSSES[b.boss].n} vaincu${ev.rk ? ` (rang ${ev.rk})` : ""} : +${CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0)} XP sevrage · +${EARN.craving + (ev.rk === "S" ? EARN.rankS : 0)} mégots`]);
   }, [commit, setBattle]);
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { milestonesFor, tierFor, damageFor, approachMs, judge, NOTE_GAP, WINDOW, CIG_EVERY, STREAK, STREAK_BONUS, pauseAfter } from "./combo.js";
+import { milestonesFor, tierFor, damageFor, approachMs, judge, NOTE_GAP, WINDOW, CIG_EVERY, STREAK_BONUS, pauseAfter } from "./combo.js";
 import { perksOf } from "../data/skills.js";
 
 const rnd = (a, b) => a + Math.random() * (b - a);
+const shownTier = (tier, p) => Math.min(tier, p.unlocked);
 const NO_TRAITS = { spot: 1, size: 1, crit: 1, tempt: 1 };
 
 /**
@@ -45,7 +46,8 @@ export function useClicker(stageRef, opts) {
     if (cig) s.nextCig = s.notes + Math.round(rnd(CIG_EVERY[0], CIG_EVERY[1]) * traits().tempt);
     const ramp = o.current.ramp ? Math.max(0.6, 1 - (performance.now() - s.start) / 150000) : 1;
     const w = windows();
-    const dur = approachMs(s.combo, perks().slow / traits().spot * ramp);
+    const focus = s.focus ? 1.3 : 1; s.focus = false; // Concentration : note plus lente après un gros palier
+    const dur = approachMs(s.combo, perks().slow / traits().spot * ramp * focus);
     s.note = { t0: performance.now(), dur, kind: cig ? "cig" : "hit", ...w };
     const gg = o.current.gaugeRef?.current;
     if (gg) gg.note = s.note;
@@ -81,6 +83,8 @@ export function useClicker(stageRef, opts) {
     const s = st.current, stg = stageRef.current;
     if (!s || !stg) return false;
     if (s.forgive > 0 && s.combo > 0) { s.forgive--; stg.forgiven(s.forgive); return false; }
+    // Éveil prolongé : le premier raté en Éveil ne fait pas retomber
+    if (s.trance && perks().keepTrance && !s.keptTrance) { s.keptTrance = true; stg.forgiven(0, "eveil tenu"); return false; }
     stg.breakCombo(); stg.exitTrance();
     s.combo = 0; s.trance = false;
     if (s.lives != null) {
@@ -112,15 +116,16 @@ export function useClicker(stageRef, opts) {
     s.combo++; s.hits++;
     s.maxCombo = Math.max(s.maxCombo, s.combo);
     const tier = tierFor(s.combo, ms);
-    if (tier === 9) s.trance = true;
+    if (tier === 9 && !s.trance) { s.trance = true; s.keptTrance = false; }
     const shown = Math.min(tier, p.unlocked);
-    const dmg = damageFor(tier, { fast, trance: s.trance, combo: s.combo, ms, power: p.power, crit: traits().crit });
+    const dmg = damageFor(tier, { fast, trance: s.trance, combo: s.combo, ms, power: p.power, crit: traits().crit, tranceMult: p.tranceMult });
+    if (p.focus && shownTier(tier, p) >= 6) s.focus = true;
     const d = o.current.onHit?.({ dmg, tier, shown, fast, combo: s.combo, maxCombo: s.maxCombo }) ?? dmg;
     s.score += d;
     stg.score = s.score; stg.combo = s.combo;
     stg.tier(shown, d, { combo: s.combo, label: `${o.current.unit || "-"}${d}` });
     // série de parfaits : bonus
-    if (s.perfects >= STREAK) {
+    if (s.perfects >= p.streak) {
       s.perfects = 0;
       const bonus = Math.round(STREAK_BONUS * p.power);
       const b = o.current.onHit?.({ dmg: bonus, tier: 3, shown: 3, fast: true, combo: s.combo, maxCombo: s.maxCombo }) ?? bonus;
@@ -155,7 +160,9 @@ export function useClicker(stageRef, opts) {
       start: performance.now(), combo: 0, maxCombo: 0, hits: 0, score: 0, trance: false, forgive: p.forgive,
       lives: o.current.lives ?? null, paused: false, notes: 0, nextCig: Math.round(rnd(6, 10) * traits().tempt), note: null, perfects: 0,
     };
-    stg.combo = 0; stg.score = 0; stg.koStyle = p.ko;
+    stg.combo = 0; stg.score = 0;
+    const gg = o.current.gaugeRef?.current;
+    if (gg) gg.streakN = p.streak;
     stg.frenzy = d ? { start: performance.now(), dur: d } : null;
     if (d) { st.current.endAt = performance.now() + d; st.current.end = setTimeout(() => stop(false), d); }
     setActive(true);
@@ -177,7 +184,7 @@ export function useClicker(stageRef, opts) {
     if (!s) return;
     s.paused = false;
     const stg = stageRef.current;
-    if (stg) { stg.combo = s.combo; stg.koStyle = perks().ko; }
+    if (stg) stg.combo = s.combo;
     next(delay);
   }, [stageRef, next]); // eslint-disable-line react-hooks/exhaustive-deps
   /**

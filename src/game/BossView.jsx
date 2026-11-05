@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { BossStage } from "./gfx/BossStage.js";
 import { useApp } from "../store/AppStore.jsx";
+import { useArsenal } from "./useArsenal.js";
 
 /**
  * Scène de combat en canvas (gfx/BossStage) dans un composant React.
@@ -8,7 +9,9 @@ import { useApp } from "../store/AppStore.jsx";
  */
 export default function BossView({ stageRef, boss, maxHp, hp, lvl = 1, training = false, onTap, onWeakExpire, className = "" }) {
   const { state } = useApp();
-  const cv = useRef(null), cbs = useRef({});
+  const arsenal = useArsenal();
+  const cv = useRef(null), cbs = useRef({}), ars = useRef(arsenal);
+  ars.current = arsenal;
   cbs.current = { onTap, onWeakExpire };
   const intense = state.intense ?? !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -20,6 +23,10 @@ export default function BossView({ stageRef, boss, maxHp, hp, lvl = 1, training 
       onTap: (e) => cbs.current.onTap?.(e),
       onWeakExpire: () => cbs.current.onWeakExpire?.(),
     });
+    // Arsenal : réserves d'ultimes et de K.O., signature tirée pour tout le combat
+    const a = ars.current;
+    s.ultPool = a.ult; s.koPool = a.ko;
+    s.hitSkin = a.sig[(Math.random() * a.sig.length) | 0];
     stageRef.current = s;
     return () => { s.destroy(); if (stageRef.current === s) stageRef.current = null; };
     // la scène n'est recréée que pour un autre boss ou un autre combat

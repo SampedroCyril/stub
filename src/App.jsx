@@ -7,6 +7,7 @@ import Arcade from "./pages/Arcade.jsx";
 import Records from "./pages/Records.jsx";
 import Bestiaire from "./pages/Bestiaire.jsx";
 import Talents from "./pages/Talents.jsx";
+import Boutique from "./pages/Boutique.jsx";
 import Victory from "./game/Victory.jsx";
 import BossThumb from "./game/BossThumb.jsx";
 import { BOSSES } from "./game/bosses.js";
@@ -64,6 +65,7 @@ function Shell() {
       <Defis onRecap={open} />
       <Bestiaire />
       <Talents />
+      <Boutique />
       <Badges />
       <Stats onRecap={open} />
       <Records />

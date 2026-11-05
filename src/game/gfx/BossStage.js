@@ -27,8 +27,8 @@ function crownSprite() {
 /** Son de chaque petit palier (les gros paliers ont le leur). */
 const TIER_SFX = { 1: "hit", 2: "hit2", 3: "hit3", 4: "crit4", 5: "crit5" };
 
-/** Style choisi, ou tiré au hasard parmi les variantes quand il vaut « random ». */
-const pick = (style, all) => (style === "random" || !style ? all[(Math.random() * all.length) | 0] : style);
+/** Effet tiré au hasard dans une réserve (Arsenal), ou l'effet par défaut. */
+const pickFrom = (pool, def) => (pool?.length ? pool[(Math.random() * pool.length) | 0] : def);
 
 
 /**
@@ -103,6 +103,9 @@ export class BossStage {
     this.ov.width = this.OW * this.scale * dpr; this.ov.height = this.OH * this.scale * dpr;
     this.ov.style.width = `${this.OW * this.scale}px`; this.ov.style.height = `${this.OH * this.scale}px`;
   }
+
+  /** Ultime à jouer : tiré dans la réserve de l'Arsenal (un seul effet si un ultime est équipé). */
+  pickUlt() { return pickFrom(this.ultPool, "fracture"); }
 
   // ---------- état du boss ----------
   get crack() { const f = this.hp / this.maxHp; return f > 0.7 ? 0 : f > 0.45 ? 1 : f > 0.2 ? 2 : 3; }
@@ -182,7 +185,7 @@ export class BossStage {
       return { x, y, vx: Math.cos(a) * v - dir * 0.4, vy: Math.sin(a) * v - 0.6, g: 0.14, life: rnd(35, 80) | 0, c: cols[(Math.random() * cols.length) | 0], size: Math.random() < 0.35 ? 2 : 1, floor: FLOOR, bounce: 0.45, blink: true };
     });
     const SK = !refuse && this.hitSkin && HIT_SKINS[this.hitSkin]?.p ? HIT_SKINS[this.hitSkin] : null;
-    const bigStyle = big ? opts.style ?? pick(this.ultStyle, ["fracture", "nova"]) : null, P = big ? ULT[bigStyle]?.pal || DARK : DARK;
+    const bigStyle = big ? opts.style ?? this.pickUlt() : null, P = big ? ULT[bigStyle]?.pal || DARK : DARK;
     if (SK) {
       this.front.burst(big ? 30 : crit ? 22 : SK.cnt, (i) => SK.p(x, y, big ? 1.4 : crit ? 1.2 : 1, i));
       if (!big) this.stamps.push({ k: this.hitSkin, x, y, age: 0, life: SK.life, r: Math.random() * 100 });
@@ -233,7 +236,7 @@ export class BossStage {
     const base = { x, y, label: o.label };
     if (t >= 9) this.enterTrance();
     if (t >= 7) {
-      const style = t === 7 ? "fracture" : t === 8 ? "nova" : this.trance && this.trance.n++ % 2 ? "nova" : "fracture";
+      const style = this.pickUlt();
       this.hit(dmg, { ...base, big: true, style, charge: 16, title: t >= 9 ? TITLES[9] : undefined });
       return;
     }
@@ -334,7 +337,7 @@ export class BossStage {
   breakCombo() { this.combo = 0; this.comboBreak = 12; }
   /** Résultat d'une note de la jauge : parfait, bon, raté, clope prise ou refusée. */
   judged(kind) { this.judgeFx = { kind, age: 0 }; }
-  forgiven(left) { this.judgeFx = { kind: "refused", age: 0 }; this.float(left ? `${left} joker` : "dernier joker", STAGE_W / 2, GAUGE_Y - 8, { color: "#73eff7", sc: 1 }); }
+  forgiven(left, text) { this.judgeFx = { kind: "refused", age: 0 }; this.float(text || (left ? `${left} joker` : "dernier joker"), STAGE_W / 2, GAUGE_Y - 8, { color: "#73eff7", sc: 1 }); }
 
   /** K.O. : éclair noir, gel, puis le boss éclate au ralenti en pixels qui rebondissent. */
   ko(style) {
@@ -342,7 +345,7 @@ export class BossStage {
     this.dead = true; this.weak = null;
     this.hp = 0; this.hurtT = 999; this.flash = 16; this.shake = 3; this.koT = 0; this.chroma = 30;
     const p = this.pos, o = this.ovPos(), ix = o.ox + p.x + p.w / 2, iy = o.oy + p.y + p.h / 2;
-    const st = style ?? pick(this.koStyle, ["cut", "manga"]), K = KO[st];
+    const st = style ?? pickFrom(this.koPool, "cut"), K = KO[st];
     this.koPal = K?.pal || DARK;
     if (st === "manga") { this.stop = 46; this.ovFx.push({ k: "manga", age: 0, life: 52, x: ix, y: iy }); play("ko_manga"); }
     else if (K?.stop) {
