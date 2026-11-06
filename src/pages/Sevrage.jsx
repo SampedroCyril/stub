@@ -30,7 +30,7 @@ export default function Sevrage() {
       <section className="stack">
         <h2>Ton sevrage</h2>
         <div className="stats">
-          <Stat label="Jours d'affilée" value={S.streak} small={`record : ${pl(S.best, "jour")}`} />
+          <Stat label="Jours d'affilée" value={S.streak} small={S.best ? `record : ${pl(S.best, "jour")}` : "premier jour en cours"} />
           <Stat label="Multiplicateur" value={multText(S.mult)} small={multNote(S)} />
           <Stat label="Envies tenues" value={S.res} small="au total" />
         </div>
@@ -40,9 +40,9 @@ export default function Sevrage() {
       <details className="box fold">
         <summary>Ton XP sevrage et comment la gagner</summary>
         <div className="rules">
-          <div><span>Jours complets sans fumer{S.rebonds ? ", rebonds compris" : ""}</span><b>{nf(S.xpDays + S.xpReb)}</b></div>
-          <div><span>Envies tenues</span><b>{nf(S.xpCrav)}</b></div>
-          <div><span>Défis sevrage</span><b>{nf(S.xpDefQ)}</b></div>
+          <div><span>XP des jours complets sans fumer{S.rebonds ? ", rebonds compris" : ""}</span><b>{nf(S.xpDays + S.xpReb)} XP</b></div>
+          <div><span>XP de tes {pl(S.res, "envie")} tenue{S.res > 1 ? "s" : ""}</span><b>{nf(S.xpCrav)} XP</b></div>
+          <div><span>XP des défis sevrage</span><b>{nf(S.xpDefQ)} XP</b></div>
           <div><span><b>Total</b></span><b>{nf(S.quitXp)} XP</b></div>
         </div>
         <span className="label">Barème</span>
