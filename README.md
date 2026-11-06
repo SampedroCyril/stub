@@ -6,7 +6,7 @@ Tout tourne dans le navigateur : pas de compte, pas de serveur, la vidéo ne qui
 
 ## Fonctionnalités
 
-Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer), **Santé** (récupération, symptômes, la cigarette), **Sport** (circuit, records, exos), **Joueur** (talents, boutique, arcade, boss) et **Progrès** (défis, badges, stats). Santé, Sport, Joueur et Progrès peuvent être masqués : l'app ne montre que ce qui te parle.
+Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, respirer), **Santé** (récupération, symptômes, la cigarette), **Sport** (circuit, records, exos), **Joueur** (talents, boutique, arcade, boss) et **Progrès** (stats, défis, badges). Santé, Sport, Joueur et Progrès peuvent être masqués : l'app ne montre que ce qui te parle.
 
 Quand on note une envie, sa force se règle sur une jauge de 1 à 10 (les envies notées avant sur 5 comptent double dans les stats) ; elle règle les PV du boss. Un combat quitté en cours de route reste ouvert : quelques secondes plus tard, l'app demande s'il faut l'annuler.
 
@@ -31,7 +31,7 @@ Aucune animation ne tourne pour rien : les boucles de dessin ne vivent que penda
 | Santé | 10 caps (20 min → 15 ans) datés depuis la dernière nicotine |
 | Défis | 3 défis tirés chaque lundi, +80 XP chacun, historique et récap par semaine |
 | Badges | 17 badges, 7 à 9 paliers chacun, avec date d'obtention |
-| Stats | Intensité sur 14 jours, déclencheurs, heures critiques, sport, journal |
+| Stats | Un seul endroit, quatre onglets : **Envies** (par jour, intensité, façon de les tenir, heures et jours, déclencheurs), **Cigarettes** (envies tenues face aux cigarettes sur 8 semaines, jour par jour, heures et jours, déclencheurs), **Sport** (XP par jour, totaux, exercices) et **Journal** (tout ce qui a été noté, par jour, filtrable). Chaque onglet commence par trois chiffres clés, chaque graphique a sa phrase de résumé et son détail au toucher. Couleurs : vert pour les envies, orange pour les cigarettes, bleu pour le sport (vérifiées pour le daltonisme). |
 | Réglages | Installation, export/import des données, date de la dernière cigarette, coach caméra, aide |
 | Exos | 25 exercices illustrés, difficulté, XP, compatibilité caméra |
 
