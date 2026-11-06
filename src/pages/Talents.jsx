@@ -113,7 +113,7 @@ export default function Talents() {
           <div><span>Rang S / A / B</span><b className="g">+{RANK_PXP.S} / +{RANK_PXP.A} / +{RANK_PXP.B}</b></div>
           <div><span>Arcade : 1 XP pour 50 points de score</span><b className="g">{ARCADE_DAY_CAP} max par jour</b></div>
         </div>
-        <p className="tip">L'XP joueur ne repart jamais à zéro, même après une rechute. L'Arcade est plafonnée pour que les vraies envies restent la meilleure façon de progresser.</p>
+        <p className="tip">L'XP joueur ne repart jamais à zéro, même après une rechute. L'Arcade est plafonnée pour que les vraies envies restent la meilleure façon de progresser. Ton multiplicateur d'XP, lié à ta récupération, s'applique aussi ici.</p>
       </details>
 
       {owned.length > 0 && (!confirm

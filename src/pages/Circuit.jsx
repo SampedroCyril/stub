@@ -7,6 +7,7 @@ import { EX, xpOf, fmtAmt, sides } from "../data/exercises.js";
 import { amount, pairAt, upcoming, randomPair, advanceRotation } from "../lib/circuit.js";
 import { cameraSupported } from "../pose/counters.js";
 import { clamp } from "../lib/util.js";
+import { withMult } from "../data/rules.js";
 
 const CameraCoach = lazy(() => import("../pose/CameraCoach.jsx"));
 
@@ -59,7 +60,7 @@ export default function Circuit() {
   const finish = (f) => {
     const items = pair.map((e) => ({ e, n: qty(e), ...(results[e] ? { cam: true } : {}) }));
     const xp = items.reduce((a, it) => a + xpOf(it.e, it.n), 0);
-    const events = [], msg = [`Circuit : +${xp} XP sport`];
+    const events = [], msg = [`Circuit : +${withMult(xp, S.mult)} XP sport`];
     events.push({ k: "circuit", t: new Date().toISOString(), f, items });
     const patch = { adj: clamp(adj + f, -3, 5), ...(flow.override ? {} : advanceRotation(state, sportL)) };
     if (fromCraving) { const c = flow.craving; go("sevrage"); holdCraving("sport", c, events, msg, patch); return; }
@@ -84,7 +85,7 @@ export default function Circuit() {
           {fromCraving && <div className="banner"><span>Fais le circuit : l'envie est tenue et sa cigarette finit au cendrier.</span></div>}
           <div className="card-head">
             <h2>{flow.override ? "Circuit au hasard" : "Ton circuit"}</h2>
-            <span className="timer">+{totalXp} XP</span>
+            <span className="timer">+{withMult(totalXp, S.mult)} XP</span>
           </div>
           <div className="moves">
             {pair.map((e, i) => (
@@ -134,7 +135,7 @@ export default function Circuit() {
           <div><span>Exo par jambe ou par côté</span><b className="s">× 2</b></div>
           <div><span>Défi sport de la semaine réussi</span><b className="s">+80</b></div>
         </div>
-        <p className="tip">La difficulté va de 1 à 5. Les quantités montent de 10 % par niveau sport et bougent de 12 % à chaque « trop dur » ou « trop facile ». Avec la caméra, c'est ce que tu as vraiment fait qui compte : plus de reps, plus d'XP.</p>
+        <p className="tip">La difficulté va de 1 à 5. Les quantités montent de 10 % par niveau sport et bougent de 12 % à chaque « trop dur » ou « trop facile ». Avec la caméra, c'est ce que tu as vraiment fait qui compte : plus de reps, plus d'XP. Ton multiplicateur d'XP, lié à ta récupération (Sevrage, Santé), s'applique aussi ici.</p>
       </details>
 
       {coach && (

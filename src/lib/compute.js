@@ -1,5 +1,5 @@
 import { EX, sides, circuitXp } from "../data/exercises.js";
-import { CRAV_XP, XP_DAY, DEFI_XP, SPORT_K, PLAYER_K, levelOf, quitLevelOf, multOf, afterSmoke, REBOUND_XP, methodOf, playerXpOf, HEALTH, ivOf } from "../data/rules.js";
+import { CRAV_XP, XP_DAY, DEFI_XP, SPORT_K, PLAYER_K, levelOf, quitLevelOf, stageMult, segMult, afterSmoke, withMult, REBOUND_XP, methodOf, playerXpOf, HEALTH, ivOf } from "../data/rules.js";
 import { DEFIS, pickDefis, evalDefi } from "../data/defis.js";
 import { BADGES, badgeInfo } from "../data/badges.js";
 import { RANK_XP } from "../game/battle.js";
@@ -50,25 +50,24 @@ export function compute(state, days, now = new Date()) {
   ser.defis = allWins.map((d, i) => ({ t: d.doneAt, v: i + 1 }));
 
   /* ---- sevrage ----
-   * L'XP se cumule sur tout le suivi et ne repart jamais à zéro. Une cigarette coupe la série en cours et retire la moitié
-   * du bonus de multiplicateur ; la première journée complète sans fumer qui suit rapporte un bonus de rebond. */
+   * L'XP se cumule sur tout le suivi et ne repart jamais à zéro. Le multiplicateur (commun à tous les modules) suit les
+   * caps santé de la série en cours ; une cigarette relance la série et garde au moins la moitié du bonus. */
   const elapsed = now - q;
   const streak = Math.floor(elapsed / DAY);
   const t0 = Math.min(+startAt, +q);
   // débuts de série : le début du suivi, chaque cigarette, la dernière date déclarée
   const starts = [...new Set([t0, ...smokes.map((e) => +new Date(e.t)).filter((t) => t >= t0 && t < +q), +q])].sort((a, b) => a - b);
-  const segs = []; // [début, fin, bonus de départ]
+  const segs = []; // [début, fin, bonus gardé]
   starts.forEach((s, i) => {
     const e = i + 1 < starts.length ? starts[i + 1] : +now;
     const prev = segs[i - 1];
-    const b0 = prev ? afterSmoke(multOf(Math.floor((prev[1] - prev[0]) / DAY), prev[2])) - 1 : 0;
-    segs.push([s, e, b0]);
+    segs.push([s, e, prev ? afterSmoke(segMult(prev[1] - prev[0], prev[2])) - 1 : 0]);
   });
-  /** Multiplicateur à l'instant t : bonus de départ de sa série + jours complets depuis son début. */
+  /** Multiplicateur à l'instant t (avant le début du suivi : × 1). */
   const multAt = (t) => {
     let g = null;
     for (const x of segs) { if (x[0] <= t) g = x; else break; }
-    return g ? multOf(Math.floor((t - g[0]) / DAY), g[2]) : 1;
+    return g ? segMult(t - g[0], g[2]) : 1;
   };
   const qPoints = [];
   ser.streak = []; // record de jours d'affilée, qui ne redescend jamais
@@ -77,13 +76,13 @@ export function compute(state, days, now = new Date()) {
   segs.forEach(([s, e, b0], i) => {
     const n = Math.floor((e - s) / DAY);
     for (let k = 1; k <= n; k++) {
-      const t = new Date(s + k * DAY), x = Math.round(XP_DAY * multOf(k - 1, b0));
+      const t = new Date(s + k * DAY), x = withMult(XP_DAY, segMult(k * DAY, b0));
       qPoints.push({ t, x });
       xpDays += x;
       if (k > rec) { rec = k; ser.streak.push({ t, v: k }); }
     }
     if (i > 0 && n >= 1) {
-      const t = new Date(s + DAY), x = Math.round(REBOUND_XP * multOf(0, b0));
+      const t = new Date(s + DAY), x = withMult(REBOUND_XP, segMult(DAY, b0));
       qPoints.push({ t, x });
       xpReb += x;
       ser.rebond.push({ t, v: ser.rebond.length + 1 });
@@ -99,19 +98,21 @@ export function compute(state, days, now = new Date()) {
     ser.res.push({ t: d, v: res });
     if (m === "sport") { resSport++; ser.ressport.push({ t: d, v: resSport }); }
     if (m === "breath") resBreath++;
-    const x = Math.round((CRAV_XP[m] + (RANK_XP[e.rk] || 0)) * multAt(+d));
+    const x = withMult(CRAV_XP[m] + (RANK_XP[e.rk] || 0), multAt(+d));
     qPoints.push({ t: d, x });
     xpCrav += x;
   });
   const quitWins = allWins.filter((d) => d.g === "quit" && +d.doneAt >= t0);
   let xpDefQ = 0;
-  quitWins.forEach((d) => { const x = Math.round(DEFI_XP * multAt(+d.doneAt)); qPoints.push({ t: d.doneAt, x }); xpDefQ += x; });
+  quitWins.forEach((d) => { const x = withMult(DEFI_XP, multAt(+d.doneAt)); qPoints.push({ t: d.doneAt, x }); xpDefQ += x; });
   qPoints.sort((a, b) => a.t - b.t);
   let qx = 0;
   ser.lvlq = [];
   qPoints.forEach((p) => { qx += p.x; ser.lvlq.push({ t: p.t, v: quitLevelOf(qx).L }); });
   const best = Math.max(state.best || 0, rec, streak);
-  const mult = multOf(streak, segs[segs.length - 1][2]);
+  const lastSeg = segs[segs.length - 1];
+  const mult = segMult(+now - lastSeg[0], lastSeg[2]);
+  const multKept = 1 + lastSeg[2] > stageMult(+now - lastSeg[0]); // le bonus gardé l'emporte sur les caps
 
   /* ---- jeu : boss et Frénésie ---- */
   let bossN = 0, frenzyN = 0;
@@ -150,10 +151,10 @@ export function compute(state, days, now = new Date()) {
       if (x.u === "reps") push("reps");
       if (it.cam && x.u === "reps") push("camreps");
     });
-    sPoints.push({ t: d, x: circuitXp(e) });
+    sPoints.push({ t: d, x: withMult(circuitXp(e), multAt(+d)) });
   });
   const sportWins = allWins.filter((d) => d.g === "sport");
-  sportWins.forEach((d) => sPoints.push({ t: d.doneAt, x: DEFI_XP }));
+  sportWins.forEach((d) => sPoints.push({ t: d.doneAt, x: withMult(DEFI_XP, multAt(+d.doneAt)) }));
   sPoints.sort((a, b) => a.t - b.t);
   ser.lvls = [];
   sPoints.forEach((p) => { c.xp += p.x; ser.lvls.push({ t: p.t, v: levelOf(c.xp, SPORT_K).L }); });
@@ -177,12 +178,12 @@ export function compute(state, days, now = new Date()) {
   let px = 0;
   const pDay = new Map();
   ser.lvlp = [];
-  ev.forEach((e) => { const x = playerXpOf(e, pDay); if (x) { px += x; ser.lvlp.push({ t: new Date(e.t), v: levelOf(px, PLAYER_K).L }); } });
+  ev.forEach((e) => { const x = withMult(playerXpOf(e, pDay), multAt(+new Date(e.t))); if (x) { px += x; ser.lvlp.push({ t: new Date(e.t), v: levelOf(px, PLAYER_K).L }); } });
 
   return {
     now, q, startAt, ev, ser, qPoints, sPoints, playerXp: px, player: levelOf(px, PLAYER_K),
     elapsed, streak, res, resSport, resBreath, xpDays, xpCrav, xpDefQ,
-    quitXp: qx, quit: quitLevelOf(qx), mult, xpReb, rebonds: ser.rebond.length, best, cravAll, smokes, breaths, breathSec, bossN, frenzyN,
+    quitXp: qx, quit: quitLevelOf(qx), mult, multKept, xpReb, rebonds: ser.rebond.length, best, cravAll, smokes, breaths, breathSec, bossN, frenzyN,
     tot, c, sportXp: c.xp, sport: levelOf(c.xp, SPORT_K), sportDays, sStreak, bestRun,
     weeks, allWins, sportWinsN: sportWins.length,
   };

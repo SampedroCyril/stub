@@ -27,7 +27,7 @@ export function LevelCard({ kind, label }) {
   const titles = kind === "quit" ? Q_TITLES : kind === "player" ? P_TITLES : S_TITLES;
   return (
     <div className={`lvl ${kind}`}>
-      <span className="label">{label}{kind === "quit" && <span className="lvl-mult" title="Multiplicateur de série">{multText(S.mult)}</span>}</span>
+      <span className="label">{label}{S.mult > 1 && <span className="lvl-mult" title="Multiplicateur d'XP, lié à ta récupération">{multText(S.mult)}</span>}</span>
       <div className="lvl-top">
         <span className="lvl-num"><small>niv.</small>{lv.L}</span>
         <span className="lvl-xp">{lv.max ? "Niveau maximum" : `${nf(lv.cur)} / ${nf(lv.need)} XP`}</span>

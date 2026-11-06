@@ -1,5 +1,5 @@
 import { useApp, sectionOn } from "../store/AppStore.jsx";
-import { Bar, Panel } from "../components/ui.jsx";
+import { Bar, Panel, multText } from "../components/ui.jsx";
 import Icon from "../art/Icon.jsx";
 import { healthState } from "../lib/compute.js";
 import { HEALTH, Q_TITLES, S_TITLES, P_TITLES, titleOf } from "../data/rules.js";
@@ -62,7 +62,7 @@ export default function Home() {
                 <span className="label">Prochain cap santé · {hs.next.lab}</span>
                 <strong>{hs.next.t}</strong>
                 <Bar pct={hs.frac * 100} color="var(--quit)" />
-                <span>Dans {durationText(hs.next.ms - S.elapsed)} · {hs.doneN}/{HEALTH.length} atteints</span>
+                <span>Dans {durationText(hs.next.ms - S.elapsed)} · puis XP {multText(Math.max(S.mult, hs.next.x))}</span>
               </div>
             </>
           ) : (

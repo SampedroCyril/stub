@@ -5,7 +5,7 @@ import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
 import { EARN } from "../game/shop.js";
 import { DEFIS } from "../data/defis.js";
-import { DEFI_XP, Q_TITLES, S_TITLES, P_TITLES, CRAV_XP, METHOD_NAME, titleOf } from "../data/rules.js";
+import { DEFI_XP, Q_TITLES, S_TITLES, P_TITLES, CRAV_XP, METHOD_NAME, titleOf, withMult } from "../data/rules.js";
 import { createBattle, hit, hpAt, victoryEvent, bestiary, RANK_XP } from "../game/battle.js";
 import { BOSSES } from "../game/bosses.js";
 
@@ -60,6 +60,8 @@ export function AppProvider({ children }) {
   }, []);
 
   const S = useMemo(() => compute(data.state, data.days, now), [data, now]);
+  const multRef = useRef(1);
+  multRef.current = S.mult;
 
   const go = useCallback((v) => {
     if (location.hash !== `#${v}`) location.hash = v;
@@ -95,7 +97,7 @@ export function AppProvider({ children }) {
     const after = compute(state, days, t);
     const msgs = [...extra];
     const won = new Set(before.allWins.map((d) => `${d.id}@${+d.doneAt}`));
-    after.allWins.forEach((d) => { if (!won.has(`${d.id}@${+d.doneAt}`)) msgs.push(`Défi réussi : ${DEFIS[d.id].n} (+${DEFI_XP} XP)`); });
+    after.allWins.forEach((d) => { if (!won.has(`${d.id}@${+d.doneAt}`)) msgs.push(`Défi réussi : ${DEFIS[d.id].n} (+${withMult(DEFI_XP, after.mult)} XP)`); });
     if (after.quit.L > before.quit.L) msgs.push(`Sevrage niveau ${after.quit.L} : ${titleOf(Q_TITLES, after.quit.L)}`);
     if (after.sport.L > before.sport.L) msgs.push(`Sport niveau ${after.sport.L} : ${titleOf(S_TITLES, after.sport.L)}`);
     if (after.player.L > before.player.L) msgs.push(`Joueur niveau ${after.player.L} : ${titleOf(P_TITLES, after.player.L)}. Un point de talent à dépenser !`);
@@ -157,7 +159,7 @@ export function AppProvider({ children }) {
     const ev = cravingEvent(m, craving);
     setFlow({ mode: "idle" });
     setVictory({ battle: null, ev });
-    commit([...extraEvents, ev], [`Envie tenue ${METHOD_NAME[m]} : +${CRAV_XP[m]} XP sevrage · +${EARN.craving} mégots`, ...msg], patch);
+    commit([...extraEvents, ev], [`Envie tenue ${METHOD_NAME[m]} : +${withMult(CRAV_XP[m], multRef.current)} XP sevrage · +${EARN.craving} mégots`, ...msg], patch);
   }, [cravingEvent, commit]);
   const winBattle = useCallback(() => {
     const b = battleRef.current;
@@ -166,12 +168,12 @@ export function AppProvider({ children }) {
     setBattle(null);
     setFlow({ mode: "idle" });
     setVictory({ battle: b, ev });
-    commit([ev], [`${BOSSES[b.boss].n} vaincu${ev.rk ? ` (rang ${ev.rk})` : ""} : +${CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0)} XP sevrage · +${EARN.craving + (ev.rk === "S" ? EARN.rankS : 0)} mégots`]);
+    commit([ev], [`${BOSSES[b.boss].n} vaincu${ev.rk ? ` (rang ${ev.rk})` : ""} : +${withMult(CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0), multRef.current)} XP sevrage · +${EARN.craving + (ev.rk === "S" ? EARN.rankS : 0)} mégots`]);
   }, [commit, setBattle]);
   const fleeBattle = useCallback(() => { setBattle(null); setFlow({ mode: "idle" }); }, [setBattle]);
 
   /**
-   * Une cigarette fumée : la série (et son multiplicateur) repart de zéro, l'XP reste. L'événement garde la date de la cigarette
+   * Une cigarette fumée : la série et les caps santé repartent de zéro, le multiplicateur garde la moitié de son bonus, l'XP reste. L'événement garde la date de la cigarette
    * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
    */
   const logSmoke = useCallback((tr = null, { silent = false } = {}) => {

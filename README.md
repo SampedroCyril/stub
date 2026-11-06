@@ -10,7 +10,7 @@ Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Quand on note une envie, sa force se règle sur une jauge de 1 à 10 (les envies notées avant sur 5 comptent double dans les stats) ; elle règle les PV du boss. Un combat quitté en cours de route reste ouvert : quelques secondes plus tard, l'app demande s'il faut l'annuler.
 
-**Une cigarette fumée** se note dans Sevrage (« J'ai fumé une cigarette »), avec son déclencheur si on veut : la série de jours sans fumer repart de zéro et le multiplicateur perd la moitié de son bonus ; l'XP, le niveau et les badges sont gardés. L'app affiche ensuite un bilan sans jugement, un conseil adapté au déclencheur et le bonus de rebond à aller chercher. Une cigarette notée par erreur s'annule dans le quart d'heure. Les économies (Santé, La cigarette) se calculent depuis le début du suivi, cigarettes fumées déduites.
+**Une cigarette fumée** se note dans Sevrage (« J'ai fumé une cigarette »), avec son déclencheur si on veut : la série et les caps santé repartent de zéro, le multiplicateur garde la moitié de son bonus ; l'XP, le niveau et les badges sont gardés. L'app affiche ensuite un bilan sans jugement, un conseil adapté au déclencheur et le bonus de rebond à aller chercher. Une cigarette notée par erreur s'annule dans le quart d'heure. Les économies (Santé, La cigarette) se calculent depuis le début du suivi, cigarettes fumées déduites.
 
 **Déclencheurs** (envies et cigarettes) rangés en quatre catégories : Situation, Émotion, Entourage, Corps, plus « Autre ». Chaque déclencheur amène son boss.
 
@@ -58,11 +58,11 @@ Rendu en canvas (`src/game/gfx/`) : boss dessinés par code (`bossArt.js`), ombr
 
 ## Barème
 
-- **Sevrage** (jamais perdu) : +100 par jour complet sans fumer ; par envie tenue +20 au combat (+10 / +5 au rang S / A), +20 en respirant, +25 au sport ; +80 par défi sevrage. **Multiplicateur de série** : +1 % par jour d'affilée sans fumer, sur tous ces gains (× 1,30 après 30 jours). Une cigarette remet la série à zéro et retire la moitié du bonus (× 1,30 devient × 1,15) : un écart isolé coûte peu, fumer à nouveau régulièrement ramène vite à × 1. **Rebond** : +100 (× multiplicateur) pour la première journée complète sans fumer après une cigarette, avec un badge. L'XP et le niveau ne sont jamais perdus.
+- **Sevrage** (jamais perdu) : +100 par jour complet sans fumer ; par envie tenue +20 au combat (+10 / +5 au rang S / A), +20 en respirant, +25 au sport ; +80 par défi sevrage. **Multiplicateur d'XP** (commun à sevrage, sport et joueur, pas aux mégots) : il suit les caps de récupération de la Santé, × 1,05 à 20 min, × 1,1 à 8 h, × 1,2 à 2 jours, × 1,3 à 3 jours, × 1,5 à 3 semaines, × 1,75 à 3 mois, × 2 à 9 mois, × 2,5 à 1 an, × 4 à 10 ans, × 5 à 15 ans. Une cigarette relance les caps, mais le multiplicateur garde au moins la moitié de son bonus (× 1,50 devient × 1,25) jusqu'à ce que les caps le dépassent. **Rebond** : +100 (× multiplicateur) pour la première journée complète sans fumer après une cigarette, avec un badge. L'XP et le niveau ne sont jamais perdus.
 - **Sport** (définitif) : reps × difficulté, ou secondes × difficulté ÷ 3, × 2 pour les exos « par côté », +80 par défi sport.
 - **Joueur** (définitif) : +20 par boss vaincu, +1 par point de combo max (60 au plus), +30 / +15 / +5 au rang S / A / B ; Arcade : 1 XP pour 50 points, 120 par jour au plus.
 - **Mégots** (monnaie de la boutique, jamais perdus) : +10 par envie tenue, +5 au rang S, +15 par journée entière sans fumer ; Arcade : 1 mégot pour 12 XP, 10 par jour au plus.
-- **Niveaux** : sevrage sur 999 niveaux, le niveau L demande `100 + (L-1)^1,6` XP (100 au début, environ 1 700 au niveau 100, 63 000 au niveau 998) ; sans fumer, compter un mois pour le niveau 30, un an pour le niveau 120, une vingtaine d'années pour le 999. Sport et joueur : seuil cumulé `K × (L-1) × L`, K = 60 (sport) et 50 (joueur).
+- **Niveaux** : sevrage sur 999 niveaux, le niveau L demande `100 + 2 × (L-1)^1,2` XP (100 au début, environ 600 au niveau 100, 8 000 au niveau 998) ; sans fumer, compter un mois pour le niveau 35, un an pour le niveau 145, environ 26 ans pour le 999 (un siècle sans multiplicateur). Sport et joueur : seuil cumulé `K × (L-1) × L`, K = 60 (sport) et 50 (joueur).
 
 ## Coach caméra
 

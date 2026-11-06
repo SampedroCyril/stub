@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useApp } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, multText } from "../components/ui.jsx";
-import { CRAV_XP, QUIT_MAX, REBOUND_XP } from "../data/rules.js";
+import { CRAV_XP, QUIT_MAX, REBOUND_XP, HEALTH } from "../data/rules.js";
 import CravingHost from "../components/CravingHost.jsx";
 import { SmokeSheet } from "../components/SmokeSheet.jsx";
 import { durationText, fTime, pl } from "../lib/util.js";
 
 const nf = (v) => v.toLocaleString("fr-FR");
-/** D'où vient le bonus : la série en cours, et ce qui a été gardé avant la dernière cigarette. */
+/** D'où vient le multiplicateur : le dernier cap santé atteint, ou la moitié gardée après une cigarette. */
 const multNote = (S) => {
-  const kept = Math.round((S.mult - 1) * 100) - S.streak;
-  if (!S.streak && !kept) return "+1 % par jour sans fumer";
-  return [S.streak && `+${S.streak} % de série`, kept > 0 && `+${kept} % gardés`].filter(Boolean).join(" · ");
+  if (S.multKept) return "moitié gardée de ton bonus";
+  const h = HEALTH.filter((x) => S.elapsed >= x.ms).pop();
+  return h ? `cap santé « ${h.lab} »` : "premier cap à 20 min";
 };
 
 export default function Sevrage() {
@@ -50,16 +50,19 @@ export default function Sevrage() {
           <div><span>Défi sevrage de la semaine réussi</span><b className="g">+80</b></div>
         </div>
         <div className="rules">
-          <div><span>Multiplicateur, par jour d'affilée sans fumer</span><b className="g">+1 %</b></div>
           <div><span>Rebond : première journée complète sans fumer après une cigarette</span><b className="g">+{REBOUND_XP}</b></div>
         </div>
-        <p className="tip">Le multiplicateur s'applique à tout ce que tu gagnes ici : après 30 jours sans fumer, chaque gain compte × 1,30. Une cigarette remet ta série à zéro et retire la moitié du bonus (× 1,30 devient × 1,15) ; ton XP et ton niveau restent acquis. Chaque niveau demande un peu plus d'XP que le précédent, jusqu'au niveau {QUIT_MAX}.</p>
+        <span className="label">Multiplicateur d'XP, selon ta récupération</span>
+        <div className="rules mult-rules">
+          {HEALTH.map((h) => <div key={h.lab} className={S.elapsed >= h.ms ? "on" : ""}><span>{h.lab} sans fumer</span><b>{multText(h.x)}</b></div>)}
+        </div>
+        <p className="tip">Chaque cap santé atteint augmente ton multiplicateur, qui s'applique à toute l'XP de l'app : sevrage, sport et joueur (pas aux mégots). Une cigarette relance les caps, mais tu gardes au moins la moitié de ton bonus (× 1,50 devient × 1,25) jusqu'à ce que les caps le dépassent à nouveau. Ton XP et ton niveau restent acquis. Chaque niveau demande un peu plus d'XP que le précédent, jusqu'au niveau {QUIT_MAX}.</p>
         <p className="tip">Une envie tenue au sport rapporte aussi l'XP sport du circuit, et un combat de l'XP joueur pour l'arbre de compétences.</p>
       </details>
 
       <section className="stack">
         <h2>Rechute</h2>
-        <p className="sub">Si tu as fumé, dis-le ici : ta série de jours repart de zéro et ton multiplicateur perd la moitié de son bonus. Ton XP et ton niveau sont gardés.</p>
+        <p className="sub">Si tu as fumé, dis-le ici : ta série et tes caps santé repartent de zéro, ton multiplicateur garde la moitié de son bonus. Ton XP et ton niveau sont gardés.</p>
         <button className="btn danger" type="button" onClick={() => setConfirm(true)}>J'ai fumé une cigarette</button>
         {canUndo && <button className="linkbtn" type="button" style={{ alignSelf: "flex-start" }} onClick={() => undoSmoke(lastEv)}>Annuler la cigarette notée à {fTime(new Date(lastEv.t))}</button>}
         {confirm && <SmokeSheet onClose={() => setConfirm(false)} />}
