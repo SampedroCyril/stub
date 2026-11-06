@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useApp } from "../store/AppStore.jsx";
 import TriggerPicker from "./TriggerPicker.jsx";
 import { multText } from "./ui.jsx";
-import { afterSmoke, REBOUND_XP } from "../data/rules.js";
+import { afterSmoke, segMult, withMult, REBOUND_XP } from "../data/rules.js";
 import { TRIG_NAME, TRIG_TIP, TRIG_TIP_DEFAULT } from "../data/triggers.js";
 
 const nf = (v) => v.toLocaleString("fr-FR");
@@ -29,7 +29,7 @@ export function SmokeSheet({ onClose }) {
         {!done ? (
           <>
             <header className="set-sheet-h"><h2 id="smk-t">Noter une cigarette</h2><button className="set-close" type="button" aria-label="Fermer" onClick={onClose}>✕</button></header>
-            <p className="tip">Ta série de jours sans fumer repart de zéro et ton multiplicateur perd la moitié de son bonus. Ton XP, ton niveau, tes badges et ton record sont gardés. Une rechute fait partie du chemin pour beaucoup de gens.</p>
+            <p className="tip">Ta série et tes caps santé repartent de zéro ; ton multiplicateur d'XP garde la moitié de son bonus. Ton XP, ton niveau, tes badges et ton record sont gardés. Une rechute fait partie du chemin pour beaucoup de gens.</p>
             <span className="label">Qu'est-ce qui l'a déclenchée ? (facultatif)</span>
             <TriggerPicker value={tr} onChange={setTr} />
             <div className="row2">
@@ -50,7 +50,7 @@ export function SmokeSheet({ onClose }) {
               <span className="label">Pour la prochaine fois{done.tr && TRIG_NAME[done.tr] ? ` · ${TRIG_NAME[done.tr]}` : ""}</span>
               <p>{(done.tr && TRIG_TIP[done.tr]) || TRIG_TIP_DEFAULT}</p>
             </section>
-            <p className="smk-reb"><b>Rebond</b> : tiens 24 heures sans fumer et gagne +{Math.round(REBOUND_XP * done.after)} XP en plus de ta journée.</p>
+            <p className="smk-reb"><b>Rebond</b> : tiens 24 heures sans fumer et gagne +{withMult(REBOUND_XP, segMult(864e5, done.after - 1))} XP en plus de ta journée.</p>
             <button className="btn green" type="button" onClick={onClose}>On repart</button>
           </>
         )}

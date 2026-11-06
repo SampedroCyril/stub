@@ -1,5 +1,5 @@
 import { useApp } from "../store/AppStore.jsx";
-import { Panel, Bar } from "../components/ui.jsx";
+import { Panel, Bar, multText } from "../components/ui.jsx";
 import Icon, { LUNG_L, LUNG_R } from "../art/Icon.jsx";
 import { healthState } from "../lib/compute.js";
 import { HEALTH } from "../data/rules.js";
@@ -34,6 +34,7 @@ export default function Sante() {
           <span className="big-num">{hs.doneN} / {HEALTH.length}</span>
           <strong>caps santé atteints</strong>
           <span className="tip">{hs.next ? `Prochain : ${hs.next.t.toLowerCase()}, dans ${durationText(hs.next.ms - el)}.` : "Tu as tout débloqué."} Les poumons se colorent à chaque cap.</span>
+          <span className="h-mult">Multiplicateur d'XP <b>{multText(S.mult)}</b>{hs.next && hs.next.x > S.mult ? <> · {multText(hs.next.x)} au prochain cap</> : null}</span>
         </div>
       </section>
 
@@ -45,7 +46,7 @@ export default function Sante() {
               <Icon name={h.ic} col={h.col} />
               <div className="body">
                 <div className="when"><b>{done ? "✓ " : ""}{h.lab}</b><span>{done ? `Atteint le ${fDate(at)} à ${fTime(at)}` : `Dans ${durationText(h.ms - el)}`}</span></div>
-                <h3>{h.t}</h3>
+                <h3><span>{h.t}</span><em className="ms-x">XP {multText(h.x)}</em></h3>
                 <p>{h.d}</p>
                 {isNext && <Bar pct={hs.frac * 100} />}
               </div>

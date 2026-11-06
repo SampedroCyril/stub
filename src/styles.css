@@ -870,3 +870,13 @@ details.fold[open]>summary::after{content:"–"}
 .smk-tip p{margin:0;font-size:14px;line-height:1.45}
 .smk-reb{margin:0;font-size:13px;color:var(--muted)}
 .smk-reb b{color:var(--quit)}
+/* multiplicateur d'XP lié aux caps santé */
+.h-mult{font-size:13px;color:var(--muted)}
+.h-mult b{font:700 14px var(--f-mono);color:var(--quit)}
+.ms h3{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ms h3 .ms-x{flex:none;margin-top:2px;font:600 11px var(--f-mono);font-style:normal;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:1px 7px}
+.ms.done h3 .ms-x{color:var(--quit);border-color:var(--quit-soft);background:var(--quit-soft)}
+.mult-rules div span{color:var(--muted)}
+.mult-rules div.on span{color:var(--ink)}
+.mult-rules div:not(.on) b{color:var(--muted)}
+.mult-rules div.on b{color:var(--quit)}

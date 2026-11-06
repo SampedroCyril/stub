@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { compute, recapDue } from "../src/lib/compute.js";
 import { normalizeData, parseImport, exportJson, mergeDays } from "../src/lib/storage.js";
 import { xpOf } from "../src/data/exercises.js";
-import { levelOf, quitLevelOf, quitNeed, multOf, titleOf, Q_TITLES } from "../src/data/rules.js";
+import { levelOf, quitLevelOf, quitNeed, stageMult, segMult, afterSmoke, titleOf, Q_TITLES } from "../src/data/rules.js";
 import { amount } from "../src/lib/circuit.js";
 
 const iso = (...a) => new Date(...a).toISOString();
@@ -38,14 +38,22 @@ test("niveaux sevrage : 999 niveaux, de plus en plus chers", () => {
   assert.ok(quitNeed(100) > quitNeed(10) && quitNeed(500) > quitNeed(100));
   assert.equal(quitLevelOf(1e12).L, 999);
   assert.ok(quitLevelOf(1e12).max);
-  assert.equal(multOf(0), 1);
-  assert.equal(multOf(30), 1.3);
+  const H = 36e5, D = 24 * H;
+  assert.equal(stageMult(0), 1);
+  assert.equal(stageMult(20 * 6e4), 1.05);
+  assert.equal(stageMult(8 * H), 1.1);
+  assert.equal(stageMult(30 * D), 1.5);
+  assert.equal(stageMult(365 * D), 2.5);
+  assert.equal(afterSmoke(1.5), 1.25);
+  assert.equal(segMult(2 * H, 0.25), 1.25); // le bonus gardé sert de plancher
+  assert.equal(segMult(84 * D, 0.25), 1.75); // puis les caps reprennent la main
   assert.equal(titleOf(Q_TITLES, 1), "Premier pas");
   assert.equal(titleOf(Q_TITLES, 14), "Bien parti");
+  assert.equal(titleOf(Q_TITLES, 145), "Ex-fumeur");
   assert.equal(titleOf(Q_TITLES, 999), "Légende");
 });
 
-test("XP sevrage : jours + envies selon la méthode, avec le multiplicateur de série", () => {
+test("XP : jours + envies selon la méthode, multipliées par les caps santé atteints", () => {
   const now = new Date(2026, 10, 4, 14, 0);
   const { state, days } = base(iso(2026, 10, 2, 0, 0));
   days["2026-11-04"] = [
@@ -56,10 +64,11 @@ test("XP sevrage : jours + envies selon la méthode, avec le multiplicateur de s
   ];
   const S = compute(state, days, now);
   assert.equal(S.streak, 2);
-  // jour 1 × 1, jour 2 × 1,01 ; envies du 3e jour × 1,02
-  assert.equal(S.quitXp, 100 + 101 + 15 + 20 + 26);
-  assert.equal(S.mult, 1.02);
-  assert.equal(S.sportXp, 30);
+  // jour 1 (cap 8 h, × 1,1), jour 2 (cap 2 jours, × 1,2) ; envies du 3e jour × 1,2
+  assert.equal(S.quitXp, 110 + 120 + 18 + 24 + 30);
+  assert.equal(S.mult, 1.2);
+  assert.equal(S.multKept, false);
+  assert.equal(S.sportXp, 36); // le multiplicateur vaut aussi pour le sport
   assert.equal(S.res, 3);
 });
 
@@ -74,10 +83,11 @@ test("rechute : l'XP et le niveau restent, la série repart de zéro et le bonus
   const state = { ...base(iso(2026, 10, 2)).state, quitAt: iso(2026, 10, 5, 22), best: 3 };
   const S = compute(state, days, now);
   assert.equal(S.streak, 0);
-  assert.equal(S.mult, 1.015); // × 1,03 au moment de la cigarette, la moitié du bonus reste
+  assert.equal(S.mult, 1.15); // × 1,3 au moment de la cigarette (cap 3 jours), la moitié du bonus reste
+  assert.equal(S.multKept, true);
   assert.equal(S.res, 1);
-  assert.equal(S.quitXp, 100 + 101 + 102 + 25); // 3 jours avant la cigarette + l'envie du 3 (× 1,01)
-  assert.equal(S.sportXp, 24);
+  assert.equal(S.quitXp, 110 + 120 + 130 + 28); // 3 jours avant la cigarette + l'envie du 3 (× 1,1)
+  assert.equal(S.sportXp, 26);
   assert.equal(S.best, 3);
   assert.deepEqual(S.ser.streak.map((p) => p.v), [1, 2, 3]); // le badge « Sans fumer » garde son record
 });
@@ -87,12 +97,13 @@ test("après une cigarette, le multiplicateur garde la moitié de son bonus, et 
   days["2026-11-11"] = [{ k: "smoked", t: iso(2026, 10, 11, 0) }];
   const state = { ...base(iso(2026, 10, 1)).state, quitAt: iso(2026, 10, 11, 0) };
   const S = compute(state, days, new Date(2026, 10, 13, 12));
-  // 10 jours (100 à 109), × 1,10 coupé en × 1,05, puis 2 jours (105 et 106)
-  assert.equal(S.xpDays, 1045 + 211);
-  assert.equal(S.xpReb, 105); // première journée complète après la cigarette : 100 × 1,05
+  // 10 jours (110, 120, puis 8 × 130), × 1,3 coupé en × 1,15, puis 2 jours (115, puis 120 au cap 2 jours)
+  assert.equal(S.xpDays, 1270 + 235);
+  assert.equal(S.xpReb, 115); // première journée complète après la cigarette : 100 × 1,15
   assert.equal(S.rebonds, 1);
   assert.equal(S.streak, 2);
-  assert.equal(S.mult, 1.07);
+  assert.equal(S.mult, 1.2);
+  assert.equal(S.multKept, false);
   assert.equal(S.best, 10);
 });
 
@@ -101,8 +112,8 @@ test("fumer régulièrement ramène vite le multiplicateur vers × 1", () => {
   days["2026-12-01"] = [{ k: "smoked", t: iso(2026, 11, 1, 9) }, { k: "smoked", t: iso(2026, 11, 1, 13) }, { k: "smoked", t: iso(2026, 11, 1, 18) }];
   const state = { ...base(iso(2026, 9, 1)).state, quitAt: iso(2026, 11, 1, 18) };
   const S = compute(state, days, new Date(2026, 11, 1, 20));
-  // 61 jours : × 1,61, puis 3 cigarettes le même jour : 1,305, 1,1525, 1,0763 (arrondi)
-  assert.ok(S.mult > 1.07 && S.mult < 1.08, String(S.mult));
+  // 61 jours : × 1,5 (cap 3 semaines), puis 3 cigarettes le même jour : 1,25, 1,125, 1,0625
+  assert.equal(S.mult, 1.0625);
   assert.equal(S.rebonds, 0);
 });
 

@@ -3,9 +3,10 @@ import { useApp } from "../store/AppStore.jsx";
 import { AshtrayScene } from "./gfx/Ashtray.js";
 import { useArsenal } from "./useArsenal.js";
 import { BOSSES } from "./bosses.js";
-import { CRAV_XP, METHOD_NAME, playerXpOf } from "../data/rules.js";
+import { CRAV_XP, METHOD_NAME, playerXpOf, withMult } from "../data/rules.js";
 import { RANK_XP } from "./battle.js";
 import { pad, pl } from "../lib/util.js";
+import { multText } from "../components/ui.jsx";
 
 /** Écran de victoire : la cigarette de l'envie s'écrase et s'éteint dans le cendrier. */
 export default function Victory() {
@@ -26,7 +27,7 @@ export default function Victory() {
   if (!victory) return null;
   const { battle: b, ev } = victory;
   const B = b ? BOSSES[b.boss] : null;
-  const pxp = playerXpOf(ev);
+  const pxp = withMult(playerXpOf(ev), S.mult);
   const close = () => setVictory(null);
 
   return (
@@ -44,7 +45,7 @@ export default function Victory() {
         <div className="v-stats">
           {B ? <div><span className="label">Temps</span><b>{Math.floor(ev.kt / 60)}:{pad(ev.kt % 60)}</b></div> : null}
           {B ? <div><span className="label">Combo max</span><b>{ev.mc || 0}</b>{pxp ? <small className="v-bonus">+{pxp} XP joueur</small> : null}</div> : <div><span className="label">Façon</span><b>{{ breath: "Respiration", sport: "Sport", game: "Combat" }[ev.m] || "Tenue"}</b></div>}
-          <div><span className="label">XP sevrage</span><b>+{CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0)}</b>{RANK_XP[ev.rk] ? <small className="v-bonus">dont +{RANK_XP[ev.rk]} rang {ev.rk}</small> : null}</div>
+          <div><span className="label">XP sevrage</span><b>+{withMult(CRAV_XP[ev.m] + (RANK_XP[ev.rk] || 0), S.mult)}</b>{S.mult > 1 ? <small className="v-bonus">multiplicateur {multText(S.mult)}</small> : RANK_XP[ev.rk] ? <small className="v-bonus">dont +{RANK_XP[ev.rk]} rang {ev.rk}</small> : null}</div>
         </div>
         <div className="r-foot"><button ref={btn} className="btn green" type="button" onClick={close}>Continuer</button></div>
       </div>
