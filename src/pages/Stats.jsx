@@ -7,6 +7,7 @@ import { METHOD_NAME, PATTERNS, methodOf, ivOf } from "../data/rules.js";
 import { TRIG_NAME, CAT_NAME } from "../data/triggers.js";
 import { BOSSES } from "../game/bosses.js";
 import { cravingStats, smokeStats } from "../lib/insights.js";
+import { SmokeSheet } from "../components/SmokeSheet.jsx";
 import { DOW, dayKey, fTime, fmt1, mins, pl, durationText, lastNDays, weekStart } from "../lib/util.js";
 
 const TABS = [["envies", "Envies"], ["cigarettes", "Cigarettes"], ["sport", "Sport"], ["journal", "Journal"]];
@@ -177,6 +178,7 @@ function Journal() {
   const { S } = useApp();
   const [f, setF] = useState("all");
   const [n, setN] = useState(40);
+  const [fix, setFix] = useState(null); // cigarette à corriger
   const list = S.ev.filter((e) => f === "all" || kindOf(e) === f).slice().reverse();
   const shown = list.slice(0, n);
   const groups = [];
@@ -189,21 +191,22 @@ function Journal() {
       {groups.length ? groups.map((g) => (
         <section key={g.k} className="box log-day">
           <h3>{g.d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }).replace(/^./, (c) => c.toUpperCase())}</h3>
-          <div className="log">{g.l.map((e, i) => <Line key={i} e={e} />)}</div>
+          <div className="log">{g.l.map((e, i) => <Line key={i} e={e} onFix={setFix} />)}</div>
         </section>
       )) : <p className="empty box">Rien pour l'instant.</p>}
       {list.length > n && <button className="btn" type="button" onClick={() => setN(n + 40)}>Voir plus</button>}
+      {fix && <SmokeSheet edit={fix} onClose={() => setFix(null)} />}
     </>
   );
 }
 
-function Line({ e }) {
+function Line({ e, onFix }) {
   const d = new Date(e.t), when = <time>{fTime(d)}</time>;
   const row = (cls, title, rest) => <div>{when}<span className="what"><span className={cls}>{title}</span>{rest}</span></div>;
   if (e.k === "craving") return row("k-craving", e.b ? `${BOSSES[e.b]?.n || "Boss"} vaincu` : "Envie tenue", ` ${METHOD_NAME[methodOf(e)]}${ivOf(e) ? ` · ${ivOf(e)}/10` : ""}${e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : ""}`);
   if (e.k === "breath") return row("k-breath", "Respiration", ` ${PATTERNS[e.p] ? PATTERNS[e.p].n.toLowerCase() : ""} · ${mins(e.sec || 0)}`);
   if (e.k === "game") return row("k-game", e.g === "frenzy" ? "Frénésie" : "Blocs", ` ${e.s} points`);
-  if (e.k === "smoked") return row("k-smoked", "Cigarette", e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : "");
+  if (e.k === "smoked") return <button type="button" className="log-fix" onClick={() => onFix(e)} aria-label={`Corriger la cigarette de ${fTime(d)}`}>{when}<span className="what"><span className="k-smoked">Cigarette</span>{e.tr ? ` · ${TRIG_NAME[e.tr] || e.tr}` : ""}</span><i aria-hidden="true">Corriger</i></button>;
   if (e.k === "challenge") return row("k-circuit", "Défi caméra", ` ${(e.items || []).filter((it) => EX[it.e]).map((it) => `${EX[it.e].n} ${fmtAmt(it.e, it.n)}`).join("")}`);
   return row("k-circuit", "Circuit", ` ${(e.items || []).filter((it) => EX[it.e]).map((it) => `${EX[it.e].n} ${fmtAmt(it.e, it.n)}${it.cam ? " ✓" : ""}`).join(" + ")}`);
 }

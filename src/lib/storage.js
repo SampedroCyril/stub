@@ -28,6 +28,8 @@ export const DEFAULT_STATE = {
   skills: [],
   sympt: {},
   cpd: 0,
+  reward: null, // récompense choisie dans « Tes gains » : { n, price }
+  spent: 0, // argent des récompenses déjà offertes
   packPrice: 0,
   shop: { bought: [], eq: { ult: "random", ko: "random", sig: "s:classic" } },
   gaugeStyle: "fluid",

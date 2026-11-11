@@ -10,13 +10,15 @@ Navigation en 6 sections (barre du bas) : **Accueil**, **Sevrage** (envies, resp
 
 Quand on note une envie, sa force se règle sur une jauge de 1 à 10 (les envies notées avant sur 5 comptent double dans les stats) ; elle règle les PV du boss. Un combat quitté en cours de route reste ouvert : quelques secondes plus tard, l'app demande s'il faut l'annuler.
 
-**Une cigarette fumée** se note dans Sevrage (« J'ai fumé une cigarette »), avec son déclencheur si on veut : la série et les caps santé repartent de zéro, le multiplicateur garde la moitié de son bonus ; l'XP, le niveau et les badges sont gardés. L'app affiche ensuite un bilan sans jugement, un conseil adapté au déclencheur et le bonus de rebond à aller chercher. Une cigarette notée par erreur s'annule dans le quart d'heure. Les économies (Santé, La cigarette) se calculent depuis le début du suivi, cigarettes fumées déduites.
+**Une cigarette fumée** se note depuis l'Accueil (« J'ai fumé une cigarette »), à l'instant ou plus tôt si on l'avait oubliée, avec son déclencheur si on veut : la série et les caps santé repartent de zéro, le multiplicateur garde la moitié de son bonus ; l'XP, le niveau et les badges sont gardés. L'app affiche ensuite un bilan sans jugement, un conseil adapté au déclencheur et le bonus de rebond à aller chercher. Les cigarettes notées se corrigent (heure, déclencheur) ou se retirent depuis la même fenêtre ou le Journal ; la date de dernière cigarette, la série et le record sont recalculés.
 
 **Déclencheurs** (envies et cigarettes) rangés en quatre catégories : Situation, Émotion, Entourage, Corps, plus « Autre ». Chaque déclencheur amène son boss.
 
 Chaque catégorie a ses réglages derrière la roue crantée de son en-tête (Sevrage : dernière cigarette ; Sport : coach caméra ; Joueur : bruitages, jauge, effets intenses). La roue crantée de l'Accueil ouvre les réglages généraux : sections affichées, installation, données, aide.
 
-L'Accueil ne garde que l'essentiel : depuis quand, le bouton « J'ai envie de fumer », envies tenues, cigarettes évitées et euros économisés, le niveau de chaque catégorie affichée et le prochain cap santé.
+L'Accueil ne garde que l'essentiel : depuis quand et combien d'envies tenues, les boutons « J'ai envie de fumer » et « J'ai fumé une cigarette », la carte **Tes gains**, le niveau de chaque catégorie affichée et le prochain cap santé.
+
+**Tes gains** : l'argent économisé en tête (la première semaine, le rythme par mois, plus parlant que quelques euros ; ensuite le total), la barre vers une récompense que l'on choisit (nom et prix, « Je me l'offre » une fois atteinte), puis le temps libre gagné (5 min par cigarette) et les paquets pas achetés. Toucher la carte ouvre une fenêtre qui explique le calcul avec ses propres chiffres (conso de départ, prix du paquet, cigarettes notées) et où l'on règle ces chiffres. Estimation : conso de départ × temps écoulé depuis le début du suivi, moins les cigarettes notées.
 
 **Santé** : la frise de récupération (sources Vidal et NHS) ; le suivi des symptômes du sevrage (on coche ce qu'on ressent, une courbe sur 14 jours, la durée habituelle de chaque symptôme et quand consulter, d'après le MSD Manual et le ministère australien de la Santé ; signaux d'urgence et 15, Tabac Info Service 39 89, 3114) ; « La cigarette » : ce que représente sa consommation (semaine, mois, an, euros) et les risques même à petite dose (Hackshaw et al., BMJ 2018 ; Bjartveit et Tverdal, Tobacco Control 2005 ; Santé publique France).
 
