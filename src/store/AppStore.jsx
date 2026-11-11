@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { compute } from "../lib/compute.js";
+import { editSmokes } from "../lib/smokes.js";
 import { load, save, DEFAULT_STATE } from "../lib/storage.js";
 import { dayKey } from "../lib/util.js";
 import { BADGES, TIER_NAMES, badgeSnapshot } from "../data/badges.js";
@@ -176,26 +177,24 @@ export function AppProvider({ children }) {
    * Une cigarette fumée : la série et les caps santé repartent de zéro, le multiplicateur garde la moitié de son bonus, l'XP reste. L'événement garde la date de la cigarette
    * précédente et le record (pq, pb) pour pouvoir annuler une erreur de saisie.
    */
-  const logSmoke = useCallback((tr = null, { silent = false } = {}) => {
-    const cur = dataRef.current, t = new Date();
-    const S0 = compute(cur.state, cur.days, t);
-    const ev = { k: "smoked", t: t.toISOString(), ...(tr ? { tr } : {}), pq: cur.state.quitAt, pb: cur.state.best || 0 };
-    const msg = "C'est noté. Ta série repart de zéro, ton XP et ton niveau restent. La prochaine envie, tu la tiens.";
-    setFlow({ mode: "idle" });
-    commit([ev], silent ? [] : [msg], { best: Math.max(cur.state.best || 0, S0.streak), quitAt: ev.t });
-  }, [commit]);
-  /** Annule une cigarette notée par erreur : l'événement disparaît, la date de dernière cigarette et le record reviennent. */
-  const undoSmoke = useCallback((ev) => {
-    const cur = dataRef.current, k = dayKey(new Date(ev.t));
-    const days = { ...cur.days, [k]: (cur.days[k] || []).filter((e) => !(e.k === "smoked" && e.t === ev.t)) };
-    if (!days[k].length) delete days[k];
-    const state = ev.pq ? { ...cur.state, quitAt: ev.pq, best: ev.pb ?? cur.state.best } : cur.state;
-    const next = { state, days };
+  /** Corrige l'historique des cigarettes (voir lib/smokes.js) et met à jour l'écran. */
+  const saveSmokes = useCallback((edit, msgs = []) => {
+    const t = new Date();
+    const next = editSmokes(dataRef.current, edit, t);
     dataRef.current = next;
     setData(next);
-    setNow(new Date());
-    flash(["Cigarette retirée."]);
+    setNow(t);
+    flash(msgs);
   }, [flash]);
+  /** Note une cigarette, maintenant ou à une heure passée (t) si elle avait été oubliée. */
+  const logSmoke = useCallback((tr = null, { silent = false, t = null, late = false } = {}) => {
+    if (!late) setFlow({ mode: "idle" });
+    saveSmokes({ add: { t: t || new Date(), tr, late } }, silent ? [] : ["C'est noté. Ta série repart de zéro, ton XP et ton niveau restent. La prochaine envie, tu la tiens."]);
+  }, [saveSmokes]);
+  /** Retire une cigarette notée par erreur. */
+  const undoSmoke = useCallback((ev) => saveSmokes({ remove: ev }, ["Cigarette retirée."]), [saveSmokes]);
+  /** Change l'heure ou le déclencheur d'une cigarette notée. */
+  const editSmoke = useCallback((ev, { t, tr }) => saveSmokes({ remove: ev, add: { t, tr, late: ev.late } }, ["Cigarette modifiée."]), [saveSmokes]);
 
   // Victoire automatique si les PV sont à 0 hors de l'écran de combat (sauf attaque en cours).
   useEffect(() => {
@@ -204,7 +203,7 @@ export function AppProvider({ children }) {
 
   const value = {
     data, state: data.state, days: data.days, S, now, view, go, toast, flash,
-    flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow, logSmoke, undoSmoke,
+    flow, setFlow, startCraving, setCravingField, cravingEvent, resetFlow, logSmoke, undoSmoke, editSmoke,
     battle, startBattle, hitBattle, patchBattle, holdCraving, winBattle, fleeBattle, victory, setVictory, queueFx, takeFx, battleView,
     commit, patchState, replaceData, wipe,
   };

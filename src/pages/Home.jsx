@@ -4,20 +4,19 @@ import Icon from "../art/Icon.jsx";
 import { healthState } from "../lib/compute.js";
 import { HEALTH, Q_TITLES, S_TITLES, P_TITLES, titleOf } from "../data/rules.js";
 import { DOW, fDate, fTime, pl, durationText } from "../lib/util.js";
-import { savings } from "../lib/smoking.js";
-
-const eur = (v) => v.toLocaleString("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: v >= 100 ? 0 : 2 });
+import { useState } from "react";
+import { GainsCard } from "../components/Gains.jsx";
+import { SmokeSheet } from "../components/SmokeSheet.jsx";
 
 /**
- * Accueil, réduit à l'essentiel : depuis quand, le bouton pour une envie, ce qu'on a gagné,
+ * Accueil, réduit à l'essentiel : depuis quand, les boutons « envie » et « cigarette », ce qu'on a gagné,
  * le niveau de chaque catégorie affichée et le prochain cap santé. Le reste vit dans sa catégorie.
  */
 export default function Home() {
   const { S, go, startCraving, state } = useApp();
   const on = (id) => sectionOn(state, id);
   const hs = healthState(S);
-  const cpd = state.cpd || 0;
-  const sv = savings(S.ev, { now: S.now, startAt: S.startAt, cpd, price: state.packPrice || 0, pack: state.packSize || 20 });
+  const [smoke, setSmoke] = useState(false);
   const levels = [
     { k: "quit", n: "Sevrage", lv: S.quit, t: Q_TITLES, to: "sevrage", show: true },
     { k: "sport", n: "Sport", lv: S.sport, t: S_TITLES, to: "circuit", show: on("sport") },
@@ -33,15 +32,13 @@ export default function Home() {
           Depuis le {DOW[S.q.getDay()]} {fDate(S.q)} à {fTime(S.q)}
           {S.best > S.streak ? ` · record ${pl(S.best, "jour")}` : ""}
         </span>
+        {S.cravAll.length > 0 && <span className="since">{S.cravAll.length} {S.cravAll.length > 1 ? "envies tenues" : "envie tenue"}</span>}
         <button className="hero-cta" type="button" onClick={startCraving}>J'ai envie de fumer</button>
+        <button className="hero-cta2" type="button" onClick={() => setSmoke(true)}>J'ai fumé une cigarette</button>
       </section>
+      {smoke && <SmokeSheet onClose={() => setSmoke(false)} />}
 
-      <section className="gains" aria-label="Ce que tu as gagné">
-        <div><b>{S.cravAll.length}</b><span>{S.cravAll.length > 1 ? "envies tenues" : "envie tenue"}</span></div>
-        {sv
-          ? <><div><b>{sv.avoided.toLocaleString("fr-FR")}</b><span>cigarettes évitées</span></div>{sv.saved > 0 && <div><b>{eur(sv.saved)}</b><span>économisés</span></div>}</>
-          : on("sante") && <button type="button" className="gains-set" onClick={() => go("risques")}>Indique ta conso pour voir tes économies ›</button>}
-      </section>
+      <GainsCard />
 
       <section className="lvl-list" aria-label="Niveaux">
         {levels.map((l) => (

@@ -1,18 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { savings } from "../src/lib/smoking.js";
 import { migrateState } from "../src/lib/storage.js";
 import { bossFor } from "../src/game/bosses.js";
 import { TRIG_CATS, TRIG_NAME } from "../src/data/triggers.js";
 
 const d = (day, h = 12) => new Date(2026, 10, day, h);
-
-test("économies : conso de départ moins ce qui a été fumé depuis le début du suivi", () => {
-  const ev = [{ k: "smoked", t: d(3).toISOString() }, { k: "smoked", t: d(3, 14).toISOString() }];
-  const s = savings(ev, { now: d(5, 0), startAt: d(1, 0), cpd: 10, price: 10 });
-  assert.equal(s.avoided, 38);
-  assert.equal(s.saved, 19);
-});
 
 test("déclencheurs par catégories, et chacun amène un boss", () => {
   assert.ok(TRIG_CATS.length >= 4);

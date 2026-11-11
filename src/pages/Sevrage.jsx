@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { useApp, sectionOn } from "../store/AppStore.jsx";
 import { Stat, LevelCard, Panel, multText } from "../components/ui.jsx";
 import { CRAV_XP, QUIT_MAX, REBOUND_XP, HEALTH } from "../data/rules.js";
 import CravingHost from "../components/CravingHost.jsx";
-import { SmokeSheet } from "../components/SmokeSheet.jsx";
-import { fTime, pl } from "../lib/util.js";
+import { pl } from "../lib/util.js";
 
 const nf = (v) => v.toLocaleString("fr-FR");
 /** D'où vient le multiplicateur : le dernier cap santé atteint, ou la moitié gardée après une cigarette. */
@@ -15,11 +13,7 @@ const multNote = (S) => {
 };
 
 export default function Sevrage() {
-  const { S, state, go, undoSmoke } = useApp();
-  const [confirm, setConfirm] = useState(false);
-  // une cigarette notée par erreur s'annule dans le quart d'heure
-  const lastEv = S.smokes[S.smokes.length - 1];
-  const canUndo = lastEv && S.now - new Date(lastEv.t) < 15 * 60e3;
+  const { S, state, go } = useApp();
 
   return (
     <Panel id="sevrage">
@@ -65,13 +59,6 @@ export default function Sevrage() {
         <p className="tip">Une envie tenue au sport rapporte aussi l'XP sport du circuit, et un combat de l'XP joueur pour l'arbre de compétences.</p>
       </details>
 
-      <section className="stack">
-        <h2>Rechute</h2>
-        <p className="sub">Si tu as fumé, dis-le ici : ta série et tes caps santé repartent de zéro, ton multiplicateur garde la moitié de son bonus. Ton XP et ton niveau sont gardés.</p>
-        <button className="btn danger" type="button" onClick={() => setConfirm(true)}>J'ai fumé une cigarette</button>
-        {canUndo && <button className="linkbtn" type="button" style={{ alignSelf: "flex-start" }} onClick={() => undoSmoke(lastEv)}>Annuler la cigarette notée à {fTime(new Date(lastEv.t))}</button>}
-        {confirm && <SmokeSheet onClose={() => setConfirm(false)} />}
-      </section>
     </Panel>
   );
 }
